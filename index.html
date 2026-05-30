@@ -10,6 +10,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Fraunces:wght@600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -66,7 +69,7 @@
     justify-content: space-between;
     padding: 0 18px;
     flex-shrink: 0;
-    z-index: 10;
+    z-index: 1010; /* Au-dessus de Leaflet (1000) */
   }
 
   .logo {
@@ -76,9 +79,7 @@
     color: var(--text-dark);
     letter-spacing: -0.3px;
   }
-
   .logo span { color: var(--amber); }
-
   .header-actions { display: flex; gap: 10px; align-items: center; }
 
   .icon-btn {
@@ -93,35 +94,25 @@
     cursor: pointer;
     color: var(--text-mid);
     font-size: 18px;
-    transition: background 0.15s;
   }
-  .icon-btn:active { background: #ece8e0; }
 
   /* ── PAGES ── */
-  .pages {
-    flex: 1;
-    overflow: hidden;
-    position: relative;
-  }
-
+  .pages { flex: 1; overflow: hidden; position: relative; }
   .page {
     position: absolute;
     inset: 0;
     overflow-y: auto;
     overflow-x: hidden;
-    -webkit-overflow-scrolling: touch;
     opacity: 0;
     pointer-events: none;
     transform: translateY(8px);
     transition: opacity 0.2s ease, transform 0.2s ease;
     background: var(--white);
   }
+  .page.active { opacity: 1; pointer-events: all; transform: translateY(0); }
 
-  .page.active {
-    opacity: 1;
-    pointer-events: all;
-    transform: translateY(0);
-  }
+  /* Ajustement spécifique pour la page carte pour éviter le double scroll */
+  #page-farms { overflow: hidden; }
 
   /* ── BOTTOM NAV ── */
   .bottom-nav {
@@ -131,10 +122,9 @@
     display: flex;
     align-items: stretch;
     flex-shrink: 0;
-    z-index: 20;
+    z-index: 1010;
     padding-bottom: env(safe-area-inset-bottom);
   }
-
   .nav-item {
     flex: 1;
     display: flex;
@@ -146,28 +136,12 @@
     background: none;
     border: none;
     color: var(--text-light);
-    font-family: 'DM Sans', sans-serif;
     font-size: 10.5px;
     font-weight: 500;
-    letter-spacing: 0.1px;
-    transition: color 0.15s;
-    -webkit-tap-highlight-color: transparent;
-    padding: 8px 4px 4px;
   }
-
-  .nav-item i { font-size: 22px; transition: transform 0.2s; }
+  .nav-item i { font-size: 22px; }
   .nav-item.active { color: var(--amber-dark); }
-  .nav-item.active i { transform: scale(1.05); }
-
-  .nav-dot {
-    width: 4px;
-    height: 4px;
-    border-radius: 50%;
-    background: var(--amber);
-    opacity: 0;
-    transition: opacity 0.15s;
-    margin-top: -2px;
-  }
+  .nav-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--amber); opacity: 0; }
   .nav-item.active .nav-dot { opacity: 1; }
 
   /* ── FAB ── */
@@ -185,1600 +159,368 @@
     align-items: center;
     justify-content: center;
     box-shadow: var(--shadow-fab);
-    z-index: 30;
+    z-index: 1005;
     color: white;
     font-size: 24px;
-    transition: transform 0.15s, background 0.15s;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .fab:active { transform: scale(0.93); background: var(--amber-dark); }
-  .fab-tooltip {
-    position: absolute;
-    bottom: calc(var(--nav-h) + 80px);
-    left: 14px;
-    background: var(--text-dark);
-    color: white;
-    font-size: 12px;
-    font-weight: 500;
-    padding: 6px 12px;
-    border-radius: var(--radius-md);
-    white-space: nowrap;
-    opacity: 0;
-    pointer-events: none;
-    transform: translateY(4px);
-    transition: opacity 0.2s, transform 0.2s;
-  }
-  .fab-tooltip::after {
-    content: '';
-    position: absolute;
-    bottom: -5px;
-    left: 18px;
-    border: 5px solid transparent;
-    border-bottom: 0;
-    border-top-color: var(--text-dark);
-  }
-  .fab:hover + .fab-tooltip,
-  .fab-tooltip.show { opacity: 1; transform: translateY(0); }
-
-  /* ── HOME PAGE ── */
-  .home-hero {
-    background: var(--amber-pale);
-    padding: 28px 20px 24px;
-    border-bottom: 0.5px solid var(--border);
   }
 
-  .home-greeting {
-    font-size: 13px;
-    color: var(--text-light);
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-    margin-bottom: 6px;
-  }
-
-  .home-title {
-    font-family: 'Fraunces', serif;
-    font-size: 26px;
-    font-weight: 700;
-    color: var(--text-dark);
-    line-height: 1.25;
-    margin-bottom: 14px;
-  }
-
+  /* ── HOME ── */
+  .home-hero { background: var(--amber-pale); padding: 28px 20px 24px; border-bottom: 0.5px solid var(--border); }
+  .home-greeting { font-size: 13px; color: var(--text-light); font-weight: 500; text-transform: uppercase; }
+  .home-title { font-family: 'Fraunces', serif; font-size: 26px; font-weight: 700; line-height: 1.25; margin-bottom: 14px; }
   .home-title em { color: var(--amber-dark); font-style: normal; }
-
-  .home-search {
-    display: flex;
-    align-items: center;
-    background: var(--white);
-    border: 0.5px solid var(--border-mid);
-    border-radius: var(--radius-lg);
-    padding: 0 14px;
-    height: 44px;
-    gap: 10px;
-    box-shadow: var(--shadow-sm);
-  }
-
-  .home-search i { color: var(--text-light); font-size: 18px; }
-  .home-search input {
-    flex: 1;
-    border: none;
-    outline: none;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 15px;
-    color: var(--text-dark);
-    background: transparent;
-  }
-  .home-search input::placeholder { color: var(--text-light); }
-
-  .home-stats {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-    padding: 18px 18px 0;
-  }
-
-  .stat-card {
-    background: var(--off-white);
-    border-radius: var(--radius-md);
-    padding: 14px 12px;
-    text-align: center;
-    border: 0.5px solid var(--border);
-  }
-
-  .stat-num {
-    font-family: 'Fraunces', serif;
-    font-size: 22px;
-    font-weight: 700;
-    color: var(--text-dark);
-    line-height: 1;
-  }
-
-  .stat-label {
-    font-size: 11px;
-    color: var(--text-light);
-    margin-top: 4px;
-    font-weight: 500;
-  }
-
-  .section-title {
-    font-family: 'Fraunces', serif;
-    font-size: 17px;
-    font-weight: 600;
-    color: var(--text-dark);
-    padding: 20px 18px 12px;
-  }
-
-  .quick-actions {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
-    padding: 0 18px;
-  }
-
-  .qa-card {
-    background: var(--white);
-    border: 0.5px solid var(--border);
-    border-radius: var(--radius-lg);
-    padding: 16px 14px;
-    cursor: pointer;
-    transition: box-shadow 0.15s, transform 0.1s;
-    box-shadow: var(--shadow-sm);
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .qa-card:active { transform: scale(0.97); box-shadow: none; }
-
-  .qa-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: var(--radius-md);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 20px;
-  }
-
+  .home-search { display: flex; align-items: center; background: var(--white); border: 0.5px solid var(--border-mid); border-radius: var(--radius-lg); padding: 0 14px; height: 44px; gap: 10px; }
+  .home-search input { flex: 1; border: none; outline: none; font-size: 15px; }
+  
+  .home-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 18px 18px 0; }
+  .stat-card { background: var(--off-white); border-radius: var(--radius-md); padding: 14px 12px; text-align: center; border: 0.5px solid var(--border); }
+  .stat-num { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 700; }
+  .stat-label { font-size: 11px; color: var(--text-light); margin-top: 4px; }
+  
+  .section-title { font-family: 'Fraunces', serif; font-size: 17px; font-weight: 600; padding: 20px 18px 12px; }
+  .quick-actions { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 0 18px; }
+  .qa-card { background: var(--white); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 16px 14px; cursor: pointer; display: flex; flex-direction: column; gap: 10px; box-shadow: var(--shadow-sm); }
+  .qa-icon { width: 40px; height: 40px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-size: 20px; }
   .qa-icon.farms { background: #EAF3DE; color: #3B6D11; }
   .qa-icon.deals { background: #FEF3DC; color: #854F0B; }
   .qa-icon.prices { background: #E6F1FB; color: #185FA5; }
   .qa-icon.community { background: #FBEAF0; color: #993556; }
+  .qa-name { font-size: 14px; font-weight: 600; }
+  .qa-sub { font-size: 12px; color: var(--text-light); }
 
-  .qa-name {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--text-dark);
-    line-height: 1.3;
-  }
-
-  .qa-sub {
-    font-size: 12px;
-    color: var(--text-light);
-    line-height: 1.4;
-  }
-
-  .recent-posts {
-    padding: 0 18px 100px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .post-card {
-    background: var(--white);
-    border: 0.5px solid var(--border);
-    border-radius: var(--radius-lg);
-    padding: 14px 16px;
-    box-shadow: var(--shadow-sm);
-  }
-
-  .post-header {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 8px;
-  }
-
-  .avatar {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background: var(--amber-light);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--amber-dark);
-    flex-shrink: 0;
-  }
-
-  .post-meta { flex: 1; min-width: 0; }
-  .post-author { font-size: 13px; font-weight: 600; color: var(--text-dark); }
-  .post-time { font-size: 11px; color: var(--text-light); }
-
-  .post-tag {
-    font-size: 10.5px;
-    font-weight: 600;
-    padding: 3px 8px;
-    border-radius: 20px;
-    flex-shrink: 0;
-  }
-
-  .post-tag.farm { background: #EAF3DE; color: #3B6D11; }
-  .post-tag.deal { background: #FEF3DC; color: #854F0B; }
-  .post-tag.tip { background: #E6F1FB; color: #185FA5; }
-
-  .post-text { font-size: 14px; color: var(--text-mid); line-height: 1.5; }
-
-  .post-footer {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    margin-top: 10px;
-    padding-top: 10px;
-    border-top: 0.5px solid var(--border);
-  }
-
-  .post-action {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 12px;
-    color: var(--text-light);
-    font-weight: 500;
-    cursor: pointer;
-    background: none;
-    border: none;
-    font-family: 'DM Sans', sans-serif;
-  }
-  .post-action i { font-size: 15px; }
-
-  /* ── FARMS MAP PAGE ── */
-  .map-container {
-    position: relative;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .map-filters {
-    display: flex;
-    gap: 8px;
-    padding: 12px 16px;
-    overflow-x: auto;
-    flex-shrink: 0;
-    scrollbar-width: none;
-    background: var(--white);
-    border-bottom: 0.5px solid var(--border);
-    z-index: 5;
-  }
+  /* ── LEAFLET MAP CONTAINERS ── */
+  .map-container { position: relative; height: 100%; display: flex; flex-direction: column; }
+  .map-filters { display: flex; gap: 8px; padding: 12px 16px; overflow-x: auto; flex-shrink: 0; background: var(--white); border-bottom: 0.5px solid var(--border); z-index: 1005; }
   .map-filters::-webkit-scrollbar { display: none; }
-
-  .filter-pill {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    padding: 6px 14px;
-    border-radius: 20px;
-    background: var(--off-white);
-    border: 0.5px solid var(--border-mid);
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--text-mid);
-    white-space: nowrap;
-    cursor: pointer;
-    transition: all 0.15s;
-    font-family: 'DM Sans', sans-serif;
-  }
-
-  .filter-pill.active {
-    background: var(--amber);
-    border-color: var(--amber);
-    color: white;
-  }
-
-  .filter-pill i { font-size: 15px; }
-
-  .map-area {
-    flex: 1;
-    position: relative;
-    background: #E8EFE6;
-    overflow: hidden;
-  }
-
-  /* Fake map tiles */
-  .fake-map {
-    width: 100%;
-    height: 100%;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .map-bg {
-    position: absolute;
-    inset: 0;
-    background:
-      repeating-linear-gradient(0deg, rgba(255,255,255,0.25) 0px, transparent 1px, transparent 40px, rgba(255,255,255,0.25) 41px),
-      repeating-linear-gradient(90deg, rgba(255,255,255,0.25) 0px, transparent 1px, transparent 40px, rgba(255,255,255,0.25) 41px),
-      linear-gradient(160deg, #d4e6cc 0%, #c8dbc0 30%, #dce8c8 60%, #cce0d4 100%);
-  }
-
-  .map-road {
-    position: absolute;
-    background: rgba(255,255,255,0.55);
-    border-radius: 2px;
-  }
-
-  /* Map pin */
-  .map-pin {
-    position: absolute;
-    transform: translate(-50%, -100%);
-    cursor: pointer;
-    transition: transform 0.15s;
-    z-index: 5;
-  }
-  .map-pin:active { transform: translate(-50%, -100%) scale(0.9); }
-
-  .pin-body {
-    width: 36px;
-    height: 36px;
-    border-radius: 50% 50% 50% 0;
-    transform: rotate(-45deg);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-    font-size: 16px;
-    border: 2.5px solid white;
-  }
-
-  .pin-body.farm { background: #3B6D11; }
-  .pin-body.deal { background: var(--amber-dark); }
-
-  .pin-icon {
-    transform: rotate(45deg);
-    color: white;
-    font-size: 16px;
-  }
-
-  .map-popup {
-    position: absolute;
-    background: var(--white);
-    border-radius: var(--radius-lg);
-    padding: 14px 16px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.16), 0 0 0 0.5px rgba(0,0,0,0.08);
-    width: 220px;
-    z-index: 20;
-    transform: translateX(-50%);
-    bottom: 100%;
-    margin-bottom: 10px;
-    display: none;
-  }
-  .map-popup.open { display: block; }
-
-  .popup-name {
-    font-weight: 600;
-    font-size: 14px;
-    color: var(--text-dark);
-    margin-bottom: 3px;
-  }
-  .popup-detail { font-size: 12px; color: var(--text-light); margin-bottom: 10px; }
-  .popup-badges { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 10px; }
-
-  .badge {
-    font-size: 11px;
-    font-weight: 600;
-    padding: 3px 8px;
-    border-radius: 20px;
-    background: #EAF3DE;
-    color: #3B6D11;
-  }
-
-  .badge.deal { background: #FEF3DC; color: #854F0B; }
-  .badge.paid { background: #E6F1FB; color: #185FA5; }
-
-  .popup-btn {
-    width: 100%;
-    padding: 8px;
-    border-radius: var(--radius-md);
-    background: var(--amber);
-    color: white;
-    border: none;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.15s;
-  }
-  .popup-btn:active { background: var(--amber-dark); }
-
-  .farms-list {
-    flex-shrink: 0;
-    max-height: 200px;
-    overflow-y: auto;
-    background: var(--white);
-    border-top: 0.5px solid var(--border);
-  }
-
-  .farm-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 16px;
-    border-bottom: 0.5px solid var(--border);
-    cursor: pointer;
-    transition: background 0.1s;
-  }
-  .farm-row:active { background: var(--off-white); }
-
-  .farm-icon-wrap {
-    width: 38px;
-    height: 38px;
-    border-radius: var(--radius-md);
-    background: #EAF3DE;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    color: #3B6D11;
-    font-size: 18px;
-  }
-
-  .farm-info { flex: 1; min-width: 0; }
-  .farm-name { font-size: 14px; font-weight: 600; color: var(--text-dark); }
-  .farm-meta { font-size: 12px; color: var(--text-light); margin-top: 1px; }
-
-  .farm-chip {
-    font-size: 11px;
-    font-weight: 600;
-    padding: 4px 9px;
-    border-radius: 20px;
-    background: #EAF3DE;
-    color: #3B6D11;
-    flex-shrink: 0;
-  }
-
-  /* ── DEALS PAGE ── */
-  .deals-header {
-    padding: 16px 18px 0;
-  }
-
-  .deals-intro {
-    background: linear-gradient(135deg, var(--amber-pale) 0%, #FEF9F0 100%);
-    border: 0.5px solid rgba(245,166,35,0.2);
-    border-radius: var(--radius-lg);
-    padding: 14px 16px;
-    margin-bottom: 14px;
-  }
-
-  .deals-intro-title {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--text-dark);
-    margin-bottom: 3px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  .deals-intro i { color: var(--amber); font-size: 16px; }
-
-  .deals-intro-text {
-    font-size: 12.5px;
-    color: var(--text-mid);
-    line-height: 1.5;
-  }
-
-  .community-bar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: var(--off-white);
-    border-radius: var(--radius-md);
-    padding: 10px 14px;
-    margin-bottom: 16px;
-    border: 0.5px solid var(--border);
-  }
-
-  .community-count {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--text-dark);
-  }
-
-  .community-goal {
-    font-size: 11.5px;
-    color: var(--text-light);
-  }
-
-  .progress-bar-wrap {
-    width: 100px;
-    height: 6px;
-    background: var(--border);
-    border-radius: 3px;
-    overflow: hidden;
-  }
-
-  .progress-bar-fill {
-    height: 100%;
-    background: var(--amber);
-    border-radius: 3px;
-    transition: width 0.5s ease;
-  }
-
-  .city-section {
-    padding: 0 18px;
-    margin-bottom: 8px;
-  }
-
-  .city-label {
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-    color: var(--text-light);
-    padding: 0 0 8px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  .city-label i { font-size: 14px; color: var(--amber); }
-
-  .deal-card {
-    background: var(--white);
-    border: 0.5px solid var(--border);
-    border-radius: var(--radius-lg);
-    padding: 14px 16px;
-    margin-bottom: 8px;
-    box-shadow: var(--shadow-sm);
-    position: relative;
-    overflow: hidden;
-  }
-
-  .deal-card::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 3px;
-    background: var(--amber);
-  }
-
-  .deal-card-header {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    margin-bottom: 10px;
-  }
-
-  .deal-logo {
-    width: 40px;
-    height: 40px;
-    border-radius: var(--radius-md);
-    background: var(--amber-light);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 20px;
-    flex-shrink: 0;
-  }
-
-  .deal-name { font-size: 15px; font-weight: 600; color: var(--text-dark); }
-  .deal-type { font-size: 12px; color: var(--text-light); margin-top: 1px; }
-
-  .deal-discount {
-    margin-left: auto;
-    font-family: 'Fraunces', serif;
-    font-size: 20px;
-    font-weight: 700;
-    color: var(--amber-dark);
-    flex-shrink: 0;
-  }
-
-  .deal-desc { font-size: 13px; color: var(--text-mid); line-height: 1.5; margin-bottom: 10px; }
-
-  .deal-footer {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-
-  .deal-status {
-    font-size: 11px;
-    font-weight: 600;
-    padding: 3px 9px;
-    border-radius: 20px;
-  }
-
-  .deal-status.active { background: #EAF3DE; color: #3B6D11; }
-  .deal-status.pending { background: #FEF3DC; color: #854F0B; }
-  .deal-status.community { background: #FBEAF0; color: #993556; }
-
-  .deal-verify {
-    font-size: 11px;
-    color: var(--text-light);
-    margin-left: auto;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-  }
-  .deal-verify i { font-size: 13px; }
-
-  /* Price table card */
-  .price-card {
-    background: var(--white);
-    border: 0.5px solid var(--border);
-    border-radius: var(--radius-lg);
-    margin: 0 18px 8px;
-    overflow: hidden;
-    box-shadow: var(--shadow-sm);
-  }
-
-  .price-card-header {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 12px 14px;
-    border-bottom: 0.5px solid var(--border);
-    background: var(--off-white);
-  }
-
-  .price-card-header i { font-size: 18px; color: var(--amber-dark); }
-  .price-card-title { font-size: 14px; font-weight: 600; color: var(--text-dark); }
-
-  .price-table { width: 100%; border-collapse: collapse; }
-  .price-table tr:not(:last-child) td { border-bottom: 0.5px solid var(--border); }
-
-  .price-table td {
-    padding: 10px 14px;
-    font-size: 13px;
-    color: var(--text-mid);
-  }
-
-  .price-table td:last-child {
-    text-align: right;
-    font-weight: 600;
-    color: var(--text-dark);
-  }
-
-  .price-row-label { display: flex; align-items: center; gap: 6px; }
-
-  /* ── FORUM PAGE ── */
-  .forum-tabs {
-    display: flex;
-    gap: 0;
-    border-bottom: 0.5px solid var(--border);
-    background: var(--white);
-    padding: 0 14px;
-    flex-shrink: 0;
-  }
-
-  .forum-tab {
-    padding: 12px 14px;
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--text-light);
-    cursor: pointer;
-    border-bottom: 2px solid transparent;
-    transition: color 0.15s, border-color 0.15s;
-    background: none;
-    border-top: none;
-    border-left: none;
-    border-right: none;
-    font-family: 'DM Sans', sans-serif;
-    white-space: nowrap;
-  }
-
-  .forum-tab.active {
-    color: var(--amber-dark);
-    border-bottom-color: var(--amber);
-  }
-
-  .forum-content {
-    flex: 1;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .forum-post {
-    padding: 14px 16px;
-    border-bottom: 0.5px solid var(--border);
-    cursor: pointer;
-    transition: background 0.1s;
-    background: var(--white);
-  }
-  .forum-post:active { background: var(--off-white); }
-
-  .forum-post-header {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 8px;
-  }
-
-  .forum-avatar {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-    font-weight: 600;
-    flex-shrink: 0;
-  }
-
-  .fa-amber { background: var(--amber-light); color: var(--amber-dark); }
-  .fa-green { background: #EAF3DE; color: #3B6D11; }
-  .fa-blue { background: #E6F1FB; color: #185FA5; }
-  .fa-pink { background: #FBEAF0; color: #993556; }
-
-  .fp-meta { flex: 1; min-width: 0; }
-  .fp-author { font-size: 13.5px; font-weight: 600; color: var(--text-dark); }
-  .fp-time { font-size: 11px; color: var(--text-light); }
-
-  .fp-category {
-    font-size: 10.5px;
-    font-weight: 600;
-    padding: 3px 8px;
-    border-radius: 20px;
-    flex-shrink: 0;
-  }
-
-  .fp-cat-farm { background: #EAF3DE; color: #3B6D11; }
-  .fp-cat-deal { background: #FEF3DC; color: #854F0B; }
-  .fp-cat-visa { background: #E6F1FB; color: #185FA5; }
-  .fp-cat-tips { background: #FBEAF0; color: #993556; }
-  .fp-cat-general { background: var(--off-white); color: var(--text-mid); }
-
-  .fp-title {
-    font-size: 14.5px;
-    font-weight: 600;
-    color: var(--text-dark);
-    margin-bottom: 4px;
-    line-height: 1.35;
-  }
-
-  .fp-preview {
-    font-size: 13px;
-    color: var(--text-light);
-    line-height: 1.4;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-
-  .fp-footer {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    margin-top: 10px;
-  }
-
-  .fp-stat {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 12px;
-    color: var(--text-light);
-    font-weight: 500;
-  }
-  .fp-stat i { font-size: 14px; }
-
-  .fp-pinned {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 11px;
-    color: var(--amber-dark);
-    font-weight: 600;
-    margin-left: auto;
-  }
-  .fp-pinned i { font-size: 13px; }
-
-  /* ── SUBMIT MODAL ── */
-  .modal-backdrop {
-    position: absolute;
-    inset: 0;
-    background: rgba(0,0,0,0.4);
-    z-index: 50;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.25s;
-  }
-
+  .filter-pill { display: flex; align-items: center; gap: 5px; padding: 6px 14px; border-radius: 20px; background: var(--off-white); border: 0.5px solid var(--border-mid); font-size: 13px; font-weight: 500; cursor: pointer; }
+  .filter-pill.active { background: var(--amber); border-color: var(--amber); color: white; }
+  
+  /* Zone de la vraie carte */
+  .map-area { flex: 1; position: relative; background: #E8EFE6; }
+  #leafletMap { width: 100%; height: 100%; }
+
+  /* Custom Leaflet Popup Styles for Theme Match */
+  .leaflet-popup-content-wrapper { border-radius: var(--radius-lg); padding: 6px; font-family: 'DM Sans', sans-serif; }
+  .popup-title { font-weight: 600; font-size: 14px; color: var(--text-dark); margin-bottom: 2px; }
+  .popup-desc { font-size: 12px; color: var(--text-mid); margin-bottom: 6px; }
+  .popup-badge { display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 20px; background: #EAF3DE; color: #3B6D11; }
+
+  .farms-list { flex-shrink: 0; max-height: 180px; overflow-y: auto; background: var(--white); border-top: 0.5px solid var(--border); z-index: 1005; }
+  .farm-row { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 0.5px solid var(--border); cursor: pointer; }
+  .farm-icon-wrap { width: 38px; height: 38px; border-radius: var(--radius-md); background: #EAF3DE; display: flex; align-items: center; justify-content: center; color: #3B6D11; }
+  .farm-info { flex: 1; }
+  .farm-name { font-size: 14px; font-weight: 600; }
+  .farm-meta { font-size: 12px; color: var(--text-light); }
+  .farm-chip { font-size: 11px; font-weight: 600; padding: 4px 9px; border-radius: 20px; background: #EAF3DE; color: #3B6D11; }
+
+  /* MODAL */
+  .modal-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.4); z-index: 2000; display: flex; flex-direction: column; justify-content: flex-end; opacity: 0; pointer-events: none; transition: opacity 0.25s; }
   .modal-backdrop.open { opacity: 1; pointer-events: all; }
-
-  .modal-sheet {
-    background: var(--white);
-    border-radius: 20px 20px 0 0;
-    padding: 20px 20px 40px;
-    transform: translateY(100%);
-    transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
-    max-height: 90vh;
-    overflow-y: auto;
-  }
-
+  .modal-sheet { background: var(--white); border-radius: 20px 20px 0 0; padding: 20px 20px 40px; transform: translateY(100%); transition: transform 0.3s ease; max-height: 85vh; overflow-y: auto; }
   .modal-backdrop.open .modal-sheet { transform: translateY(0); }
+  .modal-handle { width: 36px; height: 4px; background: var(--border-mid); border-radius: 2px; margin: 0 auto 20px; }
+  .modal-title { font-family: 'Fraunces', serif; font-size: 20px; font-weight: 700; }
+  .form-group { margin-bottom: 12px; }
+  .form-label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 4px; text-transform: uppercase; }
+  .form-input, .form-textarea, .form-select { width: 100%; padding: 10px; border: 0.5px solid var(--border-mid); border-radius: var(--radius-md); font-family: 'DM Sans', sans-serif; }
+  .submit-btn { width: 100%; padding: 14px; background: var(--amber); color: white; border: none; border-radius: var(--radius-lg); font-family: 'Fraunces', serif; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 10px; }
 
-  .modal-handle {
-    width: 36px;
-    height: 4px;
-    background: var(--border-mid);
-    border-radius: 2px;
-    margin: 0 auto 20px;
-  }
-
-  .modal-title {
-    font-family: 'Fraunces', serif;
-    font-size: 20px;
-    font-weight: 700;
-    color: var(--text-dark);
-    margin-bottom: 4px;
-  }
-
-  .modal-sub {
-    font-size: 13px;
-    color: var(--text-light);
-    margin-bottom: 20px;
-    line-height: 1.4;
-  }
-
-  .form-group { margin-bottom: 14px; }
-
-  .form-label {
-    display: block;
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--text-mid);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 6px;
-  }
-
-  .form-input, .form-select, .form-textarea {
-    width: 100%;
-    padding: 11px 14px;
-    border: 0.5px solid var(--border-mid);
-    border-radius: var(--radius-md);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 15px;
-    color: var(--text-dark);
-    background: var(--white);
-    outline: none;
-    transition: border-color 0.15s;
-    -webkit-appearance: none;
-  }
-
-  .form-input:focus, .form-select:focus, .form-textarea:focus {
-    border-color: var(--amber);
-    box-shadow: 0 0 0 3px rgba(245,166,35,0.12);
-  }
-
-  .form-textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
-
-  .type-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
-  }
-
-  .type-option {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 6px;
-    padding: 12px 8px;
-    border: 1.5px solid var(--border);
-    border-radius: var(--radius-md);
-    cursor: pointer;
-    transition: all 0.15s;
-    background: var(--white);
-    font-family: 'DM Sans', sans-serif;
-  }
-
-  .type-option i { font-size: 22px; color: var(--text-mid); }
-  .type-option span { font-size: 12.5px; font-weight: 600; color: var(--text-mid); }
-  .type-option.selected { border-color: var(--amber); background: var(--amber-pale); }
-  .type-option.selected i, .type-option.selected span { color: var(--amber-dark); }
-
-  .submit-btn {
-    width: 100%;
-    padding: 14px;
-    background: var(--amber);
-    color: white;
-    border: none;
-    border-radius: var(--radius-lg);
-    font-family: 'Fraunces', serif;
-    font-size: 16px;
-    font-weight: 700;
-    cursor: pointer;
-    margin-top: 6px;
-    transition: background 0.15s, transform 0.1s;
-    letter-spacing: 0.2px;
-  }
-
-  .submit-btn:active { background: var(--amber-dark); transform: scale(0.98); }
-
-  .submit-note {
-    font-size: 12px;
-    color: var(--text-light);
-    text-align: center;
-    margin-top: 10px;
-    line-height: 1.5;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 5px;
-  }
-
-  .submit-note i { font-size: 14px; color: var(--amber); }
-
-  /* ── SCROLL PADDING ── */
-  .scroll-pad { height: 90px; }
-
-  /* ── SUCCESS TOAST ── */
-  .toast {
-    position: absolute;
-    bottom: calc(var(--nav-h) + 20px);
-    left: 50%;
-    transform: translateX(-50%) translateY(20px);
-    background: var(--text-dark);
-    color: white;
-    padding: 10px 18px;
-    border-radius: var(--radius-lg);
-    font-size: 13.5px;
-    font-weight: 500;
-    white-space: nowrap;
-    z-index: 60;
-    opacity: 0;
-    transition: opacity 0.25s, transform 0.25s;
-    display: flex;
-    align-items: center;
-    gap: 7px;
-    pointer-events: none;
-  }
-
-  .toast.show {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0);
-  }
-
-  .toast i { color: #70d98a; font-size: 17px; }
+  /* TOAST */
+  .toast { position: absolute; bottom: calc(var(--nav-h) + 20px); left: 50%; transform: translateX(-50%) translateY(20px); background: var(--text-dark); color: white; padding: 10px 18px; border-radius: var(--radius-lg); font-size: 13.5px; z-index: 3000; opacity: 0; transition: all 0.25s; pointer-events: none; }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 </style>
 </head>
 <body>
 <div id="app">
 
-  <!-- HEADER -->
   <header class="app-header">
     <div class="logo">the <span>hive</span></div>
     <div class="header-actions">
-      <button class="icon-btn" onclick="showToast('Search coming soon!')" aria-label="Search">
-        <i class="ti ti-search" aria-hidden="true"></i>
-      </button>
-      <button class="icon-btn" onclick="showToast('Profile coming soon!')" aria-label="Profile">
-        <i class="ti ti-user" aria-hidden="true"></i>
-      </button>
+      <button class="icon-btn" onclick="showToast('Coming soon!')"><i class="ti ti-search"></i></button>
     </div>
   </header>
 
-  <!-- PAGES -->
   <div class="pages">
 
-    <!-- HOME -->
     <div class="page active" id="page-home">
       <div class="home-hero">
         <p class="home-greeting">Welcome back, traveller</p>
         <h1 class="home-title">Find farms, deals<br>& <em>local prices</em></h1>
         <div class="home-search">
-          <i class="ti ti-search" aria-hidden="true"></i>
-          <input type="text" placeholder="Search city, farm, deal…">
+          <i class="ti ti-search"></i>
+          <input type="text" placeholder="Search...">
         </div>
       </div>
 
       <div class="home-stats">
-        <div class="stat-card">
-          <div class="stat-num">127</div>
-          <div class="stat-label">Farms</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-num">43</div>
-          <div class="stat-label">Deals</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-num">1.2k</div>
-          <div class="stat-label">Members</div>
-        </div>
+        <div class="stat-card"><div class="stat-num" id="stat-count">0</div><div class="stat-label">Farms</div></div>
+        <div class="stat-card"><div class="stat-num">12</div><div class="stat-label">Deals</div></div>
+        <div class="stat-card"><div class="stat-num">1.2k</div><div class="stat-label">Members</div></div>
       </div>
 
       <div class="section-title">Explore</div>
       <div class="quick-actions">
         <div class="qa-card" onclick="goTo('farms')">
-          <div class="qa-icon farms"><i class="ti ti-plant-2" aria-hidden="true"></i></div>
-          <div>
-            <div class="qa-name">Farm Directory</div>
-            <div class="qa-sub">Aus & NZ interactive map</div>
-          </div>
-        </div>
-        <div class="qa-card" onclick="goTo('deals')">
-          <div class="qa-icon deals"><i class="ti ti-tag" aria-hidden="true"></i></div>
-          <div>
-            <div class="qa-name">Deals & Prices</div>
-            <div class="qa-sub">Local discounts & costs</div>
-          </div>
+          <div class="qa-icon farms"><i class="ti ti-map-2"></i></div>
+          <div class="qa-name">Interactive Map</div>
         </div>
         <div class="qa-card" onclick="openSubmit()">
-          <div class="qa-icon prices"><i class="ti ti-circle-plus" aria-hidden="true"></i></div>
-          <div>
-            <div class="qa-name">Add Info</div>
-            <div class="qa-sub">Contribute to the hive</div>
-          </div>
-        </div>
-        <div class="qa-card" onclick="goTo('forum')">
-          <div class="qa-icon community"><i class="ti ti-messages" aria-hidden="true"></i></div>
-          <div>
-            <div class="qa-name">Community</div>
-            <div class="qa-sub">Tips, stories & help</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="section-title">Latest from the community</div>
-      <div class="recent-posts">
-        <div class="post-card">
-          <div class="post-header">
-            <div class="avatar">SL</div>
-            <div class="post-meta">
-              <div class="post-author">Sophie L.</div>
-              <div class="post-time">2h ago · Byron Bay</div>
-            </div>
-            <span class="post-tag deal">Deal</span>
-          </div>
-          <p class="post-text">The Hive Café on Jonson St now gives 15% off coffee to backpackers who show the app! Just ask for the Hive rate.</p>
-          <div class="post-footer">
-            <button class="post-action"><i class="ti ti-heart" aria-hidden="true"></i> 24</button>
-            <button class="post-action"><i class="ti ti-message-circle" aria-hidden="true"></i> 6</button>
-          </div>
-        </div>
-        <div class="post-card">
-          <div class="post-header">
-            <div class="avatar">MK</div>
-            <div class="post-meta">
-              <div class="post-author">Marc K.</div>
-              <div class="post-time">Yesterday · Queenstown</div>
-            </div>
-            <span class="post-tag farm">Farm</span>
-          </div>
-          <p class="post-text">Summit Ridge Farm near Queenstown is hiring! Accommodation included, $22/hr. Amazing views of the Remarkables. DM me for the contact.</p>
-          <div class="post-footer">
-            <button class="post-action"><i class="ti ti-heart" aria-hidden="true"></i> 41</button>
-            <button class="post-action"><i class="ti ti-message-circle" aria-hidden="true"></i> 13</button>
-          </div>
-        </div>
-        <div class="post-card">
-          <div class="post-header">
-            <div class="avatar">AI</div>
-            <div class="post-meta">
-              <div class="post-author">Ana I.</div>
-              <div class="post-time">2 days ago · Melbourne</div>
-            </div>
-            <span class="post-tag tip">Tip</span>
-          </div>
-          <p class="post-text">Average grocery shop at Aldi Melbourne: $35 for a week. Way cheaper than Woolies. Brought prices to the Deals tab, check it out!</p>
-          <div class="post-footer">
-            <button class="post-action"><i class="ti ti-heart" aria-hidden="true"></i> 18</button>
-            <button class="post-action"><i class="ti ti-message-circle" aria-hidden="true"></i> 4</button>
-          </div>
+          <div class="qa-icon prices"><i class="ti ti-circle-plus"></i></div>
+          <div class="qa-name">Contribute</div>
         </div>
       </div>
     </div>
 
-    <!-- FARMS MAP -->
     <div class="page" id="page-farms">
-      <div class="map-container" style="height:100%; display:flex; flex-direction:column;">
+      <div class="map-container">
         <div class="map-filters">
-          <button class="filter-pill active" onclick="setFilter(this, 'all')">
-            <i class="ti ti-map-2" aria-hidden="true"></i> All
-          </button>
-          <button class="filter-pill" onclick="setFilter(this, 'fruit')">
-            <i class="ti ti-apple" aria-hidden="true"></i> Fruit picking
-          </button>
-          <button class="filter-pill" onclick="setFilter(this, 'veg')">
-            <i class="ti ti-leaf" aria-hidden="true"></i> Vegetables
-          </button>
-          <button class="filter-pill" onclick="setFilter(this, 'livestock')">
-            <i class="ti ti-paw" aria-hidden="true"></i> Livestock
-          </button>
-          <button class="filter-pill" onclick="setFilter(this, 'winery')">
-            <i class="ti ti-bottle" aria-hidden="true"></i> Winery
-          </button>
+          <button class="filter-pill active" onclick="filterMap('all', this)"><i class="ti ti-map-2"></i> All</button>
+          <button class="filter-pill" onclick="filterMap('fruit', this)"><i class="ti ti-apple"></i> Fruit</button>
+          <button class="filter-pill" onclick="filterMap('veg', this)"><i class="ti ti-leaf"></i> Vegetables</button>
+          <button class="filter-pill" onclick="filterMap('livestock', this)"><i class="ti ti-paw"></i> Livestock</button>
         </div>
 
-        <div class="map-area" id="mapArea">
-          <div class="fake-map" id="fakeMap">
-            <div class="map-bg"></div>
-            <!-- Roads -->
-            <div class="map-road" style="left:0;top:38%;width:100%;height:5px;transform:rotate(-2deg)"></div>
-            <div class="map-road" style="left:0;top:62%;width:100%;height:3px;transform:rotate(1deg)"></div>
-            <div class="map-road" style="left:22%;top:0;width:4px;height:100%"></div>
-            <div class="map-road" style="left:58%;top:0;width:3px;height:100%;transform:rotate(2deg)"></div>
-            <div class="map-road" style="left:75%;top:0;width:3px;height:100%;transform:rotate(-1deg)"></div>
-
-            <!-- Pins -->
-            <div class="map-pin" style="left:28%;top:42%;" onclick="openPopup(this, 'Sunny Ridge Farm', 'Mildura, VIC · 85 km', ['Fruit picking','$21/hr','Accommodation'])">
-              <div class="pin-body farm"><i class="ti ti-plant-2 pin-icon" aria-hidden="true"></i></div>
-              <div class="map-popup"><div class="popup-name">Sunny Ridge Farm</div><div class="popup-detail">Mildura, VIC · 85 km</div><div class="popup-badges"><span class="badge">Fruit picking</span><span class="badge paid">$21/hr</span><span class="badge deal">Housing avail.</span></div><button class="popup-btn" onclick="showToast('Full detail page coming soon!')">View full details</button></div>
-            </div>
-
-            <div class="map-pin" style="left:55%;top:30%;" onclick="openPopup(this, 'Blue Hills Orchard', 'Orange, NSW · 260 km', ['Apples','Pears','$22/hr'])">
-              <div class="pin-body farm"><i class="ti ti-apple pin-icon" aria-hidden="true"></i></div>
-              <div class="map-popup"><div class="popup-name">Blue Hills Orchard</div><div class="popup-detail">Orange, NSW · 260 km</div><div class="popup-badges"><span class="badge">Apples</span><span class="badge">Pears</span><span class="badge paid">$22/hr</span></div><button class="popup-btn" onclick="showToast('Full detail page coming soon!')">View full details</button></div>
-            </div>
-
-            <div class="map-pin" style="left:72%;top:55%;" onclick="openPopup(this, 'Summit Ridge Farm', 'Queenstown, NZ · 15 km', ['Vegetables','$20/hr','Housing incl.'])">
-              <div class="pin-body farm"><i class="ti ti-leaf pin-icon" aria-hidden="true"></i></div>
-              <div class="map-popup"><div class="popup-name">Summit Ridge Farm</div><div class="popup-detail">Queenstown, NZ · 15 km</div><div class="popup-badges"><span class="badge">Vegetables</span><span class="badge paid">$20/hr</span><span class="badge deal">Housing incl.</span></div><button class="popup-btn" onclick="showToast('Full detail page coming soon!')">View full details</button></div>
-            </div>
-
-            <div class="map-pin" style="left:38%;top:68%;" onclick="openPopup(this, 'Hunter Valley Winery', 'Hunter Valley, NSW', ['Winery','Harvest season','$19/hr'])">
-              <div class="pin-body farm" style="background:#854F0B;"><i class="ti ti-bottle pin-icon" aria-hidden="true"></i></div>
-              <div class="map-popup"><div class="popup-name">Hunter Valley Winery</div><div class="popup-detail">Hunter Valley, NSW</div><div class="popup-badges"><span class="badge">Winery</span><span class="badge paid">$19/hr</span></div><button class="popup-btn" onclick="showToast('Full detail page coming soon!')">View full details</button></div>
-            </div>
-
-            <div class="map-pin" style="left:18%;top:22%;" onclick="openPopup(this, 'Darwin Mango Farm', 'Darwin, NT', ['Mangoes','$20/hr','Oct–Jan'])">
-              <div class="pin-body farm"><i class="ti ti-plant-2 pin-icon" aria-hidden="true"></i></div>
-              <div class="map-popup"><div class="popup-name">Darwin Mango Farm</div><div class="popup-detail">Darwin, NT</div><div class="popup-badges"><span class="badge">Mangoes</span><span class="badge paid">$20/hr</span></div><button class="popup-btn" onclick="showToast('Full detail page coming soon!')">View full details</button></div>
-            </div>
-          </div>
+        <div class="map-area">
+          <div id="leafletMap"></div>
         </div>
 
-        <!-- Farms list below map -->
-        <div class="farms-list">
-          <div class="farm-row" onclick="showToast('Farm detail page coming soon!')">
-            <div class="farm-icon-wrap"><i class="ti ti-plant-2" aria-hidden="true"></i></div>
-            <div class="farm-info">
-              <div class="farm-name">Sunny Ridge Farm</div>
-              <div class="farm-meta">Mildura, VIC · Fruit picking</div>
-            </div>
-            <span class="farm-chip">$21/hr</span>
+        <div class="farms-list" id="list-container">
           </div>
-          <div class="farm-row" onclick="showToast('Farm detail page coming soon!')">
-            <div class="farm-icon-wrap"><i class="ti ti-apple" aria-hidden="true"></i></div>
-            <div class="farm-info">
-              <div class="farm-name">Blue Hills Orchard</div>
-              <div class="farm-meta">Orange, NSW · Apples & Pears</div>
-            </div>
-            <span class="farm-chip">$22/hr</span>
-          </div>
-          <div class="farm-row" onclick="showToast('Farm detail page coming soon!')">
-            <div class="farm-icon-wrap"><i class="ti ti-leaf" aria-hidden="true"></i></div>
-            <div class="farm-info">
-              <div class="farm-name">Summit Ridge Farm</div>
-              <div class="farm-meta">Queenstown, NZ · Vegetables</div>
-            </div>
-            <span class="farm-chip">$20/hr</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- DEALS & PRICES -->
-    <div class="page" id="page-deals">
-      <div class="deals-header">
-        <div class="deals-intro">
-          <div class="deals-intro-title"><i class="ti ti-users" aria-hidden="true"></i> Community power</div>
-          <p class="deals-intro-text">More members = more negotiating power. Help us reach 2,000 travellers to unlock city-wide deals with hostels, cafés & bars.</p>
-        </div>
-        <div class="community-bar">
-          <div>
-            <div class="community-count">1,200 members</div>
-            <div class="community-goal">Goal: 2,000 for next deals round</div>
-          </div>
-          <div>
-            <div class="progress-bar-wrap">
-              <div class="progress-bar-fill" style="width:60%"></div>
-            </div>
-            <div style="font-size:11px;color:var(--text-light);text-align:right;margin-top:3px;">60%</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Active deals -->
-      <div class="city-section">
-        <div class="city-label"><i class="ti ti-map-pin" aria-hidden="true"></i> Byron Bay, NSW</div>
-        <div class="deal-card">
-          <div class="deal-card-header">
-            <div class="deal-logo">☕</div>
-            <div>
-              <div class="deal-name">The Hive Café</div>
-              <div class="deal-type">Coffee Shop · Jonson St</div>
-            </div>
-            <div class="deal-discount">-15%</div>
-          </div>
-          <p class="deal-desc">15% off any coffee or food. Show the app at the counter and ask for the Hive rate. Valid all day.</p>
-          <div class="deal-footer">
-            <span class="deal-status active">Active</span>
-            <span class="deal-verify"><i class="ti ti-shield-check" aria-hidden="true"></i> Verified by admin</span>
-          </div>
-        </div>
-
-        <div class="deal-card">
-          <div class="deal-card-header">
-            <div class="deal-logo">🛏️</div>
-            <div>
-              <div class="deal-name">Arts Factory Lodge</div>
-              <div class="deal-type">Hostel · Skinners Shoot Rd</div>
-            </div>
-            <div class="deal-discount">-10%</div>
-          </div>
-          <p class="deal-desc">10% off dorm beds when you show The Hive app on arrival. Mention "Hive member" when booking.</p>
-          <div class="deal-footer">
-            <span class="deal-status active">Active</span>
-            <span class="deal-verify"><i class="ti ti-shield-check" aria-hidden="true"></i> Verified by admin</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="city-section" style="margin-top:6px;">
-        <div class="city-label"><i class="ti ti-map-pin" aria-hidden="true"></i> Queenstown, NZ</div>
-        <div class="deal-card">
-          <div class="deal-card-header">
-            <div class="deal-logo">🍺</div>
-            <div>
-              <div class="deal-name">Atlas Beer Café</div>
-              <div class="deal-type">Bar · Beach St</div>
-            </div>
-            <div class="deal-discount">-20%</div>
-          </div>
-          <p class="deal-desc">20% off all drinks during happy hour (5–7pm). Community deal — 180 members voted for this one!</p>
-          <div class="deal-footer">
-            <span class="deal-status community">Community pick</span>
-            <span class="deal-verify"><i class="ti ti-clock" aria-hidden="true"></i> 5–7pm only</span>
-          </div>
-        </div>
-
-        <div class="deal-card" style="opacity:0.7;">
-          <div class="deal-card-header">
-            <div class="deal-logo">🏄</div>
-            <div>
-              <div class="deal-name">Vertigo Bungee</div>
-              <div class="deal-type">Activity · Queenstown</div>
-            </div>
-            <div class="deal-discount">-?%</div>
-          </div>
-          <p class="deal-desc">Being negotiated! 340 members have voted. Reach 500 votes to unlock this deal.</p>
-          <div class="deal-footer">
-            <span class="deal-status pending">Negotiating</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Price reference table -->
-      <div class="section-title" style="padding-left:18px;">Local price guide</div>
-
-      <div class="price-card">
-        <div class="price-card-header">
-          <i class="ti ti-building-store" aria-hidden="true"></i>
-          <div class="price-card-title">Supermarket (Melbourne)</div>
-        </div>
-        <table class="price-table">
-          <tr><td>Bread (loaf)</td><td>$2.80</td></tr>
-          <tr><td>Eggs (12 pack)</td><td>$4.50</td></tr>
-          <tr><td>Chicken breast (kg)</td><td>$9.00</td></tr>
-          <tr><td>Weekly shop avg.</td><td>$35</td></tr>
-        </table>
-      </div>
-
-      <div class="price-card">
-        <div class="price-card-header">
-          <i class="ti ti-coffee" aria-hidden="true"></i>
-          <div class="price-card-title">Café prices (Sydney)</div>
-        </div>
-        <table class="price-table">
-          <tr><td>Flat white</td><td>$5.50</td></tr>
-          <tr><td>Smashed avo toast</td><td>$22</td></tr>
-          <tr><td>Lunch special</td><td>$14–18</td></tr>
-        </table>
-      </div>
-
-      <div class="price-card" style="margin-bottom:0;">
-        <div class="price-card-header">
-          <i class="ti ti-bus" aria-hidden="true"></i>
-          <div class="price-card-title">Transport (Queenstown NZ)</div>
-        </div>
-        <table class="price-table">
-          <tr><td>Local bus (single)</td><td>NZ$3</td></tr>
-          <tr><td>Airport taxi</td><td>NZ$35</td></tr>
-          <tr><td>Weekly bus pass</td><td>NZ$18</td></tr>
-        </table>
-      </div>
-
-      <div class="scroll-pad"></div>
-    </div>
-
-    <!-- FORUM -->
-    <div class="page" id="page-forum">
-      <div style="display:flex;flex-direction:column;height:100%;">
-        <div class="forum-tabs">
-          <button class="forum-tab active" onclick="switchForumTab(this)">All</button>
-          <button class="forum-tab" onclick="switchForumTab(this)">Farms</button>
-          <button class="forum-tab" onclick="switchForumTab(this)">Deals</button>
-          <button class="forum-tab" onclick="switchForumTab(this)">Visa tips</button>
-          <button class="forum-tab" onclick="switchForumTab(this)">General</button>
-        </div>
-        <div class="forum-content">
-
-          <div class="forum-post">
-            <div class="forum-post-header">
-              <div class="forum-avatar fa-amber">SL</div>
-              <div class="fp-meta">
-                <div class="fp-author">Sophie L.</div>
-                <div class="fp-time">2h ago · Byron Bay</div>
-              </div>
-              <span class="fp-category fp-cat-deal">Deal</span>
-            </div>
-            <div class="fp-title">New coffee deal at The Hive Café — 15% off all day!</div>
-            <p class="fp-preview">Just got back from there. They were super friendly, show the app and ask for the Hive rate. Works for food too apparently.</p>
-            <div class="fp-footer">
-              <span class="fp-stat"><i class="ti ti-heart" aria-hidden="true"></i> 24</span>
-              <span class="fp-stat"><i class="ti ti-message-circle" aria-hidden="true"></i> 6</span>
-              <span class="fp-pinned"><i class="ti ti-pin" aria-hidden="true"></i> Pinned</span>
-            </div>
-          </div>
-
-          <div class="forum-post">
-            <div class="forum-post-header">
-              <div class="forum-avatar fa-green">MK</div>
-              <div class="fp-meta">
-                <div class="fp-author">Marc K.</div>
-                <div class="fp-time">Yesterday · Queenstown</div>
-              </div>
-              <span class="fp-category fp-cat-farm">Farm</span>
-            </div>
-            <div class="fp-title">Summit Ridge is hiring — accommodation included</div>
-            <p class="fp-preview">Amazing place, great team. $22/hr + housing + stunning views of the Remarkables. They prefer people who can stay 3+ weeks.</p>
-            <div class="fp-footer">
-              <span class="fp-stat"><i class="ti ti-heart" aria-hidden="true"></i> 41</span>
-              <span class="fp-stat"><i class="ti ti-message-circle" aria-hidden="true"></i> 13</span>
-            </div>
-          </div>
-
-          <div class="forum-post">
-            <div class="forum-post-header">
-              <div class="forum-avatar fa-blue">JR</div>
-              <div class="fp-meta">
-                <div class="fp-author">Jules R.</div>
-                <div class="fp-time">2 days ago</div>
-              </div>
-              <span class="fp-category fp-cat-visa">Visa tips</span>
-            </div>
-            <div class="fp-title">WHV renewal: what farm work actually counts?</div>
-            <p class="fp-preview">Just finished my 88 days — here's everything I learnt about what counts for the second year visa. Fruit picking yes, packing sheds yes, farm admin no...</p>
-            <div class="fp-footer">
-              <span class="fp-stat"><i class="ti ti-heart" aria-hidden="true"></i> 87</span>
-              <span class="fp-stat"><i class="ti ti-message-circle" aria-hidden="true"></i> 34</span>
-              <span class="fp-pinned"><i class="ti ti-pin" aria-hidden="true"></i> Pinned</span>
-            </div>
-          </div>
-
-          <div class="forum-post">
-            <div class="forum-post-header">
-              <div class="forum-avatar fa-pink">AI</div>
-              <div class="fp-meta">
-                <div class="fp-author">Ana I.</div>
-                <div class="fp-time">3 days ago · Melbourne</div>
-              </div>
-              <span class="fp-category fp-cat-tips">Tips</span>
-            </div>
-            <div class="fp-title">Budget breakdown: 1 month in Melbourne</div>
-            <p class="fp-preview">Spent a month in Melbs, here's my full breakdown. Accommodation $650, food $140, transport $80, activities $120. Total: $990. Totally doable!</p>
-            <div class="fp-footer">
-              <span class="fp-stat"><i class="ti ti-heart" aria-hidden="true"></i> 62</span>
-              <span class="fp-stat"><i class="ti ti-message-circle" aria-hidden="true"></i> 19</span>
-            </div>
-          </div>
-
-          <div class="forum-post">
-            <div class="forum-post-header">
-              <div class="forum-avatar fa-green">TN</div>
-              <div class="fp-meta">
-                <div class="fp-author">Tom N.</div>
-                <div class="fp-time">4 days ago · Cairns</div>
-              </div>
-              <span class="fp-category fp-cat-general">General</span>
-            </div>
-            <div class="fp-title">Anyone heading north for mango season? Let's carpool</div>
-            <p class="fp-preview">Driving from Brisbane to Darwin in late September, space for 2 more. Split petrol costs. DM me if interested!</p>
-            <div class="fp-footer">
-              <span class="fp-stat"><i class="ti ti-heart" aria-hidden="true"></i> 15</span>
-              <span class="fp-stat"><i class="ti ti-message-circle" aria-hidden="true"></i> 8</span>
-            </div>
-          </div>
-
-          <div class="scroll-pad"></div>
-        </div>
       </div>
     </div>
 
   </div>
 
-  <!-- FAB -->
-  <button class="fab" onclick="openSubmit()" aria-label="Submit new information">
-    <i class="ti ti-plus" aria-hidden="true"></i>
-  </button>
-  <div class="fab-tooltip" id="fabTooltip">Add a farm, deal or price</div>
+  <button class="fab" onclick="openSubmit()"><i class="ti ti-plus"></i></button>
 
-  <!-- BOTTOM NAV -->
-  <nav class="bottom-nav" aria-label="Main navigation">
-    <button class="nav-item active" onclick="goTo('home')" id="nav-home">
-      <i class="ti ti-home" aria-hidden="true"></i>
-      <span>Home</span>
-      <div class="nav-dot"></div>
-    </button>
-    <button class="nav-item" onclick="goTo('farms')" id="nav-farms">
-      <i class="ti ti-map-2" aria-hidden="true"></i>
-      <span>Farms</span>
-      <div class="nav-dot"></div>
-    </button>
-    <button class="nav-item" onclick="goTo('deals')" id="nav-deals">
-      <i class="ti ti-tag" aria-hidden="true"></i>
-      <span>Deals</span>
-      <div class="nav-dot"></div>
-    </button>
-    <button class="nav-item" onclick="goTo('forum')" id="nav-forum">
-      <i class="ti ti-messages" aria-hidden="true"></i>
-      <span>Community</span>
-      <div class="nav-dot"></div>
-    </button>
+  <nav class="bottom-nav">
+    <button class="nav-item active" onclick="goTo('home')" id="nav-home"><i class="ti ti-home"></i><span>Home</span><div class="nav-dot"></div></button>
+    <button class="nav-item" onclick="goTo('farms')" id="nav-farms"><i class="ti ti-map-2"></i><span>Map</span><div class="nav-dot"></div></button>
   </nav>
 
-  <!-- SUBMIT MODAL -->
-  <div class="modal-backdrop" id="submitModal" onclick="handleBackdropClick(event)">
+  <div class="modal-backdrop" id="submitModal" onclick="if(event.target===this) closeSubmit()">
     <div class="modal-sheet">
       <div class="modal-handle"></div>
-      <div class="modal-title">Add to the hive</div>
-      <p class="modal-sub">Your submission will be reviewed by the admin before going live.</p>
-
+      <div class="modal-title">Add to the Hive</div>
+      <br>
       <div class="form-group">
-        <label class="form-label">What are you adding?</label>
-        <div class="type-grid">
-          <button class="type-option selected" onclick="selectType(this)">
-            <i class="ti ti-plant-2" aria-hidden="true"></i>
-            <span>Farm</span>
-          </button>
-          <button class="type-option" onclick="selectType(this)">
-            <i class="ti ti-tag" aria-hidden="true"></i>
-            <span>Deal / Discount</span>
-          </button>
-          <button class="type-option" onclick="selectType(this)">
-            <i class="ti ti-currency-dollar" aria-hidden="true"></i>
-            <span>Local price</span>
-          </button>
-          <button class="type-option" onclick="selectType(this)">
-            <i class="ti ti-message-circle" aria-hidden="true"></i>
-            <span>Community tip</span>
-          </button>
-        </div>
+        <label class="form-label">Type</label>
+        <select id="form-type" class="form-select">
+          <option value="fruit">Fruit picking</option>
+          <option value="veg">Vegetables</option>
+          <option value="livestock">Livestock</option>
+        </select>
       </div>
-
       <div class="form-group">
-        <label class="form-label">Name / Title</label>
-        <input type="text" class="form-input" placeholder="e.g. Blue Hills Orchard">
+        <label class="form-label">Farm Name</label>
+        <input type="text" id="form-title" class="form-input" placeholder="e.g. Sunny Orchards">
       </div>
-
       <div class="form-group">
-        <label class="form-label">City & Country</label>
-        <input type="text" class="form-input" placeholder="e.g. Mildura, VIC, Australia">
+        <label class="form-label">City / Location</label>
+        <input type="text" id="form-location" class="form-input" placeholder="e.g. Mildura, VIC">
       </div>
-
+      <div class="form-group">
+        <label class="form-label">Latitude</label>
+        <input type="number" step="any" id="form-lat" class="form-input" placeholder="e.g. -34.184">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Longitude</label>
+        <input type="number" step="any" id="form-lng" class="form-input" placeholder="e.g. 142.152">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Price / Salary</label>
+        <input type="text" id="form-price" class="form-input" placeholder="e.g. $24/hr">
+      </div>
       <div class="form-group">
         <label class="form-label">Details</label>
-        <textarea class="form-textarea" placeholder="What should other travellers know? Pay rate, conditions, how to get the deal, price…"></textarea>
+        <textarea id="form-details" class="form-textarea" placeholder="Housing, conditions..."></textarea>
       </div>
-
-      <div class="form-group">
-        <label class="form-label">Your email (for updates)</label>
-        <input type="email" class="form-input" placeholder="you@email.com">
-      </div>
-
-      <button class="submit-btn" onclick="submitForm()">Send for review</button>
-      <p class="submit-note"><i class="ti ti-shield-check" aria-hidden="true"></i> Only approved submissions appear on the app</p>
+      <button class="submit-btn" onclick="submitToGoogleSheets()">Submit Info</button>
     </div>
   </div>
 
-  <!-- TOAST -->
-  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <div class="toast" id="toast"></div>
 
 </div>
 
-<script>
-  let currentPage = 'home';
-  let activePopup = null;
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
+<script>
+  // ⚠️ METS TON URL SHEETDB ICI :
+  const SHEETDB_API_URL = "https://sheetdb.io/api/v1/VOTRE_API_ID";
+
+  let map;
+  let markersLayer;
+  let allFarmsData = [];
+
+  // Init de l'application
+  window.addEventListener('DOMContentLoaded', () => {
+    initLeafletMap();
+    fetchFarmsFromSheets();
+  });
+
+  // 1. Initialiser la vraie carte Leaflet
+  function initLeafletMap() {
+    // On centre par défaut sur le Sud-Est de l'Australie (Melbourne/Sydney area)
+    map = L.map('leafletMap').setView([-35.0, 145.0], 5);
+
+    // Fond de carte OpenStreetMap gratuit et propre
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    markersLayer = L.layerGroup().addTo(map);
+  }
+
+  // 2. Aller chercher les données sur le Google Sheet via l'API
+  async function fetchFarmsFromSheets() {
+    try {
+      const response = await fetch(SHEETDB_API_URL);
+      allFarmsData = await response.json();
+      
+      // Mettre à jour le compteur sur l'écran d'accueil
+      document.getElementById('stat-count').innerText = allFarmsData.length;
+      
+      // Afficher sur la carte et la liste
+      renderFarms('all');
+    } catch (error) {
+      console.error("Erreur lors de la récupération des données :", error);
+      showToast("❌ Could not load database info.");
+    }
+  }
+
+  // 3. Afficher les marqueurs et la liste (avec filtre)
+  function renderFarms(filterType) {
+    // Clear existant
+    markersLayer.clearLayers();
+    const listContainer = document.getElementById('list-container');
+    listContainer.innerHTML = '';
+
+    allFarmsData.forEach(farm => {
+      if (filterType !== 'all' && farm.type !== filterType) return;
+
+      const lat = parseFloat(farm.lat);
+      const lng = parseFloat(farm.lng);
+
+      if (!isNaN(lat) && !isNaN(lng)) {
+        // Créer le popup HTML stylisé
+        const popupContent = `
+          <div class="popup-title">${farm.title}</div>
+          <div class="popup-desc">${farm.location}<br>${farm.details}</div>
+          <span class="popup-badge">${farm.price || 'N/A'}</span>
+        `;
+
+        // Ajouter le marqueur à Leaflet
+        const marker = L.marker([lat, lng]).bindPopup(popupContent);
+        markersLayer.addLayer(marker);
+      }
+
+      // Ajouter à la liste du bas
+      const row = document.createElement('div');
+      row.className = 'farm-row';
+      row.innerHTML = `
+        <div class="farm-icon-wrap"><i class="ti ti-plant-2"></i></div>
+        <div class="farm-info">
+          <div class="farm-name">${farm.title}</div>
+          <div class="farm-meta">${farm.location} · ${farm.type}</div>
+        </div>
+        <span class="farm-chip">${farm.price || 'Check'}</span>
+      `;
+      
+      // Si on clique sur la ligne, la carte se centre sur le marqueur
+      row.onclick = () => {
+        if (!isNaN(lat) && !isNaN(lng)) {
+          map.setView([lat, lng], 9, { animate: true });
+        }
+      };
+      listContainer.appendChild(row);
+    });
+  }
+
+  // Gestion des boutons filtres
+  function filterMap(type, buttonEl) {
+    document.querySelectorAll('.filter-pill').forEach(btn => btn.classList.remove('active'));
+    buttonEl.classList.add('active');
+    renderFarms(type);
+  }
+
+  // Navigation entre les pages
   function goTo(page) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     document.getElementById('page-' + page).classList.add('active');
     document.getElementById('nav-' + page).classList.add('active');
-    currentPage = page;
-    if (activePopup) { activePopup.classList.remove('open'); activePopup = null; }
-  }
-
-  function setFilter(el, type) {
-    document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
-    el.classList.add('active');
-    showToast('Filtering by: ' + (type === 'all' ? 'All farms' : el.textContent.trim()));
-  }
-
-  function openPopup(pin, name, detail, badges) {
-    if (activePopup && activePopup !== pin.querySelector('.map-popup')) {
-      activePopup.classList.remove('open');
+    
+    // Force Leaflet à recalculer sa taille si on arrive sur la page carte
+    if (page === 'farms') {
+      setTimeout(() => { map.invalidateSize(); }, 200);
     }
-    const popup = pin.querySelector('.map-popup');
-    popup.classList.toggle('open');
-    activePopup = popup.classList.contains('open') ? popup : null;
   }
 
-  document.getElementById('fakeMap').addEventListener('click', function(e) {
-    if (!e.target.closest('.map-pin') && activePopup) {
-      activePopup.classList.remove('open');
-      activePopup = null;
+  // 4. Envoyer les données du formulaire vers le Google Sheet
+  async function submitToGoogleSheets() {
+    const title = document.getElementById('form-title').value.trim();
+    const location = document.getElementById('form-location').value.trim();
+    const type = document.getElementById('form-type').value;
+    const lat = document.getElementById('form-lat').value.trim();
+    const lng = document.getElementById('form-lng').value.trim();
+    const price = document.getElementById('form-price').value.trim();
+    const details = document.getElementById('form-details').value.trim();
+
+    if (!title || !lat || !lng) {
+      showToast("⚠️ Name, Lat and Lng are required.");
+      return;
     }
-  });
 
-  function switchForumTab(el) {
-    document.querySelectorAll('.forum-tab').forEach(t => t.classList.remove('active'));
-    el.classList.add('active');
+    const payload = {
+      data: [
+        { title, location, type, lat, lng, price, details }
+      ]
+    };
+
+    showToast("Sending data...");
+
+    try {
+      const response = await fetch(SHEETDB_API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (response.ok) {
+        showToast("✅ Successfully saved to Database!");
+        closeSubmit();
+        // Vider le formulaire
+        document.getElementById('form-title').value = '';
+        document.getElementById('form-location').value = '';
+        document.getElementById('form-lat').value = '';
+        document.getElementById('form-lng').value = '';
+        document.getElementById('form-price').value = '';
+        document.getElementById('form-details').value = '';
+        
+        // Recharger les données instantanément
+        fetchFarmsFromSheets();
+      } else {
+        showToast("❌ Error saving data.");
+      }
+    } catch (e) {
+      console.error(e);
+      showToast("❌ Network error.");
+    }
   }
 
-  function openSubmit() {
-    document.getElementById('submitModal').classList.add('open');
-  }
-
-  function closeSubmit() {
-    document.getElementById('submitModal').classList.remove('open');
-  }
-
-  function handleBackdropClick(e) {
-    if (e.target === document.getElementById('submitModal')) closeSubmit();
-  }
-
-  function selectType(el) {
-    document.querySelectorAll('.type-option').forEach(o => o.classList.remove('selected'));
-    el.classList.add('selected');
-  }
-
-  function submitForm() {
-    closeSubmit();
-    setTimeout(() => showToast('✓ Sent! We\'ll review your submission soon.'), 300);
-  }
+  function openSubmit() { document.getElementById('submitModal').classList.add('open'); }
+  function closeSubmit() { document.getElementById('submitModal').classList.remove('open'); }
 
   let toastTimer;
   function showToast(msg) {
     const t = document.getElementById('toast');
-    t.innerHTML = '<i class="ti ti-check" aria-hidden="true"></i> ' + msg;
+    t.innerText = msg;
     t.classList.add('show');
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
   }
-
-  // Show FAB tooltip briefly on first visit
-  setTimeout(() => {
-    const tip = document.getElementById('fabTooltip');
-    tip.classList.add('show');
-    setTimeout(() => tip.classList.remove('show'), 3000);
-  }, 1200);
 </script>
 </body>
 </html>
