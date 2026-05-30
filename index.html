@@ -10,224 +10,213 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Fraunces:wght@600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
-
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.css">
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --amber:#F5A623;--amber-dark:#D4851A;--amber-light:#FEF3DC;--amber-pale:#FFFAF2;
+  --off-white:#F8F6F2;--white:#FFFFFF;--text-dark:#1A1714;--text-mid:#5C5750;--text-light:#9C958E;
+  --border:rgba(0,0,0,0.08);--border-mid:rgba(0,0,0,0.14);
+  --radius-sm:8px;--radius-md:12px;--radius-lg:18px;
+  --nav-h:68px;--header-h:60px;
+  --shadow-sm:0 1px 4px rgba(0,0,0,0.06),0 0 0 0.5px rgba(0,0,0,0.06);
+  --shadow-md:0 4px 16px rgba(0,0,0,0.12),0 0 0 0.5px rgba(0,0,0,0.06);
+  --shadow-fab:0 4px 20px rgba(245,166,35,0.38),0 2px 8px rgba(0,0,0,0.12);
+}
+html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;background:var(--off-white);color:var(--text-dark);-webkit-font-smoothing:antialiased}
+#app{display:flex;flex-direction:column;height:100dvh;max-width:480px;margin:0 auto;position:relative;background:var(--white);overflow:hidden}
 
-  :root {
-    --amber: #F5A623;
-    --amber-dark: #D4851A;
-    --amber-light: #FEF3DC;
-    --amber-pale: #FFFAF2;
-    --off-white: #F8F6F2;
-    --white: #FFFFFF;
-    --text-dark: #1A1714;
-    --text-mid: #5C5750;
-    --text-light: #9C958E;
-    --border: rgba(0,0,0,0.08);
-    --border-mid: rgba(0,0,0,0.14);
-    --radius-sm: 8px;
-    --radius-md: 12px;
-    --radius-lg: 18px;
-    --radius-xl: 24px;
-    --nav-h: 68px;
-    --header-h: 60px;
-    --shadow-sm: 0 1px 4px rgba(0,0,0,0.06), 0 0 0 0.5px rgba(0,0,0,0.06);
-    --shadow-md: 0 4px 16px rgba(0,0,0,0.10), 0 0 0 0.5px rgba(0,0,0,0.06);
-    --shadow-fab: 0 4px 20px rgba(245,166,35,0.38), 0 2px 8px rgba(0,0,0,0.12);
-  }
+/* HEADER */
+.app-header{height:var(--header-h);background:var(--white);border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 18px;flex-shrink:0;z-index:10}
+.logo{font-family:'Fraunces',serif;font-size:22px;font-weight:700;color:var(--text-dark);letter-spacing:-0.3px}
+.logo span{color:var(--amber)}
+.header-actions{display:flex;gap:10px;align-items:center}
+.icon-btn{width:36px;height:36px;border-radius:50%;border:none;background:var(--off-white);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-mid);font-size:18px;transition:background 0.15s}
+.icon-btn:active{background:#ece8e0}
 
-  html, body {
-    height: 100%;
-    overflow: hidden;
-    font-family: 'DM Sans', sans-serif;
-    background: var(--off-white);
-    color: var(--text-dark);
-    -webkit-font-smoothing: antialiased;
-  }
+/* PAGES */
+.pages{flex:1;overflow:hidden;position:relative}
+.page{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;opacity:0;pointer-events:none;transform:translateY(8px);transition:opacity 0.2s ease,transform 0.2s ease;background:var(--white)}
+.page.active{opacity:1;pointer-events:all;transform:translateY(0)}
 
-  #app {
-    display: flex;
-    flex-direction: column;
-    height: 100dvh;
-    max-width: 480px;
-    margin: 0 auto;
-    position: relative;
-    background: var(--white);
-    overflow: hidden;
-  }
+/* BOTTOM NAV */
+.bottom-nav{height:var(--nav-h);background:var(--white);border-top:0.5px solid var(--border);display:flex;align-items:stretch;flex-shrink:0;z-index:20;padding-bottom:env(safe-area-inset-bottom)}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;background:none;border:none;color:var(--text-light);font-family:'DM Sans',sans-serif;font-size:10.5px;font-weight:500;transition:color 0.15s;-webkit-tap-highlight-color:transparent;padding:8px 4px 4px}
+.nav-item i{font-size:22px;transition:transform 0.2s}
+.nav-item.active{color:var(--amber-dark)}
+.nav-item.active i{transform:scale(1.05)}
+.nav-dot{width:4px;height:4px;border-radius:50%;background:var(--amber);opacity:0;transition:opacity 0.15s;margin-top:-2px}
+.nav-item.active .nav-dot{opacity:1}
 
-  /* ── HEADER ── */
-  .app-header {
-    height: var(--header-h);
-    background: var(--white);
-    border-bottom: 0.5px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 18px;
-    flex-shrink: 0;
-    z-index: 1010; /* Au-dessus de Leaflet (1000) */
-  }
+/* FAB — now on the RIGHT */
+.fab{position:absolute;bottom:calc(var(--nav-h) + 16px);right:20px;width:52px;height:52px;border-radius:50%;background:var(--amber);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-fab);z-index:30;color:white;font-size:24px;transition:transform 0.15s,background 0.15s;-webkit-tap-highlight-color:transparent}
+.fab:active{transform:scale(0.93);background:var(--amber-dark)}
 
-  .logo {
-    font-family: 'Fraunces', serif;
-    font-size: 22px;
-    font-weight: 700;
-    color: var(--text-dark);
-    letter-spacing: -0.3px;
-  }
-  .logo span { color: var(--amber); }
-  .header-actions { display: flex; gap: 10px; align-items: center; }
+/* MAP/LIST TOGGLE FAB — centre bottom, deals page only */
+.toggle-fab{position:absolute;bottom:calc(var(--nav-h) + 16px);left:50%;transform:translateX(-50%);height:40px;padding:0 20px;border-radius:20px;background:var(--text-dark);border:none;cursor:pointer;display:none;align-items:center;justify-content:center;gap:8px;box-shadow:var(--shadow-md);z-index:30;color:white;font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif;white-space:nowrap;transition:transform 0.15s,background 0.15s;-webkit-tap-highlight-color:transparent}
+.toggle-fab i{font-size:16px}
+.toggle-fab:active{transform:translateX(-50%) scale(0.95)}
+.toggle-fab.visible{display:flex}
 
-  .icon-btn {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    border: none;
-    background: var(--off-white);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    color: var(--text-mid);
-    font-size: 18px;
-  }
+/* HOME */
+.home-hero{background:var(--amber-pale);padding:28px 20px 24px;border-bottom:0.5px solid var(--border)}
+.home-greeting{font-size:13px;color:var(--text-light);font-weight:500;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px}
+.home-title{font-family:'Fraunces',serif;font-size:26px;font-weight:700;color:var(--text-dark);line-height:1.25;margin-bottom:14px}
+.home-title em{color:var(--amber-dark);font-style:normal}
+.home-search{display:flex;align-items:center;background:var(--white);border:0.5px solid var(--border-mid);border-radius:var(--radius-lg);padding:0 14px;height:44px;gap:10px;box-shadow:var(--shadow-sm)}
+.home-search i{color:var(--text-light);font-size:18px}
+.home-search input{flex:1;border:none;outline:none;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--text-dark);background:transparent}
+.home-search input::placeholder{color:var(--text-light)}
+.home-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:18px 18px 0}
+.stat-card{background:var(--off-white);border-radius:var(--radius-md);padding:14px 12px;text-align:center;border:0.5px solid var(--border)}
+.stat-num{font-family:'Fraunces',serif;font-size:22px;font-weight:700;color:var(--text-dark);line-height:1}
+.stat-label{font-size:11px;color:var(--text-light);margin-top:4px;font-weight:500}
+.section-title{font-family:'Fraunces',serif;font-size:17px;font-weight:600;color:var(--text-dark);padding:20px 18px 12px}
+.quick-actions{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:0 18px}
+.qa-card{background:var(--white);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:16px 14px;cursor:pointer;transition:box-shadow 0.15s,transform 0.1s;box-shadow:var(--shadow-sm);display:flex;flex-direction:column;gap:10px}
+.qa-card:active{transform:scale(0.97);box-shadow:none}
+.qa-icon{width:40px;height:40px;border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;font-size:20px}
+.qa-icon.farms{background:#EAF3DE;color:#3B6D11}.qa-icon.deals{background:#FEF3DC;color:#854F0B}.qa-icon.prices{background:#E6F1FB;color:#185FA5}.qa-icon.community{background:#FBEAF0;color:#993556}
+.qa-name{font-size:14px;font-weight:600;color:var(--text-dark);line-height:1.3}
+.qa-sub{font-size:12px;color:var(--text-light);line-height:1.4}
+.post-card{background:var(--white);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;box-shadow:var(--shadow-sm)}
+.post-header{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.avatar{width:32px;height:32px;border-radius:50%;background:var(--amber-light);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:var(--amber-dark);flex-shrink:0}
+.post-meta{flex:1;min-width:0}.post-author{font-size:13px;font-weight:600;color:var(--text-dark)}.post-time{font-size:11px;color:var(--text-light)}
+.post-tag{font-size:10.5px;font-weight:600;padding:3px 8px;border-radius:20px;flex-shrink:0}
+.post-tag.farm{background:#EAF3DE;color:#3B6D11}.post-tag.deal{background:#FEF3DC;color:#854F0B}.post-tag.tip{background:#E6F1FB;color:#185FA5}
+.post-text{font-size:14px;color:var(--text-mid);line-height:1.5}
+.post-footer{display:flex;align-items:center;gap:14px;margin-top:10px;padding-top:10px;border-top:0.5px solid var(--border)}
+.post-action{display:flex;align-items:center;gap:4px;font-size:12px;color:var(--text-light);font-weight:500;cursor:pointer;background:none;border:none;font-family:'DM Sans',sans-serif}
+.post-action i{font-size:15px}
+.recent-posts{padding:0 18px 100px;display:flex;flex-direction:column;gap:10px}
+.scroll-pad{height:110px}
 
-  /* ── PAGES ── */
-  .pages { flex: 1; overflow: hidden; position: relative; }
-  .page {
-    position: absolute;
-    inset: 0;
-    overflow-y: auto;
-    overflow-x: hidden;
-    opacity: 0;
-    pointer-events: none;
-    transform: translateY(8px);
-    transition: opacity 0.2s ease, transform 0.2s ease;
-    background: var(--white);
-  }
-  .page.active { opacity: 1; pointer-events: all; transform: translateY(0); }
+/* SHARED MAP STYLES */
+.map-page-wrap{display:flex;flex-direction:column;height:100%;overflow:hidden}
+.map-filters{display:flex;gap:8px;padding:12px 16px;overflow-x:auto;flex-shrink:0;scrollbar-width:none;background:var(--white);border-bottom:0.5px solid var(--border);z-index:5}
+.map-filters::-webkit-scrollbar{display:none}
+.filter-pill{display:flex;align-items:center;gap:5px;padding:6px 14px;border-radius:20px;background:var(--off-white);border:0.5px solid var(--border-mid);font-size:13px;font-weight:500;color:var(--text-mid);white-space:nowrap;cursor:pointer;transition:all 0.15s;font-family:'DM Sans',sans-serif}
+.filter-pill.active{background:var(--amber);border-color:var(--amber);color:white}
+.filter-pill i{font-size:15px}
+.map-loading{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:40px;color:var(--text-light);font-size:14px}
+.spinner{width:28px;height:28px;border:3px solid var(--amber-light);border-top-color:var(--amber);border-radius:50%;animation:spin 0.7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
 
-  /* Ajustement spécifique pour la page carte pour éviter le double scroll */
-  #page-farms { overflow: hidden; }
+/* FARMS MAP */
+#farmMap{flex:1;min-height:0;z-index:1}
+.farms-list{flex-shrink:0;max-height:220px;overflow-y:auto;background:var(--white);border-top:0.5px solid var(--border)}
+.farm-row{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:0.5px solid var(--border);cursor:pointer;transition:background 0.1s}
+.farm-row:active{background:var(--off-white)}
+.farm-icon-wrap{width:38px;height:38px;border-radius:var(--radius-md);background:#EAF3DE;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#3B6D11;font-size:18px}
+.farm-info{flex:1;min-width:0}.farm-name{font-size:14px;font-weight:600;color:var(--text-dark)}.farm-meta{font-size:12px;color:var(--text-light);margin-top:1px}
+.farm-chip{font-size:11px;font-weight:600;padding:4px 9px;border-radius:20px;background:#EAF3DE;color:#3B6D11;flex-shrink:0}
 
-  /* ── BOTTOM NAV ── */
-  .bottom-nav {
-    height: var(--nav-h);
-    background: var(--white);
-    border-top: 0.5px solid var(--border);
-    display: flex;
-    align-items: stretch;
-    flex-shrink: 0;
-    z-index: 1010;
-    padding-bottom: env(safe-area-inset-bottom);
-  }
-  .nav-item {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 3px;
-    cursor: pointer;
-    background: none;
-    border: none;
-    color: var(--text-light);
-    font-size: 10.5px;
-    font-weight: 500;
-  }
-  .nav-item i { font-size: 22px; }
-  .nav-item.active { color: var(--amber-dark); }
-  .nav-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--amber); opacity: 0; }
-  .nav-item.active .nav-dot { opacity: 1; }
+/* DEALS PAGE — dual-view */
+.deals-map-view{display:flex;flex-direction:column;height:100%}
+.deals-list-view{display:none;overflow-y:auto;height:100%}
+.deals-list-view.active,.deals-map-view.active{display:flex;flex-direction:column}
+.deals-list-view.active{display:block}
+#dealMap{flex:1;min-height:0;z-index:1}
 
-  /* ── FAB ── */
-  .fab {
-    position: absolute;
-    bottom: calc(var(--nav-h) + 16px);
-    left: 20px;
-    width: 52px;
-    height: 52px;
-    border-radius: 50%;
-    background: var(--amber);
-    border: none;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: var(--shadow-fab);
-    z-index: 1005;
-    color: white;
-    font-size: 24px;
-  }
+/* deals list */
+.deals-list-scroll{padding:14px 0 0}
+.deals-header-inner{padding:0 18px 14px}
+.deals-intro{background:var(--amber-pale);border:0.5px solid rgba(245,166,35,0.2);border-radius:var(--radius-lg);padding:14px 16px;margin-bottom:14px}
+.deals-intro-title{font-size:14px;font-weight:600;color:var(--text-dark);margin-bottom:3px;display:flex;align-items:center;gap:6px}
+.deals-intro i{color:var(--amber);font-size:16px}
+.deals-intro-text{font-size:12.5px;color:var(--text-mid);line-height:1.5}
+.community-bar{display:flex;align-items:center;justify-content:space-between;background:var(--off-white);border-radius:var(--radius-md);padding:10px 14px;border:0.5px solid var(--border)}
+.community-count{font-size:13px;font-weight:600;color:var(--text-dark)}.community-goal{font-size:11.5px;color:var(--text-light)}
+.progress-bar-wrap{width:100px;height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+.progress-bar-fill{height:100%;background:var(--amber);border-radius:3px}
+.city-section{padding:0 18px;margin-bottom:8px}
+.city-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-light);padding:0 0 8px;display:flex;align-items:center;gap:6px}
+.city-label i{font-size:14px;color:var(--amber)}
+.deal-card{background:var(--white);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;margin-bottom:8px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
+.deal-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--amber)}
+.deal-card-header{display:flex;align-items:flex-start;gap:12px;margin-bottom:10px}
+.deal-logo{width:40px;height:40px;border-radius:var(--radius-md);background:var(--amber-light);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.deal-name{font-size:15px;font-weight:600;color:var(--text-dark)}.deal-type{font-size:12px;color:var(--text-light);margin-top:1px}
+.deal-discount{margin-left:auto;font-family:'Fraunces',serif;font-size:20px;font-weight:700;color:var(--amber-dark);flex-shrink:0}
+.deal-desc{font-size:13px;color:var(--text-mid);line-height:1.5;margin-bottom:10px}
+.deal-footer{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.deal-status{font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px}
+.deal-status.active{background:#EAF3DE;color:#3B6D11}.deal-status.pending{background:#FEF3DC;color:#854F0B}.deal-status.community{background:#FBEAF0;color:#993556}
+.deal-verify{font-size:11px;color:var(--text-light);margin-left:auto;display:flex;align-items:center;gap:4px}
+.deal-verify i{font-size:13px}
+.price-card{background:var(--white);border:0.5px solid var(--border);border-radius:var(--radius-lg);margin:0 18px 8px;overflow:hidden;box-shadow:var(--shadow-sm)}
+.price-card-header{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:0.5px solid var(--border);background:var(--off-white)}
+.price-card-header i{font-size:18px;color:var(--amber-dark)}.price-card-title{font-size:14px;font-weight:600;color:var(--text-dark)}
+.price-table{width:100%;border-collapse:collapse}
+.price-table tr:not(:last-child) td{border-bottom:0.5px solid var(--border)}
+.price-table td{padding:10px 14px;font-size:13px;color:var(--text-mid)}
+.price-table td:last-child{text-align:right;font-weight:600;color:var(--text-dark)}
 
-  /* ── HOME ── */
-  .home-hero { background: var(--amber-pale); padding: 28px 20px 24px; border-bottom: 0.5px solid var(--border); }
-  .home-greeting { font-size: 13px; color: var(--text-light); font-weight: 500; text-transform: uppercase; }
-  .home-title { font-family: 'Fraunces', serif; font-size: 26px; font-weight: 700; line-height: 1.25; margin-bottom: 14px; }
-  .home-title em { color: var(--amber-dark); font-style: normal; }
-  .home-search { display: flex; align-items: center; background: var(--white); border: 0.5px solid var(--border-mid); border-radius: var(--radius-lg); padding: 0 14px; height: 44px; gap: 10px; }
-  .home-search input { flex: 1; border: none; outline: none; font-size: 15px; }
-  
-  .home-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 18px 18px 0; }
-  .stat-card { background: var(--off-white); border-radius: var(--radius-md); padding: 14px 12px; text-align: center; border: 0.5px solid var(--border); }
-  .stat-num { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 700; }
-  .stat-label { font-size: 11px; color: var(--text-light); margin-top: 4px; }
-  
-  .section-title { font-family: 'Fraunces', serif; font-size: 17px; font-weight: 600; padding: 20px 18px 12px; }
-  .quick-actions { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 0 18px; }
-  .qa-card { background: var(--white); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 16px 14px; cursor: pointer; display: flex; flex-direction: column; gap: 10px; box-shadow: var(--shadow-sm); }
-  .qa-icon { width: 40px; height: 40px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-size: 20px; }
-  .qa-icon.farms { background: #EAF3DE; color: #3B6D11; }
-  .qa-icon.deals { background: #FEF3DC; color: #854F0B; }
-  .qa-icon.prices { background: #E6F1FB; color: #185FA5; }
-  .qa-icon.community { background: #FBEAF0; color: #993556; }
-  .qa-name { font-size: 14px; font-weight: 600; }
-  .qa-sub { font-size: 12px; color: var(--text-light); }
+/* LEAFLET — Google Maps-like tile + popup */
+.leaflet-container{font-family:'DM Sans',sans-serif}
+.hive-popup .leaflet-popup-content-wrapper{border-radius:var(--radius-lg);box-shadow:0 8px 32px rgba(0,0,0,0.16);border:none;padding:0;overflow:hidden}
+.hive-popup .leaflet-popup-content{margin:0;width:230px!important}
+.hive-popup .leaflet-popup-tip{background:var(--white)}
+.popup-inner{padding:14px 16px}
+.popup-name{font-weight:600;font-size:14px;color:var(--text-dark);margin-bottom:3px}
+.popup-detail{font-size:12px;color:var(--text-light);margin-bottom:10px}
+.popup-badges{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px}
+.badge{font-size:11px;font-weight:600;padding:3px 8px;border-radius:20px;background:#EAF3DE;color:#3B6D11}
+.badge.deal{background:#FEF3DC;color:#854F0B}.badge.pay{background:#E6F1FB;color:#185FA5}
+.popup-btn{width:100%;padding:8px;border-radius:var(--radius-md);background:var(--amber);color:white;border:none;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer}
+/* Google Maps-like map tiles (Stadia light) — keep OSM as fallback */
+.leaflet-attribution-flag{display:none!important}
 
-  /* ── LEAFLET MAP CONTAINERS ── */
-  .map-container { position: relative; height: 100%; display: flex; flex-direction: column; }
-  .map-filters { display: flex; gap: 8px; padding: 12px 16px; overflow-x: auto; flex-shrink: 0; background: var(--white); border-bottom: 0.5px solid var(--border); z-index: 1005; }
-  .map-filters::-webkit-scrollbar { display: none; }
-  .filter-pill { display: flex; align-items: center; gap: 5px; padding: 6px 14px; border-radius: 20px; background: var(--off-white); border: 0.5px solid var(--border-mid); font-size: 13px; font-weight: 500; cursor: pointer; }
-  .filter-pill.active { background: var(--amber); border-color: var(--amber); color: white; }
-  
-  /* Zone de la vraie carte */
-  .map-area { flex: 1; position: relative; background: #E8EFE6; }
-  #leafletMap { width: 100%; height: 100%; }
+/* FORUM */
+.forum-tabs{display:flex;border-bottom:0.5px solid var(--border);background:var(--white);padding:0 14px;flex-shrink:0;overflow-x:auto;scrollbar-width:none}
+.forum-tabs::-webkit-scrollbar{display:none}
+.forum-tab{padding:12px 14px;font-size:14px;font-weight:500;color:var(--text-light);cursor:pointer;border-bottom:2px solid transparent;transition:color 0.15s,border-color 0.15s;background:none;border-top:none;border-left:none;border-right:none;font-family:'DM Sans',sans-serif;white-space:nowrap}
+.forum-tab.active{color:var(--amber-dark);border-bottom-color:var(--amber)}
+.forum-content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.forum-post{padding:14px 16px;border-bottom:0.5px solid var(--border);cursor:pointer;transition:background 0.1s;background:var(--white)}
+.forum-post:active{background:var(--off-white)}
+.forum-post-header{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.forum-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;flex-shrink:0}
+.fa-amber{background:var(--amber-light);color:var(--amber-dark)}.fa-green{background:#EAF3DE;color:#3B6D11}.fa-blue{background:#E6F1FB;color:#185FA5}.fa-pink{background:#FBEAF0;color:#993556}
+.fp-meta{flex:1;min-width:0}.fp-author{font-size:13.5px;font-weight:600;color:var(--text-dark)}.fp-time{font-size:11px;color:var(--text-light)}
+.fp-category{font-size:10.5px;font-weight:600;padding:3px 8px;border-radius:20px;flex-shrink:0}
+.fp-cat-farm{background:#EAF3DE;color:#3B6D11}.fp-cat-deal{background:#FEF3DC;color:#854F0B}.fp-cat-visa{background:#E6F1FB;color:#185FA5}.fp-cat-tips{background:#FBEAF0;color:#993556}.fp-cat-general{background:var(--off-white);color:var(--text-mid)}
+.fp-title{font-size:14.5px;font-weight:600;color:var(--text-dark);margin-bottom:4px;line-height:1.35}
+.fp-preview{font-size:13px;color:var(--text-light);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.fp-footer{display:flex;align-items:center;gap:14px;margin-top:10px}
+.fp-stat{display:flex;align-items:center;gap:4px;font-size:12px;color:var(--text-light);font-weight:500}
+.fp-stat i{font-size:14px}
+.fp-pinned{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--amber-dark);font-weight:600;margin-left:auto}
+.fp-pinned i{font-size:13px}
 
-  /* Custom Leaflet Popup Styles for Theme Match */
-  .leaflet-popup-content-wrapper { border-radius: var(--radius-lg); padding: 6px; font-family: 'DM Sans', sans-serif; }
-  .popup-title { font-weight: 600; font-size: 14px; color: var(--text-dark); margin-bottom: 2px; }
-  .popup-desc { font-size: 12px; color: var(--text-mid); margin-bottom: 6px; }
-  .popup-badge { display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 20px; background: #EAF3DE; color: #3B6D11; }
+/* SUBMIT MODAL */
+.modal-backdrop{position:absolute;inset:0;background:rgba(0,0,0,0.4);z-index:50;display:flex;flex-direction:column;justify-content:flex-end;opacity:0;pointer-events:none;transition:opacity 0.25s}
+.modal-backdrop.open{opacity:1;pointer-events:all}
+.modal-sheet{background:var(--white);border-radius:20px 20px 0 0;padding:20px 20px 40px;transform:translateY(100%);transition:transform 0.3s cubic-bezier(0.32,0.72,0,1);max-height:90vh;overflow-y:auto}
+.modal-backdrop.open .modal-sheet{transform:translateY(0)}
+.modal-handle{width:36px;height:4px;background:var(--border-mid);border-radius:2px;margin:0 auto 20px}
+.modal-title{font-family:'Fraunces',serif;font-size:20px;font-weight:700;color:var(--text-dark);margin-bottom:4px}
+.modal-sub{font-size:13px;color:var(--text-light);margin-bottom:20px;line-height:1.4}
+.form-group{margin-bottom:14px}
+.form-label{display:block;font-size:12px;font-weight:600;color:var(--text-mid);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px}
+.form-input,.form-select,.form-textarea{width:100%;padding:11px 14px;border:0.5px solid var(--border-mid);border-radius:var(--radius-md);font-family:'DM Sans',sans-serif;font-size:15px;color:var(--text-dark);background:var(--white);outline:none;transition:border-color 0.15s;-webkit-appearance:none}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--amber);box-shadow:0 0 0 3px rgba(245,166,35,0.12)}
+.form-textarea{resize:vertical;min-height:80px;line-height:1.5}
+.type-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.type-option{display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 8px;border:1.5px solid var(--border);border-radius:var(--radius-md);cursor:pointer;transition:all 0.15s;background:var(--white);font-family:'DM Sans',sans-serif}
+.type-option i{font-size:22px;color:var(--text-mid)}.type-option span{font-size:12.5px;font-weight:600;color:var(--text-mid)}
+.type-option.selected{border-color:var(--amber);background:var(--amber-pale)}
+.type-option.selected i,.type-option.selected span{color:var(--amber-dark)}
+.submit-btn{width:100%;padding:14px;background:var(--amber);color:white;border:none;border-radius:var(--radius-lg);font-family:'Fraunces',serif;font-size:16px;font-weight:700;cursor:pointer;margin-top:6px;transition:background 0.15s,transform 0.1s}
+.submit-btn:active{background:var(--amber-dark);transform:scale(0.98)}
+.submit-note{font-size:12px;color:var(--text-light);text-align:center;margin-top:10px;line-height:1.5;display:flex;align-items:center;justify-content:center;gap:5px}
+.submit-note i{font-size:14px;color:var(--amber)}
 
-  .farms-list { flex-shrink: 0; max-height: 180px; overflow-y: auto; background: var(--white); border-top: 0.5px solid var(--border); z-index: 1005; }
-  .farm-row { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 0.5px solid var(--border); cursor: pointer; }
-  .farm-icon-wrap { width: 38px; height: 38px; border-radius: var(--radius-md); background: #EAF3DE; display: flex; align-items: center; justify-content: center; color: #3B6D11; }
-  .farm-info { flex: 1; }
-  .farm-name { font-size: 14px; font-weight: 600; }
-  .farm-meta { font-size: 12px; color: var(--text-light); }
-  .farm-chip { font-size: 11px; font-weight: 600; padding: 4px 9px; border-radius: 20px; background: #EAF3DE; color: #3B6D11; }
-
-  /* MODAL */
-  .modal-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.4); z-index: 2000; display: flex; flex-direction: column; justify-content: flex-end; opacity: 0; pointer-events: none; transition: opacity 0.25s; }
-  .modal-backdrop.open { opacity: 1; pointer-events: all; }
-  .modal-sheet { background: var(--white); border-radius: 20px 20px 0 0; padding: 20px 20px 40px; transform: translateY(100%); transition: transform 0.3s ease; max-height: 85vh; overflow-y: auto; }
-  .modal-backdrop.open .modal-sheet { transform: translateY(0); }
-  .modal-handle { width: 36px; height: 4px; background: var(--border-mid); border-radius: 2px; margin: 0 auto 20px; }
-  .modal-title { font-family: 'Fraunces', serif; font-size: 20px; font-weight: 700; }
-  .form-group { margin-bottom: 12px; }
-  .form-label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 4px; text-transform: uppercase; }
-  .form-input, .form-textarea, .form-select { width: 100%; padding: 10px; border: 0.5px solid var(--border-mid); border-radius: var(--radius-md); font-family: 'DM Sans', sans-serif; }
-  .submit-btn { width: 100%; padding: 14px; background: var(--amber); color: white; border: none; border-radius: var(--radius-lg); font-family: 'Fraunces', serif; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 10px; }
-
-  /* TOAST */
-  .toast { position: absolute; bottom: calc(var(--nav-h) + 20px); left: 50%; transform: translateX(-50%) translateY(20px); background: var(--text-dark); color: white; padding: 10px 18px; border-radius: var(--radius-lg); font-size: 13.5px; z-index: 3000; opacity: 0; transition: all 0.25s; pointer-events: none; }
-  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+/* TOAST */
+.toast{position:absolute;bottom:calc(var(--nav-h) + 20px);left:50%;transform:translateX(-50%) translateY(20px);background:var(--text-dark);color:white;padding:10px 18px;border-radius:var(--radius-lg);font-size:13.5px;font-weight:500;white-space:nowrap;z-index:60;opacity:0;transition:opacity 0.25s,transform 0.25s;display:flex;align-items:center;gap:7px;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast i{color:#70d98a;font-size:17px}
 </style>
 </head>
 <body>
@@ -236,291 +225,498 @@
   <header class="app-header">
     <div class="logo">the <span>hive</span></div>
     <div class="header-actions">
-      <button class="icon-btn" onclick="showToast('Coming soon!')"><i class="ti ti-search"></i></button>
+      <button class="icon-btn" onclick="showToast('Search coming soon!')"><i class="ti ti-search"></i></button>
+      <button class="icon-btn" onclick="showToast('Profile coming soon!')"><i class="ti ti-user"></i></button>
     </div>
   </header>
 
   <div class="pages">
 
+    <!-- ── HOME ── -->
     <div class="page active" id="page-home">
       <div class="home-hero">
         <p class="home-greeting">Welcome back, traveller</p>
         <h1 class="home-title">Find farms, deals<br>& <em>local prices</em></h1>
-        <div class="home-search">
-          <i class="ti ti-search"></i>
-          <input type="text" placeholder="Search...">
-        </div>
+        <div class="home-search"><i class="ti ti-search"></i><input type="text" placeholder="Search city, farm, deal…"></div>
       </div>
-
       <div class="home-stats">
-        <div class="stat-card"><div class="stat-num" id="stat-count">0</div><div class="stat-label">Farms</div></div>
-        <div class="stat-card"><div class="stat-num">12</div><div class="stat-label">Deals</div></div>
+        <div class="stat-card"><div class="stat-num" id="stat-farms">–</div><div class="stat-label">Farms</div></div>
+        <div class="stat-card"><div class="stat-num" id="stat-deals">–</div><div class="stat-label">Deals</div></div>
         <div class="stat-card"><div class="stat-num">1.2k</div><div class="stat-label">Members</div></div>
       </div>
-
       <div class="section-title">Explore</div>
       <div class="quick-actions">
-        <div class="qa-card" onclick="goTo('farms')">
-          <div class="qa-icon farms"><i class="ti ti-map-2"></i></div>
-          <div class="qa-name">Interactive Map</div>
-        </div>
-        <div class="qa-card" onclick="openSubmit()">
-          <div class="qa-icon prices"><i class="ti ti-circle-plus"></i></div>
-          <div class="qa-name">Contribute</div>
-        </div>
+        <div class="qa-card" onclick="goTo('farms')"><div class="qa-icon farms"><i class="ti ti-plant-2"></i></div><div><div class="qa-name">Farm Directory</div><div class="qa-sub">Aus & NZ interactive map</div></div></div>
+        <div class="qa-card" onclick="goTo('deals')"><div class="qa-icon deals"><i class="ti ti-tag"></i></div><div><div class="qa-name">Deals & Prices</div><div class="qa-sub">Local discounts & costs</div></div></div>
+        <div class="qa-card" onclick="openSubmit()"><div class="qa-icon prices"><i class="ti ti-circle-plus"></i></div><div><div class="qa-name">Add Info</div><div class="qa-sub">Contribute to the hive</div></div></div>
+        <div class="qa-card" onclick="goTo('forum')"><div class="qa-icon community"><i class="ti ti-messages"></i></div><div><div class="qa-name">Community</div><div class="qa-sub">Tips, stories & help</div></div></div>
+      </div>
+      <div class="section-title">Latest from the community</div>
+      <div class="recent-posts">
+        <div class="post-card"><div class="post-header"><div class="avatar">SL</div><div class="post-meta"><div class="post-author">Sophie L.</div><div class="post-time">2h ago · Byron Bay</div></div><span class="post-tag deal">Deal</span></div><p class="post-text">The Hive Café on Jonson St now gives 15% off coffee to backpackers who show the app! Just ask for the Hive rate.</p><div class="post-footer"><button class="post-action"><i class="ti ti-heart"></i> 24</button><button class="post-action"><i class="ti ti-message-circle"></i> 6</button></div></div>
+        <div class="post-card"><div class="post-header"><div class="avatar">MK</div><div class="post-meta"><div class="post-author">Marc K.</div><div class="post-time">Yesterday · Queenstown</div></div><span class="post-tag farm">Farm</span></div><p class="post-text">Summit Ridge Farm near Queenstown is hiring! Accommodation included, $22/hr. Amazing views of the Remarkables.</p><div class="post-footer"><button class="post-action"><i class="ti ti-heart"></i> 41</button><button class="post-action"><i class="ti ti-message-circle"></i> 13</button></div></div>
+        <div class="post-card"><div class="post-header"><div class="avatar">AI</div><div class="post-meta"><div class="post-author">Ana I.</div><div class="post-time">2 days ago · Melbourne</div></div><span class="post-tag tip">Tip</span></div><p class="post-text">Average grocery shop at Aldi Melbourne: $35 for a week. Way cheaper than Woolies. Prices added to the Deals tab!</p><div class="post-footer"><button class="post-action"><i class="ti ti-heart"></i> 18</button><button class="post-action"><i class="ti ti-message-circle"></i> 4</button></div></div>
       </div>
     </div>
 
+    <!-- ── FARMS MAP ── -->
     <div class="page" id="page-farms">
-      <div class="map-container">
+      <div class="map-page-wrap">
         <div class="map-filters">
-          <button class="filter-pill active" onclick="filterMap('all', this)"><i class="ti ti-map-2"></i> All</button>
-          <button class="filter-pill" onclick="filterMap('fruit', this)"><i class="ti ti-apple"></i> Fruit</button>
-          <button class="filter-pill" onclick="filterMap('veg', this)"><i class="ti ti-leaf"></i> Vegetables</button>
-          <button class="filter-pill" onclick="filterMap('livestock', this)"><i class="ti ti-paw"></i> Livestock</button>
+          <button class="filter-pill active" onclick="filterFarms(this,'all')"><i class="ti ti-map-2"></i> All</button>
+          <button class="filter-pill" onclick="filterFarms(this,'fruit picking')"><i class="ti ti-apple"></i> Fruit picking</button>
+          <button class="filter-pill" onclick="filterFarms(this,'vegetables')"><i class="ti ti-leaf"></i> Vegetables</button>
+          <button class="filter-pill" onclick="filterFarms(this,'livestock')"><i class="ti ti-paw"></i> Livestock</button>
+          <button class="filter-pill" onclick="filterFarms(this,'winery')"><i class="ti ti-bottle"></i> Winery</button>
         </div>
+        <div id="farmMap"></div>
+        <div class="farms-list" id="farmsList"><div class="map-loading"><div class="spinner"></div>Loading farms…</div></div>
+      </div>
+    </div>
 
-        <div class="map-area">
-          <div id="leafletMap"></div>
-        </div>
+    <!-- ── DEALS & PRICES ── -->
+    <div class="page" id="page-deals">
+      <div class="map-page-wrap">
 
-        <div class="farms-list" id="list-container">
+        <!-- MAP VIEW (default) -->
+        <div class="deals-map-view active" id="dealsMapView">
+          <div class="map-filters">
+            <button class="filter-pill active" onclick="filterDeals(this,'all')"><i class="ti ti-map-2"></i> All</button>
+            <button class="filter-pill" onclick="filterDeals(this,'coffee shop')"><i class="ti ti-coffee"></i> Cafés</button>
+            <button class="filter-pill" onclick="filterDeals(this,'hostel')"><i class="ti ti-bed"></i> Hostels</button>
+            <button class="filter-pill" onclick="filterDeals(this,'bar')"><i class="ti ti-beer"></i> Bars</button>
+            <button class="filter-pill" onclick="filterDeals(this,'activity')"><i class="ti ti-run"></i> Activities</button>
           </div>
+          <div id="dealMap"></div>
+        </div>
+
+        <!-- LIST VIEW (toggled) -->
+        <div class="deals-list-view" id="dealsListView">
+          <div class="deals-list-scroll">
+            <div class="deals-header-inner">
+              <div class="deals-intro">
+                <div class="deals-intro-title"><i class="ti ti-users"></i> Community power</div>
+                <p class="deals-intro-text">More members = more negotiating power. Help us reach 2,000 travellers to unlock city-wide deals.</p>
+              </div>
+              <div class="community-bar">
+                <div><div class="community-count">1,200 members</div><div class="community-goal">Goal: 2,000 for next deals round</div></div>
+                <div><div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:60%"></div></div><div style="font-size:11px;color:var(--text-light);text-align:right;margin-top:3px;">60%</div></div>
+              </div>
+            </div>
+            <div id="dealsContainer"><div class="map-loading"><div class="spinner"></div>Loading deals…</div></div>
+            <div class="section-title" style="padding-left:18px;">Local price guide</div>
+            <div id="pricesContainer"><div class="map-loading"><div class="spinner"></div>Loading prices…</div></div>
+            <div class="scroll-pad"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── FORUM ── -->
+    <div class="page" id="page-forum">
+      <div style="display:flex;flex-direction:column;height:100%;">
+        <div class="forum-tabs">
+          <button class="forum-tab active" onclick="switchForumTab(this)">All</button>
+          <button class="forum-tab" onclick="switchForumTab(this)">Farms</button>
+          <button class="forum-tab" onclick="switchForumTab(this)">Deals</button>
+          <button class="forum-tab" onclick="switchForumTab(this)">Visa tips</button>
+          <button class="forum-tab" onclick="switchForumTab(this)">General</button>
+        </div>
+        <div class="forum-content">
+          <div class="forum-post"><div class="forum-post-header"><div class="forum-avatar fa-amber">SL</div><div class="fp-meta"><div class="fp-author">Sophie L.</div><div class="fp-time">2h ago · Byron Bay</div></div><span class="fp-category fp-cat-deal">Deal</span></div><div class="fp-title">New coffee deal at The Hive Café — 15% off all day!</div><p class="fp-preview">Just got back from there. Super friendly, show the app and ask for the Hive rate. Works for food too apparently.</p><div class="fp-footer"><span class="fp-stat"><i class="ti ti-heart"></i> 24</span><span class="fp-stat"><i class="ti ti-message-circle"></i> 6</span><span class="fp-pinned"><i class="ti ti-pin"></i> Pinned</span></div></div>
+          <div class="forum-post"><div class="forum-post-header"><div class="forum-avatar fa-green">MK</div><div class="fp-meta"><div class="fp-author">Marc K.</div><div class="fp-time">Yesterday · Queenstown</div></div><span class="fp-category fp-cat-farm">Farm</span></div><div class="fp-title">Summit Ridge is hiring — accommodation included</div><p class="fp-preview">Amazing place, great team. $22/hr + housing + stunning views of the Remarkables. Prefer 3+ weeks.</p><div class="fp-footer"><span class="fp-stat"><i class="ti ti-heart"></i> 41</span><span class="fp-stat"><i class="ti ti-message-circle"></i> 13</span></div></div>
+          <div class="forum-post"><div class="forum-post-header"><div class="forum-avatar fa-blue">JR</div><div class="fp-meta"><div class="fp-author">Jules R.</div><div class="fp-time">2 days ago</div></div><span class="fp-category fp-cat-visa">Visa tips</span></div><div class="fp-title">WHV renewal: what farm work actually counts?</div><p class="fp-preview">Just finished my 88 days — here's everything I learnt. Fruit picking yes, packing sheds yes, farm admin no...</p><div class="fp-footer"><span class="fp-stat"><i class="ti ti-heart"></i> 87</span><span class="fp-stat"><i class="ti ti-message-circle"></i> 34</span><span class="fp-pinned"><i class="ti ti-pin"></i> Pinned</span></div></div>
+          <div class="forum-post"><div class="forum-post-header"><div class="forum-avatar fa-pink">AI</div><div class="fp-meta"><div class="fp-author">Ana I.</div><div class="fp-time">3 days ago · Melbourne</div></div><span class="fp-category fp-cat-tips">Tips</span></div><div class="fp-title">Budget breakdown: 1 month in Melbourne</div><p class="fp-preview">Accommodation $650, food $140, transport $80, activities $120. Total: $990. Totally doable!</p><div class="fp-footer"><span class="fp-stat"><i class="ti ti-heart"></i> 62</span><span class="fp-stat"><i class="ti ti-message-circle"></i> 19</span></div></div>
+          <div class="forum-post"><div class="forum-post-header"><div class="forum-avatar fa-green">TN</div><div class="fp-meta"><div class="fp-author">Tom N.</div><div class="fp-time">4 days ago · Cairns</div></div><span class="fp-category fp-cat-general">General</span></div><div class="fp-title">Anyone heading north for mango season? Let's carpool</div><p class="fp-preview">Driving from Brisbane to Darwin in late September, space for 2 more. Split petrol. DM me!</p><div class="fp-footer"><span class="fp-stat"><i class="ti ti-heart"></i> 15</span><span class="fp-stat"><i class="ti ti-message-circle"></i> 8</span></div></div>
+          <div class="scroll-pad"></div>
+        </div>
       </div>
     </div>
 
   </div>
 
-  <button class="fab" onclick="openSubmit()"><i class="ti ti-plus"></i></button>
+  <!-- FAB + (right) -->
+  <button class="fab" onclick="openSubmit()" aria-label="Add information"><i class="ti ti-plus"></i></button>
+
+  <!-- Map/List toggle (centre, deals page only) -->
+  <button class="toggle-fab" id="toggleFab" onclick="toggleDealsView()">
+    <i class="ti ti-list" id="toggleIcon"></i>
+    <span id="toggleLabel">List</span>
+  </button>
 
   <nav class="bottom-nav">
     <button class="nav-item active" onclick="goTo('home')" id="nav-home"><i class="ti ti-home"></i><span>Home</span><div class="nav-dot"></div></button>
-    <button class="nav-item" onclick="goTo('farms')" id="nav-farms"><i class="ti ti-map-2"></i><span>Map</span><div class="nav-dot"></div></button>
+    <button class="nav-item" onclick="goTo('farms')" id="nav-farms"><i class="ti ti-map-2"></i><span>Farms</span><div class="nav-dot"></div></button>
+    <button class="nav-item" onclick="goTo('deals')" id="nav-deals"><i class="ti ti-tag"></i><span>Deals</span><div class="nav-dot"></div></button>
+    <button class="nav-item" onclick="goTo('forum')" id="nav-forum"><i class="ti ti-messages"></i><span>Community</span><div class="nav-dot"></div></button>
   </nav>
 
-  <div class="modal-backdrop" id="submitModal" onclick="if(event.target===this) closeSubmit()">
+  <!-- SUBMIT MODAL -->
+  <div class="modal-backdrop" id="submitModal" onclick="handleBackdropClick(event)">
     <div class="modal-sheet">
       <div class="modal-handle"></div>
-      <div class="modal-title">Add to the Hive</div>
-      <br>
-      <div class="form-group">
-        <label class="form-label">Type</label>
-        <select id="form-type" class="form-select">
-          <option value="fruit">Fruit picking</option>
-          <option value="veg">Vegetables</option>
-          <option value="livestock">Livestock</option>
-        </select>
+      <div class="modal-title">Add to the hive</div>
+      <p class="modal-sub">Your submission will be reviewed by the admin before going live.</p>
+      <div class="form-group"><label class="form-label">What are you adding?</label>
+        <div class="type-grid">
+          <button class="type-option selected" onclick="selectType(this)"><i class="ti ti-plant-2"></i><span>Farm</span></button>
+          <button class="type-option" onclick="selectType(this)"><i class="ti ti-tag"></i><span>Deal / Discount</span></button>
+          <button class="type-option" onclick="selectType(this)"><i class="ti ti-currency-dollar"></i><span>Local price</span></button>
+          <button class="type-option" onclick="selectType(this)"><i class="ti ti-message-circle"></i><span>Community tip</span></button>
+        </div>
       </div>
-      <div class="form-group">
-        <label class="form-label">Farm Name</label>
-        <input type="text" id="form-title" class="form-input" placeholder="e.g. Sunny Orchards">
-      </div>
-      <div class="form-group">
-        <label class="form-label">City / Location</label>
-        <input type="text" id="form-location" class="form-input" placeholder="e.g. Mildura, VIC">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Latitude</label>
-        <input type="number" step="any" id="form-lat" class="form-input" placeholder="e.g. -34.184">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Longitude</label>
-        <input type="number" step="any" id="form-lng" class="form-input" placeholder="e.g. 142.152">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Price / Salary</label>
-        <input type="text" id="form-price" class="form-input" placeholder="e.g. $24/hr">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Details</label>
-        <textarea id="form-details" class="form-textarea" placeholder="Housing, conditions..."></textarea>
-      </div>
-      <button class="submit-btn" onclick="submitToGoogleSheets()">Submit Info</button>
+      <div class="form-group"><label class="form-label">Name / Title</label><input type="text" class="form-input" placeholder="e.g. Blue Hills Orchard"></div>
+      <div class="form-group"><label class="form-label">City & Country</label><input type="text" class="form-input" placeholder="e.g. Mildura, VIC, Australia"></div>
+      <div class="form-group"><label class="form-label">Details</label><textarea class="form-textarea" placeholder="Pay rate, conditions, how to get the deal, price…"></textarea></div>
+      <div class="form-group"><label class="form-label">Your email (for updates)</label><input type="email" class="form-input" placeholder="you@email.com"></div>
+      <button class="submit-btn" onclick="submitForm()">Send for review</button>
+      <p class="submit-note"><i class="ti ti-shield-check"></i> Only approved submissions appear on the app</p>
     </div>
   </div>
 
-  <div class="toast" id="toast"></div>
-
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </div>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js"></script>
 <script>
-  // ⚠️ METS TON URL SHEETDB ICI :
-  const SHEETDB_API_URL = "https://sheetdb.io/api/v1/VOTRE_API_ID";
+// ─────────────────────────────────────────
+// ⚙️  CONFIGURATION — EDIT THIS SECTION
+// ─────────────────────────────────────────
+const CONFIG = {
+  FARMS_CSV_URL:  "YOUR_FARMS_SHEET_CSV_URL_HERE",
+  DEALS_CSV_URL:  "YOUR_DEALS_SHEET_CSV_URL_HERE",
+  PRICES_CSV_URL: "YOUR_PRICES_SHEET_CSV_URL_HERE",
+  MAP_CENTER: [-30, 147],
+  MAP_ZOOM: 4,
+  DEALS_MAP_CENTER: [-30, 147],
+  DEALS_MAP_ZOOM: 4,
+};
+// ─────────────────────────────────────────
 
-  let map;
-  let markersLayer;
-  let allFarmsData = [];
+// Google Maps-like tile URL (CartoDB Positron — clean, light, similar to Google Maps)
+const TILE_URL = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+const TILE_ATTR = '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> © <a href="https://carto.com/">CARTO</a>';
 
-  // Init de l'application
-  window.addEventListener('DOMContentLoaded', () => {
-    initLeafletMap();
-    fetchFarmsFromSheets();
+// ── FALLBACK DATA ──
+const FALLBACK_FARMS = [
+  {name:"Sunny Ridge Farm",city:"Mildura",state_region:"VIC",country:"Australia",latitude:-34.185,longitude:142.162,farm_type:"Fruit picking",pay_per_hour_aud:21,accommodation:"Yes",notes:"Beginner-friendly"},
+  {name:"Blue Hills Orchard",city:"Orange",state_region:"NSW",country:"Australia",latitude:-33.284,longitude:149.100,farm_type:"Fruit picking",pay_per_hour_aud:22,accommodation:"Yes",notes:"Apply online"},
+  {name:"Summit Ridge Farm",city:"Queenstown",state_region:"Otago",country:"New Zealand",latitude:-45.031,longitude:168.662,farm_type:"Vegetables",pay_per_hour_aud:20,accommodation:"Yes",notes:"88 days friendly"},
+  {name:"Darwin Mango Farm",city:"Darwin",state_region:"NT",country:"Australia",latitude:-12.462,longitude:130.842,farm_type:"Fruit picking",pay_per_hour_aud:20,accommodation:"No",notes:"Oct–Jan only"},
+  {name:"Hunter Valley Winery",city:"Cessnock",state_region:"NSW",country:"Australia",latitude:-32.838,longitude:151.354,farm_type:"Winery",pay_per_hour_aud:19,accommodation:"No",notes:"Harvest Feb–Apr"},
+];
+
+const FALLBACK_DEALS = [
+  {business_name:"The Hive Café",business_type:"Coffee shop",city:"Byron Bay",country:"Australia",latitude:-28.643,longitude:153.612,discount_percent:15,discount_description:"15% off all food & coffee",status:"approved",how_to_redeem:"Show the app",verified_by_admin:"Yes"},
+  {business_name:"Arts Factory Lodge",business_type:"Hostel",city:"Byron Bay",country:"Australia",latitude:-28.641,longitude:153.608,discount_percent:10,discount_description:"10% off dorm beds",status:"approved",how_to_redeem:"Say 'Hive member'",verified_by_admin:"Yes"},
+  {business_name:"Atlas Beer Café",business_type:"Bar",city:"Queenstown",country:"New Zealand",latitude:-45.031,longitude:168.660,discount_percent:20,discount_description:"20% off drinks 5–7pm",status:"approved",how_to_redeem:"Show app at bar",verified_by_admin:"Yes"},
+  {business_name:"Vertigo Bungee",business_type:"Activity",city:"Queenstown",country:"New Zealand",latitude:-45.028,longitude:168.655,discount_percent:0,discount_description:"Deal being negotiated",status:"negotiating",how_to_redeem:"340/500 votes",verified_by_admin:"No"},
+  {business_name:"Mad Mex",business_type:"Restaurant",city:"Melbourne",country:"Australia",latitude:-37.814,longitude:144.963,discount_percent:10,discount_description:"10% off with Hive app",status:"approved",how_to_redeem:"Show app",verified_by_admin:"Yes"},
+];
+
+const FALLBACK_PRICES = [
+  {category:"groceries",item_name:"Weekly shop (Aldi)",price_local_currency:35,currency:"AUD",city:"Melbourne",country:"Australia"},
+  {category:"groceries",item_name:"Eggs x12",price_local_currency:4.50,currency:"AUD",city:"Melbourne",country:"Australia"},
+  {category:"cafe",item_name:"Flat white",price_local_currency:5.50,currency:"AUD",city:"Sydney",country:"Australia"},
+  {category:"cafe",item_name:"Smashed avo toast",price_local_currency:22,currency:"AUD",city:"Sydney",country:"Australia"},
+  {category:"transport",item_name:"Local bus (single)",price_local_currency:3,currency:"NZD",city:"Queenstown",country:"New Zealand"},
+  {category:"accommodation",item_name:"Dorm bed (hostel)",price_local_currency:38,currency:"NZD",city:"Queenstown",country:"New Zealand"},
+];
+
+// ── STATE ──
+let allFarms = [], allDeals = [];
+let farmMap = null, dealMap = null;
+let farmMarkers = [], dealMarkers = [];
+let dealsViewMode = 'map'; // 'map' | 'list'
+let dealsLoaded = false;
+
+// ── CSV PARSER ──
+function parseCSV(text) {
+  const lines = text.trim().split('\n');
+  const headers = lines[0].split(',').map(h => h.replace(/"/g,'').trim());
+  return lines.slice(1).map(line => {
+    const vals = []; let cur = '', inQ = false;
+    for (let ch of line) {
+      if (ch === '"') { inQ = !inQ; continue; }
+      if (ch === ',' && !inQ) { vals.push(cur.trim()); cur = ''; }
+      else cur += ch;
+    }
+    vals.push(cur.trim());
+    const obj = {};
+    headers.forEach((h, i) => obj[h] = vals[i] || '');
+    return obj;
+  }).filter(r => r[headers[0]]);
+}
+
+async function fetchSheet(url) {
+  if (!url || url.includes('YOUR_')) return null;
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error();
+    return parseCSV(await res.text());
+  } catch(e) { return null; }
+}
+
+// ── NAVIGATION ──
+function goTo(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  document.getElementById('nav-' + page).classList.add('active');
+
+  const toggleFab = document.getElementById('toggleFab');
+  if (page === 'deals') {
+    toggleFab.classList.add('visible');
+    if (!dealsLoaded) initDealMap();
+  } else {
+    toggleFab.classList.remove('visible');
+  }
+  if (page === 'farms' && !farmMap) initFarmMap();
+}
+
+// ── DEALS TOGGLE ──
+function toggleDealsView() {
+  const mapView = document.getElementById('dealsMapView');
+  const listView = document.getElementById('dealsListView');
+  const icon = document.getElementById('toggleIcon');
+  const label = document.getElementById('toggleLabel');
+
+  if (dealsViewMode === 'map') {
+    dealsViewMode = 'list';
+    mapView.classList.remove('active'); mapView.style.display = 'none';
+    listView.classList.add('active');
+    icon.className = 'ti ti-map-2';
+    label.textContent = 'Map';
+  } else {
+    dealsViewMode = 'map';
+    listView.classList.remove('active');
+    mapView.style.display = '';
+    mapView.classList.add('active');
+    icon.className = 'ti ti-list';
+    label.textContent = 'List';
+    // Invalidate map size after show
+    if (dealMap) setTimeout(() => dealMap.invalidateSize(), 50);
+  }
+}
+
+// ── MAKE GOOGLE MAPS-STYLE PIN ──
+function makePin(emoji, color, size=38) {
+  const s = size;
+  return L.divIcon({
+    className: '',
+    html: `<div style="position:relative;width:${s}px;height:${s+10}px;">
+      <div style="width:${s}px;height:${s}px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:${color};border:2.5px solid white;box-shadow:0 2px 10px rgba(0,0,0,0.25);display:flex;align-items:center;justify-content:center;">
+        <span style="transform:rotate(45deg);font-size:${Math.round(s*0.42)}px;line-height:1;">${emoji}</span>
+      </div>
+    </div>`,
+    iconSize: [s, s+10],
+    iconAnchor: [s/2, s+10],
+    popupAnchor: [0, -(s+12)],
   });
+}
 
-  // 1. Initialiser la vraie carte Leaflet
-  function initLeafletMap() {
-    // On centre par défaut sur le Sud-Est de l'Australie (Melbourne/Sydney area)
-    map = L.map('leafletMap').setView([-35.0, 145.0], 5);
+// ── FARMS MAP ──
+function initFarmMap() {
+  farmMap = L.map('farmMap', { center: CONFIG.MAP_CENTER, zoom: CONFIG.MAP_ZOOM, zoomControl: true });
+  L.tileLayer(TILE_URL, { attribution: TILE_ATTR, maxZoom: 19 }).addTo(farmMap);
+  loadFarms();
+}
 
-    // Fond de carte OpenStreetMap gratuit et propre
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-      attribution: '© OpenStreetMap contributors'
-    }).addTo(map);
+async function loadFarms() {
+  const data = await fetchSheet(CONFIG.FARMS_CSV_URL);
+  allFarms = data ? data.filter(r => r.status === 'approved') : FALLBACK_FARMS;
+  document.getElementById('stat-farms').textContent = allFarms.length;
+  renderFarmMarkers(allFarms);
+  renderFarmsList(allFarms);
+}
 
-    markersLayer = L.layerGroup().addTo(map);
-  }
+const farmTypeColors = {'fruit picking':'#2E7D32','vegetables':'#00796B','livestock':'#6D4C41','winery':'#4527A0','default':'#D4851A'};
+const farmTypeEmoji = {'fruit picking':'🍎','vegetables':'🥦','livestock':'🐄','winery':'🍇','default':'🌾'};
 
-  // 2. Aller chercher les données sur le Google Sheet via l'API
-  async function fetchFarmsFromSheets() {
-    try {
-      const response = await fetch(SHEETDB_API_URL);
-      allFarmsData = await response.json();
-      
-      // Mettre à jour le compteur sur l'écran d'accueil
-      document.getElementById('stat-count').innerText = allFarmsData.length;
-      
-      // Afficher sur la carte et la liste
-      renderFarms('all');
-    } catch (error) {
-      console.error("Erreur lors de la récupération des données :", error);
-      showToast("❌ Could not load database info.");
-    }
-  }
+function renderFarmMarkers(farms) {
+  farmMarkers.forEach(m => farmMap.removeLayer(m));
+  farmMarkers = [];
+  farms.forEach(f => {
+    const lat = parseFloat(f.latitude), lng = parseFloat(f.longitude);
+    if (isNaN(lat)||isNaN(lng)) return;
+    const type = (f.farm_type||'').toLowerCase();
+    const color = farmTypeColors[type]||farmTypeColors.default;
+    const emoji = farmTypeEmoji[type]||farmTypeEmoji.default;
+    const icon = makePin(emoji, color);
+    const pay = f.pay_per_hour_aud ? `<span class="badge pay">$${f.pay_per_hour_aud}/hr</span>`:'';
+    const acc = f.accommodation&&f.accommodation.toLowerCase().startsWith('y') ? `<span class="badge deal">Housing avail.</span>`:'';
+    const popup = L.popup({className:'hive-popup',closeButton:true,maxWidth:240})
+      .setContent(`<div class="popup-inner">
+        <div class="popup-name">${f.name}</div>
+        <div class="popup-detail">${f.city}${f.state_region?', '+f.state_region:''} · ${f.country}</div>
+        <div class="popup-badges"><span class="badge">${f.farm_type||'Farm'}</span>${pay}${acc}</div>
+        ${f.notes?`<div style="font-size:12px;color:var(--text-light);margin-bottom:10px;">${f.notes}</div>`:''}
+        <button class="popup-btn" onclick="showToast('Detail page coming soon!')">View details</button>
+      </div>`);
+    const m = L.marker([lat,lng],{icon}).addTo(farmMap).bindPopup(popup);
+    farmMarkers.push(m);
+  });
+}
 
-  // 3. Afficher les marqueurs et la liste (avec filtre)
-  function renderFarms(filterType) {
-    // Clear existant
-    markersLayer.clearLayers();
-    const listContainer = document.getElementById('list-container');
-    listContainer.innerHTML = '';
+function renderFarmsList(farms) {
+  const el = document.getElementById('farmsList');
+  if (!farms.length) { el.innerHTML='<div class="map-loading">No farms found.</div>'; return; }
+  el.innerHTML = farms.map(f => `
+    <div class="farm-row" onclick="flyTo(farmMap,${f.latitude},${f.longitude},10)">
+      <div class="farm-icon-wrap"><i class="ti ti-plant-2"></i></div>
+      <div class="farm-info"><div class="farm-name">${f.name}</div><div class="farm-meta">${f.city}${f.state_region?', '+f.state_region:''} · ${f.farm_type||'Farm'}</div></div>
+      ${f.pay_per_hour_aud?`<span class="farm-chip">$${f.pay_per_hour_aud}/hr</span>`:''}
+    </div>`).join('');
+}
 
-    allFarmsData.forEach(farm => {
-      if (filterType !== 'all' && farm.type !== filterType) return;
+function filterFarms(btn, type) {
+  document.querySelectorAll('#page-farms .filter-pill').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  const filtered = type==='all' ? allFarms : allFarms.filter(f=>(f.farm_type||'').toLowerCase().includes(type));
+  renderFarmMarkers(filtered);
+  renderFarmsList(filtered);
+}
 
-      const lat = parseFloat(farm.lat);
-      const lng = parseFloat(farm.lng);
+// ── DEALS MAP ──
+function initDealMap() {
+  dealsLoaded = true;
+  dealMap = L.map('dealMap', { center: CONFIG.DEALS_MAP_CENTER, zoom: CONFIG.DEALS_MAP_ZOOM, zoomControl: true });
+  L.tileLayer(TILE_URL, { attribution: TILE_ATTR, maxZoom: 19 }).addTo(dealMap);
+  loadDeals();
+}
 
-      if (!isNaN(lat) && !isNaN(lng)) {
-        // Créer le popup HTML stylisé
-        const popupContent = `
-          <div class="popup-title">${farm.title}</div>
-          <div class="popup-desc">${farm.location}<br>${farm.details}</div>
-          <span class="popup-badge">${farm.price || 'N/A'}</span>
-        `;
+const dealTypeEmoji = {'coffee shop':'☕','hostel':'🛏️','bar':'🍺','restaurant':'🍽️','activity':'🏄','shop':'🛍️','default':'🏪'};
+const dealTypeColor = {'coffee shop':'#795548','hostel':'#1565C0','bar':'#D84315','restaurant':'#2E7D32','activity':'#6A1B9A','shop':'#00838F','default':'#D4851A'};
 
-        // Ajouter le marqueur à Leaflet
-        const marker = L.marker([lat, lng]).bindPopup(popupContent);
-        markersLayer.addLayer(marker);
-      }
+async function loadDeals() {
+  const data = await fetchSheet(CONFIG.DEALS_CSV_URL);
+  allDeals = data ? data.filter(r => r.status==='approved'||r.status==='negotiating') : FALLBACK_DEALS;
+  document.getElementById('stat-deals').textContent = allDeals.length;
+  renderDealMarkers(allDeals);
+  renderDealsList(allDeals);
 
-      // Ajouter à la liste du bas
-      const row = document.createElement('div');
-      row.className = 'farm-row';
-      row.innerHTML = `
-        <div class="farm-icon-wrap"><i class="ti ti-plant-2"></i></div>
-        <div class="farm-info">
-          <div class="farm-name">${farm.title}</div>
-          <div class="farm-meta">${farm.location} · ${farm.type}</div>
+  const priceData = await fetchSheet(CONFIG.PRICES_CSV_URL);
+  const prices = priceData ? priceData.filter(r=>r.status==='approved') : FALLBACK_PRICES;
+  renderPrices(prices);
+}
+
+function renderDealMarkers(deals) {
+  dealMarkers.forEach(m => dealMap.removeLayer(m));
+  dealMarkers = [];
+  deals.forEach(d => {
+    const lat = parseFloat(d.latitude), lng = parseFloat(d.longitude);
+    if (isNaN(lat)||isNaN(lng)) return;
+    const type = (d.business_type||'').toLowerCase();
+    const emoji = dealTypeEmoji[type]||dealTypeEmoji.default;
+    const color = dealTypeColor[type]||dealTypeColor.default;
+    const icon = makePin(emoji, color);
+    const pct = parseFloat(d.discount_percent);
+    const statusBadge = d.status==='approved'
+      ? `<span style="font-size:11px;font-weight:600;padding:3px 8px;border-radius:20px;background:#EAF3DE;color:#3B6D11;">Active</span>`
+      : `<span style="font-size:11px;font-weight:600;padding:3px 8px;border-radius:20px;background:#FEF3DC;color:#854F0B;">Negotiating</span>`;
+    const popup = L.popup({className:'hive-popup',closeButton:true,maxWidth:240})
+      .setContent(`<div class="popup-inner">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+          <span style="font-size:22px;">${emoji}</span>
+          <div>
+            <div class="popup-name" style="margin-bottom:1px;">${d.business_name}</div>
+            <div class="popup-detail" style="margin:0;">${d.business_type||''} · ${d.city}</div>
+          </div>
+          ${pct>0?`<div style="margin-left:auto;font-family:'Fraunces',serif;font-size:20px;font-weight:700;color:var(--amber-dark);">-${pct}%</div>`:''}
         </div>
-        <span class="farm-chip">${farm.price || 'Check'}</span>
-      `;
-      
-      // Si on clique sur la ligne, la carte se centre sur le marqueur
-      row.onclick = () => {
-        if (!isNaN(lat) && !isNaN(lng)) {
-          map.setView([lat, lng], 9, { animate: true });
-        }
-      };
-      listContainer.appendChild(row);
+        <p style="font-size:13px;color:var(--text-mid);margin-bottom:10px;line-height:1.4;">${d.discount_description}</p>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">${statusBadge}${d.how_to_redeem?`<span style="font-size:11px;color:var(--text-light);">${d.how_to_redeem}</span>`:''}</div>
+        <button class="popup-btn" onclick="toggleDealsView()">See all deals</button>
+      </div>`);
+    const m = L.marker([lat,lng],{icon}).addTo(dealMap).bindPopup(popup);
+    dealMarkers.push(m);
+  });
+}
+
+function filterDeals(btn, type) {
+  document.querySelectorAll('#page-deals .map-filters .filter-pill').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  const filtered = type==='all' ? allDeals : allDeals.filter(d=>(d.business_type||'').toLowerCase().includes(type));
+  renderDealMarkers(filtered);
+}
+
+function renderDealsList(deals) {
+  const byCity = {};
+  deals.forEach(d => {
+    const key = `${d.city}, ${d.country}`;
+    if (!byCity[key]) byCity[key]=[];
+    byCity[key].push(d);
+  });
+  const statusClass = {approved:'active',negotiating:'pending',community:'community'};
+  const icons = {'coffee shop':'☕','hostel':'🛏️','bar':'🍺','restaurant':'🍽️','activity':'🏄','shop':'🛍️'};
+  let html = '';
+  for (const [city, cityDeals] of Object.entries(byCity)) {
+    html += `<div class="city-section"><div class="city-label"><i class="ti ti-map-pin"></i> ${city}</div>`;
+    cityDeals.forEach(d => {
+      const icon = icons[(d.business_type||'').toLowerCase()]||'🏪';
+      const pct = parseFloat(d.discount_percent);
+      const sc = statusClass[d.status]||'pending';
+      html += `<div class="deal-card">
+        <div class="deal-card-header">
+          <div class="deal-logo">${icon}</div>
+          <div><div class="deal-name">${d.business_name}</div><div class="deal-type">${d.business_type||''}${d.address?' · '+d.address:''}</div></div>
+          ${pct>0?`<div class="deal-discount">-${pct}%</div>`:''}
+        </div>
+        <p class="deal-desc">${d.discount_description}</p>
+        <div class="deal-footer">
+          <span class="deal-status ${sc}">${d.status==='approved'?'Active':d.status==='negotiating'?'Negotiating':'Pending'}</span>
+          ${d.how_to_redeem?`<span class="deal-verify"><i class="ti ti-info-circle"></i>${d.how_to_redeem}</span>`:''}
+          ${d.verified_by_admin==='Yes'?`<span class="deal-verify" style="margin-left:auto"><i class="ti ti-shield-check"></i>Verified</span>`:''}
+        </div>
+      </div>`;
     });
+    html += '</div>';
   }
+  document.getElementById('dealsContainer').innerHTML = html||'<div class="map-loading">No deals yet.</div>';
+}
 
-  // Gestion des boutons filtres
-  function filterMap(type, buttonEl) {
-    document.querySelectorAll('.filter-pill').forEach(btn => btn.classList.remove('active'));
-    buttonEl.classList.add('active');
-    renderFarms(type);
+function renderPrices(prices) {
+  const byCategory = {};
+  prices.forEach(p => { const k=p.category||'other'; if(!byCategory[k]) byCategory[k]=[]; byCategory[k].push(p); });
+  const catIcons = {groceries:'ti-building-store',cafe:'ti-coffee',bar:'ti-beer',transport:'ti-bus',accommodation:'ti-bed',activity:'ti-activity',other:'ti-coin'};
+  const catLabels = {groceries:'Supermarket',cafe:'Café',bar:'Bar',transport:'Transport',accommodation:'Accommodation',activity:'Activities',other:'Other'};
+  let html = '';
+  for (const [cat, items] of Object.entries(byCategory)) {
+    const city = items[0].city&&items[0].country?`(${items[0].city}, ${items[0].country})`:'';
+    html += `<div class="price-card">
+      <div class="price-card-header"><i class="ti ${catIcons[cat]||'ti-coin'}"></i><div class="price-card-title">${catLabels[cat]||cat} ${city}</div></div>
+      <table class="price-table">${items.map(p=>`<tr><td>${p.item_name}</td><td>${p.currency||'AUD'} ${parseFloat(p.price_local_currency||0).toFixed(2)}</td></tr>`).join('')}</table>
+    </div>`;
   }
+  document.getElementById('pricesContainer').innerHTML = html||'<div class="map-loading">No prices yet.</div>';
+}
 
-  // Navigation entre les pages
-  function goTo(page) {
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    document.getElementById('page-' + page).classList.add('active');
-    document.getElementById('nav-' + page).classList.add('active');
-    
-    // Force Leaflet à recalculer sa taille si on arrive sur la page carte
-    if (page === 'farms') {
-      setTimeout(() => { map.invalidateSize(); }, 200);
-    }
-  }
+// ── SHARED ──
+function flyTo(map, lat, lng, zoom) {
+  if (!map||isNaN(parseFloat(lat))||isNaN(parseFloat(lng))) return;
+  map.flyTo([parseFloat(lat),parseFloat(lng)], zoom, {animate:true,duration:1});
+}
 
-  // 4. Envoyer les données du formulaire vers le Google Sheet
-  async function submitToGoogleSheets() {
-    const title = document.getElementById('form-title').value.trim();
-    const location = document.getElementById('form-location').value.trim();
-    const type = document.getElementById('form-type').value;
-    const lat = document.getElementById('form-lat').value.trim();
-    const lng = document.getElementById('form-lng').value.trim();
-    const price = document.getElementById('form-price').value.trim();
-    const details = document.getElementById('form-details').value.trim();
+function switchForumTab(el) {
+  document.querySelectorAll('.forum-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+}
 
-    if (!title || !lat || !lng) {
-      showToast("⚠️ Name, Lat and Lng are required.");
-      return;
-    }
+function openSubmit() { document.getElementById('submitModal').classList.add('open'); }
+function closeSubmit() { document.getElementById('submitModal').classList.remove('open'); }
+function handleBackdropClick(e) { if(e.target===document.getElementById('submitModal')) closeSubmit(); }
+function selectType(el) { document.querySelectorAll('.type-option').forEach(o=>o.classList.remove('selected')); el.classList.add('selected'); }
+function submitForm() { closeSubmit(); setTimeout(()=>showToast('Sent! We\'ll review your submission soon.'),300); }
 
-    const payload = {
-      data: [
-        { title, location, type, lat, lng, price, details }
-      ]
-    };
-
-    showToast("Sending data...");
-
-    try {
-      const response = await fetch(SHEETDB_API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      if (response.ok) {
-        showToast("✅ Successfully saved to Database!");
-        closeSubmit();
-        // Vider le formulaire
-        document.getElementById('form-title').value = '';
-        document.getElementById('form-location').value = '';
-        document.getElementById('form-lat').value = '';
-        document.getElementById('form-lng').value = '';
-        document.getElementById('form-price').value = '';
-        document.getElementById('form-details').value = '';
-        
-        // Recharger les données instantanément
-        fetchFarmsFromSheets();
-      } else {
-        showToast("❌ Error saving data.");
-      }
-    } catch (e) {
-      console.error(e);
-      showToast("❌ Network error.");
-    }
-  }
-
-  function openSubmit() { document.getElementById('submitModal').classList.add('open'); }
-  function closeSubmit() { document.getElementById('submitModal').classList.remove('open'); }
-
-  let toastTimer;
-  function showToast(msg) {
-    const t = document.getElementById('toast');
-    t.innerText = msg;
-    t.classList.add('show');
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
-  }
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.innerHTML = '<i class="ti ti-check"></i> '+msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), 3000);
+}
 </script>
 </body>
 </html>
