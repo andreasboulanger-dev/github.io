@@ -1272,8 +1272,19 @@ function renderFarmMarkers(farms) {
     const pay  = f.pay_per_hour_aud ? `<span class="badge pay">$${f.pay_per_hour_aud}/hr</span>` : '';
     const acc  = f.accommodation&&f.accommodation.toLowerCase().startsWith('y') ? `<span class="badge deal">Housing</span>` : '';
     const is88popup = (f.eighty_eight_days||'').toLowerCase().startsWith('y') ? `<span class="badge" style="background:#E6F1FB;color:#185FA5;">88 days</span>` : '';
-    const popup = L.popup({className:'hive-popup',closeButton:true}).setContent(`<div class="popup-inner"><div class="popup-name">${f.business_name}</div><div class="popup-detail">${f.city||''}${f.state_region?', '+f.state_region:''} · ${f.country||''}</div><div class="popup-badges"><span class="badge">${f.farm_category_first||'Farm'}</span>${pay}${acc}${is88popup}</div>${f.notes?`<div style="font-size:12px;color:var(--text-light);margin-bottom:10px;">${f.notes}</div>`:''}<button class="popup-btn" onclick="openFarmDetail('${f.id}')">View details</button></div>`);
-    farmMarkers.push(L.marker([lat,lng],{icon}).addTo(farmMap).bindPopup(popup));
+    const popup = L.popup({className:'hive-popup',closeButton:true}).setContent(`<div class="popup-inner"><div class="popup-name">${f.business_name}</div><div class="popup-detail" style="display:flex;align-items:center;gap:6px;">${f.city||''}${f.state_region?', '+f.state_region:''} · ${f.country||''}<span id="popup-stars-${f.id}" style="display:inline-flex;align-items:center;gap:2px;margin-left:2px;"></span></div><div class="popup-badges"><span class="badge">${f.farm_category_first||'Farm'}</span>${pay}${acc}${is88popup}</div>${f.notes?`<div style="font-size:12px;color:var(--text-light);margin-bottom:10px;">${f.notes}</div>`:''}<button class="popup-btn" onclick="openFarmDetail('${f.id}')">View details</button></div>`);
+    const marker = L.marker([lat,lng],{icon}).addTo(farmMap).bindPopup(popup);
+    marker.on('popupopen', function() {
+      const span = document.getElementById('popup-stars-' + f.id);
+      if (!span || span.dataset.loaded) return;
+      span.dataset.loaded = '1';
+      loadFarmReviews(f.id).then(reviews => {
+        if (!reviews.length) { span.innerHTML = starsHTML(0,'sm'); return; }
+        const avg = reviews.reduce((s,r)=>s+(r.rating||0),0)/reviews.length;
+        span.innerHTML = `<span style="font-size:11px;font-weight:700;color:var(--amber-dark);">${avg.toFixed(1)}</span>` + starsHTML(avg,'sm');
+      });
+    });
+    farmMarkers.push(marker);
   });
 }
 
@@ -1349,7 +1360,10 @@ function openFarmDetail(id) {
     <div class="detail-hero">
       <div class="detail-hero-emoji">${emoji}</div>
       <div class="detail-hero-name">${f.business_name}</div>
-      <div class="detail-hero-sub"><i class="ti ti-map-pin"></i>${f.city||''}${f.state_region?', '+f.state_region:''} · ${f.country||''}</div>
+      <div class="detail-hero-sub">
+        <i class="ti ti-map-pin"></i>${f.city||''}${f.state_region?', '+f.state_region:''} · ${f.country||''}
+        <span id="detail-hero-stars" style="display:inline-flex;align-items:center;gap:3px;margin-left:6px;"></span>
+      </div>
       <div class="detail-badges">
         <span class="badge">${f.farm_category_first||'Farm'}</span>${pay}${acc}${is88}
       </div>
@@ -1382,6 +1396,14 @@ function openFarmDetail(id) {
 
   // Load reviews section
   renderReviewSection(f.id, el);
+  // Inject stars into hero sub-line once reviews load
+  loadFarmReviews(f.id).then(reviews => {
+    const span = document.getElementById('detail-hero-stars');
+    if (!span) return;
+    if (!reviews.length) { span.innerHTML = starsHTML(0,'sm'); return; }
+    const avg = reviews.reduce((s,r)=>s+(r.rating||0),0)/reviews.length;
+    span.innerHTML = `<span style="font-size:12px;font-weight:700;color:var(--amber-dark);">${avg.toFixed(1)}</span>` + starsHTML(avg,'sm');
+  });
 }
 
 // ── EDIT FARM ──
