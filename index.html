@@ -527,7 +527,7 @@ input#priceRangeInput::-moz-range-thumb{
         <div class="post-detail-header">
           <button class="icon-btn" onclick="goTo('farms')"><i class="ti ti-arrow-left"></i></button>
           <span class="post-detail-title">Farm details</span>
-          <div style="width:36px;"></div>
+          <button class="icon-btn" onclick="openEditFarm()" title="Suggest an edit"><i class="ti ti-pencil"></i></button>
         </div>
         <div class="post-detail-content" id="farmDetailContent" style="padding:0;">
           <div class="map-loading"><div class="spinner"></div>Loading…</div>
@@ -548,7 +548,56 @@ input#priceRangeInput::-moz-range-thumb{
         </div>
       </div>
     </div>
-    <div class="modal-backdrop" id="newPostModal" onclick="handleNewPostBackdrop(event)">
+    <!-- EDIT FARM MODAL -->
+    <div class="modal-backdrop" id="editFarmModal" onclick="handleEditFarmBackdrop(event)">
+      <div class="modal-sheet" style="max-height:96vh;">
+        <div class="modal-handle"></div>
+        <div class="modal-title">Suggest an edit</div>
+        <p class="modal-sub">Your changes will be reviewed before going live.</p>
+        <input type="hidden" id="editFarmId">
+        <div class="form-group">
+          <label class="form-label">Farm name</label>
+          <input type="text" class="form-input" id="editFarmName" placeholder="Farm name">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Pay rate (AUD/hr)</label>
+          <input type="number" class="form-input" id="editFarmPay" placeholder="e.g. 22" step="0.5">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Accommodation</label>
+          <input type="text" class="form-input" id="editFarmAccom" placeholder="e.g. Yes – shared room provided">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Season</label>
+          <input type="text" class="form-input" id="editFarmSeason" placeholder="e.g. Oct – Feb">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Phone</label>
+          <input type="tel" class="form-input" id="editFarmPhone" placeholder="+61 ...">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input type="email" class="form-input" id="editFarmEmail" placeholder="contact@farm.com">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Website</label>
+          <input type="url" class="form-input" id="editFarmWebsite" placeholder="https://...">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Notes</label>
+          <textarea class="form-textarea" id="editFarmNotes" placeholder="Any other useful info…"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">88 days eligible?</label>
+          <div style="display:flex;gap:8px;">
+            <button class="day-btn" id="edit88Yes" onclick="select88(true)" style="flex:1;padding:10px;">Yes</button>
+            <button class="day-btn" id="edit88No"  onclick="select88(false)" style="flex:1;padding:10px;">No</button>
+          </div>
+        </div>
+        <button class="submit-btn" onclick="submitFarmEdit()">Submit for review</button>
+        <p class="submit-note"><i class="ti ti-shield-check"></i> Only approved edits will update the listing</p>
+      </div>
+    </div>
       <div class="modal-sheet">
         <div class="modal-handle"></div>
         <div class="modal-title">New post</div>
@@ -927,6 +976,7 @@ function openFarmDetail(id) {
   // Hide FABs
   document.getElementById('toggleFarmsFab').classList.remove('visible');
   document.getElementById('mainFab').style.display = 'none';
+  currentFarmId = id;
 
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('page-farm-detail').classList.add('active');
@@ -975,7 +1025,74 @@ function openFarmDetail(id) {
   }
 }
 
-// ── DEAL DETAIL ──
+// ── EDIT FARM ──
+let currentFarmId = null;
+
+function openEditFarm() {
+  const f = allFarms.find(x => x.id == currentFarmId);
+  if (!f) return;
+
+  // Pre-fill all fields with existing data
+  document.getElementById('editFarmId').value      = f.id;
+  document.getElementById('editFarmName').value    = f.business_name || '';
+  document.getElementById('editFarmPay').value     = f.pay_per_hour_aud || '';
+  document.getElementById('editFarmAccom').value   = f.accommodation || '';
+  document.getElementById('editFarmSeason').value  = f.season || '';
+  document.getElementById('editFarmPhone').value   = f.phone || '';
+  document.getElementById('editFarmEmail').value   = f.email || '';
+  document.getElementById('editFarmWebsite').value = f.website || '';
+  document.getElementById('editFarmNotes').value   = f.notes || '';
+
+  // Pre-select 88 days
+  const is88 = (f.eighty_eight_days||'').toLowerCase().startsWith('y');
+  select88(is88);
+
+  document.getElementById('editFarmModal').classList.add('open');
+}
+
+function select88(yes) {
+  document.getElementById('edit88Yes').classList.toggle('on', yes);
+  document.getElementById('edit88No').classList.toggle('on', !yes);
+}
+
+function handleEditFarmBackdrop(e) {
+  if (e.target === document.getElementById('editFarmModal'))
+    document.getElementById('editFarmModal').classList.remove('open');
+}
+
+async function submitFarmEdit() {
+  const name = document.getElementById('editFarmName').value.trim();
+  if (!name) { showToast('Please enter a farm name'); return; }
+
+  const payload = {
+    type: 'farm_edit',
+    business_name: name,
+    details: [
+      'PAY: '    + (document.getElementById('editFarmPay').value     || '—'),
+      'ACCOM: '  + (document.getElementById('editFarmAccom').value   || '—'),
+      'SEASON: ' + (document.getElementById('editFarmSeason').value  || '—'),
+      'PHONE: '  + (document.getElementById('editFarmPhone').value   || '—'),
+      'EMAIL: '  + (document.getElementById('editFarmEmail').value   || '—'),
+      'WEB: '    + (document.getElementById('editFarmWebsite').value || '—'),
+      'NOTES: '  + (document.getElementById('editFarmNotes').value   || '—'),
+      '88DAYS: ' + (document.getElementById('edit88Yes').classList.contains('on') ? 'Yes' : 'No'),
+    ].join('\n'),
+    latitude:        null,
+    longitude:       null,
+    item_name:       'edit_of:' + document.getElementById('editFarmId').value,
+    item_price:      null,
+    availability:    null,
+    admin_decision:  'pending'
+  };
+
+  try {
+    await supaInsert('submissions', payload);
+    document.getElementById('editFarmModal').classList.remove('open');
+    setTimeout(() => showToast('Edit submitted — thanks! 🐝'), 300);
+  } catch(e) {
+    showToast('Error sending — please try again');
+  }
+}
 function openDealDetail(id) {
   const d = allDeals.find(x => x.id == id);
   if (!d) return;
