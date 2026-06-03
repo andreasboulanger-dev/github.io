@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#F5A623">
 <title>The Hive</title>
@@ -291,6 +291,34 @@ input#priceRangeInput::-moz-range-thumb{
 .submit-btn:active{background:var(--amber-dark);transform:scale(0.98)}
 .submit-note{font-size:12px;color:var(--text-light);text-align:center;margin-top:10px;display:flex;align-items:center;justify-content:center;gap:5px}
 
+/* DYNAMIC PRICE FIELDS */
+.price-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.add-price-btn {
+  width: 100%;
+  padding: 10px;
+  background: transparent;
+  border: 1.5px dashed var(--border-mid);
+  border-radius: var(--radius-md);
+  color: var(--text-mid);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: background 0.15s;
+}
+.add-price-btn:active {
+  background: var(--off-white);
+}
+
 /* TOAST */
 .toast{position:absolute;bottom:calc(var(--nav-h) + 20px);left:50%;transform:translateX(-50%) translateY(20px);background:var(--text-dark);color:white;padding:10px 18px;border-radius:var(--radius-lg);font-size:13.5px;font-weight:500;white-space:nowrap;z-index:60;opacity:0;transition:opacity 0.25s,transform 0.25s;display:flex;align-items:center;gap:7px;pointer-events:none}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
@@ -451,7 +479,28 @@ input#priceRangeInput::-moz-range-thumb{
           <div class="coord-badge">Lng: <span id="dispLng">–</span></div>
         </div>
       </div>
-      <div class="form-group"><label class="form-label" id="detailsLabel">Details</label><textarea class="form-textarea" id="fieldDetails" placeholder="Pay rate, discount, price, conditions…"></textarea></div>
+
+      <!-- Champs standards (Farm, Deal, Tip) -->
+      <div class="form-group" id="standardDetailsGroup">
+        <label class="form-label" id="detailsLabel">Details</label>
+        <textarea class="form-textarea" id="fieldDetails" placeholder="Pay rate, discount, price, conditions…"></textarea>
+      </div>
+
+      <!-- Champs dynamiques (Local Price uniquement) -->
+      <div class="form-group" id="priceItemsGroup" style="display:none">
+        <label class="form-label">Items & Prices</label>
+        <div id="priceRowsContainer">
+          <!-- Première ligne par défaut -->
+          <div class="price-row">
+            <input type="text" class="form-input item-name" placeholder="e.g. Capuccino">
+            <input type="number" class="form-input item-price" placeholder="Price ($)" step="0.01">
+          </div>
+        </div>
+        <button type="button" class="add-price-btn" onclick="addPriceRow()">
+          <i class="ti ti-plus"></i> Add another item
+        </button>
+      </div>
+
       <div class="form-group" id="availGroup" style="display:none">
         <label class="form-label">Available</label>
         <div class="avail-grid">
@@ -484,8 +533,6 @@ input#priceRangeInput::-moz-range-thumb{
 // ─────────────────────────────────────────────────────────────
 const SUPA_URL = 'https://xcazqvhxwjkqemumxvbu.supabase.co';
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjYXpxdmh4d2prcWVtdW14dmJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzOTUyNzQsImV4cCI6MjA5NTk3MTI3NH0.AaUIUoCGyyde8yPcEGDwtANamxLRPpeTaaI7zntkcYM';
-
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwZGVKXZRorh0X3QB9fBp_w6iIN2dVtcdQf478JWwq6nlKQi3vEVdjBEPV0YjGGqGNy/exec';
 
 const PAGE_TYPE_MAP = { home: null, farms: 'farm', deals: 'price', forum: 'tip' };
 
@@ -822,13 +869,34 @@ function selectType(el) {
 
 function updateFormForType(type) {
   const ag = document.getElementById('availGroup');
+  const stdGroup = document.getElementById('standardDetailsGroup');
+  const priceGroup = document.getElementById('priceItemsGroup');
   const dl = document.getElementById('detailsLabel');
   const fd = document.getElementById('fieldDetails');
+
   ag.style.display = (type==='deal'||type==='price') ? '' : 'none';
-  if (type==='farm')  { dl.textContent='Details'; fd.placeholder='Pay rate, accommodation, crops, season…'; }
-  else if (type==='deal')  { dl.textContent='Discount details'; fd.placeholder='e.g. 15% off coffee, how to redeem…'; }
-  else if (type==='price') { dl.textContent='Price & description'; fd.placeholder='e.g. Flat white $5.50, dorm bed $38/night…'; }
-  else { dl.textContent='Your tip'; fd.placeholder='Share useful info with the community…'; }
+
+  if (type === 'price') {
+    stdGroup.style.display = 'none';
+    priceGroup.style.display = 'block';
+  } else {
+    stdGroup.style.display = 'block';
+    priceGroup.style.display = 'none';
+    if (type==='farm')  { dl.textContent='Details'; fd.placeholder='Pay rate, accommodation, crops, season…'; }
+    else if (type==='deal')  { dl.textContent='Discount details'; fd.placeholder='e.g. 15% off coffee, how to redeem…'; }
+    else { dl.textContent='Your tip'; fd.placeholder='Share useful info with the community…'; }
+  }
+}
+
+function addPriceRow() {
+  const container = document.getElementById('priceRowsContainer');
+  const row = document.createElement('div');
+  row.className = 'price-row';
+  row.innerHTML = `
+    <input type="text" class="form-input item-name" placeholder="e.g. Croissant">
+    <input type="number" class="form-input item-price" placeholder="Price ($)" step="0.01">
+  `;
+  container.appendChild(row);
 }
 
 function initPickerMap() {
@@ -838,6 +906,9 @@ function initPickerMap() {
   pickerMarker = L.marker([-30,147], {draggable:true, icon:makePin('📍','#D4851A',40)}).addTo(pickerMap);
   pickerMarker.on('dragend', updatePickerCoords);
   pickerMap.on('click', e => { pickerMarker.setLatLng(e.latlng); updatePickerCoords(); });
+  
+  // Correction: initialiser les coordonnées pour éviter de bloquer l'utilisateur
+  updatePickerCoords();
 }
 
 function updatePickerCoords() {
@@ -867,18 +938,54 @@ async function submitForm() {
   if (!pickerLat) { showToast('Please move the pin to set a location'); return; }
 
   const days = getSelectedDays();
-  const payload = {
-    type, business_name: name, details,
-    latitude:     parseFloat(pickerLat),
-    longitude:    parseFloat(pickerLng),
-    item_name:    type==='price' ? name : null,
-    item_price:   type==='price' ? parseFloat(details) || null : null,
-    availability: days ? `${days} · ${document.getElementById('timeFrom').value}–${document.getElementById('timeTo').value}` : 'All week',
-    admin_decision: 'pending'
-  };
+  const availability = days ? `${days} · ${document.getElementById('timeFrom').value}–${document.getElementById('timeTo').value}` : 'All week';
 
   try {
-    await supaInsert('submissions', payload);
+    if (type === 'price') {
+      const rows = document.querySelectorAll('.price-row');
+      let addedCount = 0;
+
+      for (const row of rows) {
+        const itemName = row.querySelector('.item-name').value.trim();
+        const itemPrice = parseFloat(row.querySelector('.item-price').value);
+
+        if (itemName && !isNaN(itemPrice)) {
+          const payload = {
+            type,
+            business_name: name,
+            details: null,
+            latitude: parseFloat(pickerLat),
+            longitude: parseFloat(pickerLng),
+            item_name: itemName,
+            item_price: itemPrice,
+            availability,
+            admin_decision: 'pending'
+          };
+          await supaInsert('submissions', payload);
+          addedCount++;
+        }
+      }
+
+      if (addedCount === 0) {
+        showToast('Please add at least one valid item and price');
+        return;
+      }
+
+    } else {
+      const payload = {
+        type,
+        business_name: name,
+        details,
+        latitude: parseFloat(pickerLat),
+        longitude: parseFloat(pickerLng),
+        item_name: null,
+        item_price: null,
+        availability,
+        admin_decision: 'pending'
+      };
+      await supaInsert('submissions', payload);
+    }
+
     closeSubmit();
     setTimeout(() => showToast('Sent! We\'ll review your submission soon.'), 300);
   } catch(e) {
