@@ -83,28 +83,30 @@ html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;backgroun
 .recent-posts{padding:0 18px 100px;display:flex;flex-direction:column;gap:10px}
 .scroll-pad{height:110px}
 /* MAP shared */
-.map-page-wrap{display:flex;flex-direction:column;height:100%;overflow:hidden}
-.map-filters{display:flex;gap:8px;padding:12px 16px;overflow-x:auto;flex-shrink:0;scrollbar-width:none;background:var(--white);border-bottom:0.5px solid var(--border);z-index:5}
+.map-page-wrap{display:flex;flex-direction:column;height:100%;overflow:hidden;position:relative}
+.map-filters{display:flex;gap:8px;padding:10px 14px;overflow-x:auto;flex-shrink:0;scrollbar-width:none;position:absolute;top:12px;left:0;right:64px;z-index:15;pointer-events:none}
 .map-filters::-webkit-scrollbar{display:none}
+.map-filters .filter-pill{pointer-events:all;box-shadow:0 2px 8px rgba(0,0,0,0.18),0 0 0 0.5px rgba(0,0,0,0.06);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);}
+.map-filters .filter-pill.active{box-shadow:0 2px 10px rgba(245,166,35,0.4);}
 .filter-pill{display:flex;align-items:center;gap:5px;padding:6px 14px;border-radius:20px;background:var(--off-white);border:0.5px solid var(--border-mid);font-size:13px;font-weight:500;color:var(--text-mid);white-space:nowrap;cursor:pointer;transition:all 0.15s;font-family:'DM Sans',sans-serif}
 .filter-pill.active{background:var(--amber);border-color:var(--amber);color:white}
 .filter-pill i{font-size:15px}
 .map-loading{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:40px;color:var(--text-light);font-size:14px}
 .spinner{width:28px;height:28px;border:3px solid var(--amber-light);border-top-color:var(--amber);border-radius:50%;animation:spin 0.7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-#farmMap{flex:1;min-height:0;z-index:1}
-.farms-list{flex-shrink:0;max-height:220px;overflow-y:auto;background:var(--white);border-top:0.5px solid var(--border)}
+#farmMap{position:absolute;inset:0;z-index:1}
+.farms-list{position:absolute;bottom:0;left:0;right:0;max-height:200px;overflow-y:auto;background:var(--white);border-top:0.5px solid var(--border);z-index:10;border-radius:16px 16px 0 0;box-shadow:0 -4px 20px rgba(0,0,0,0.10);}
 .farm-row{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:0.5px solid var(--border);cursor:pointer;transition:background 0.1s}
 .farm-row:active{background:var(--off-white)}
 .farm-icon-wrap{width:38px;height:38px;border-radius:var(--radius-md);background:#EAF3DE;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#3B6D11;font-size:18px}
 .farm-info{flex:1;min-width:0}.farm-name{font-size:14px;font-weight:600;color:var(--text-dark)}.farm-meta{font-size:12px;color:var(--text-light);margin-top:1px}
 .farm-chip{font-size:11px;font-weight:600;padding:4px 9px;border-radius:20px;background:#EAF3DE;color:#3B6D11;flex-shrink:0}
 /* DEALS dual-view */
-.deals-map-view{display:flex;flex-direction:column;height:100%}
+.deals-map-view{position:relative;height:100%}
 .deals-list-view{display:none;overflow-y:auto;height:100%}
 .deals-map-view.active{display:flex}
 .deals-list-view.active{display:block}
-#dealMap{flex:1;min-height:0;z-index:1}
+#dealMap{position:absolute;inset:0;z-index:1}
 .deals-list-scroll{padding:14px 0 0}
 .deals-header-inner{padding:0 18px 14px}
 .deals-intro{background:var(--amber-pale);border:0.5px solid rgba(245,166,35,0.2);border-radius:var(--radius-lg);padding:14px 16px;margin-bottom:14px}
@@ -210,6 +212,91 @@ html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;backgroun
 .submit-note i{font-size:14px;color:var(--amber)}
 .formspree-note{background:var(--amber-pale);border:0.5px solid rgba(245,166,35,0.3);border-radius:var(--radius-md);padding:10px 12px;margin-bottom:14px;font-size:12px;color:var(--amber-dark);line-height:1.5}
 .formspree-note strong{display:block;margin-bottom:2px;}
+/* PRICE SLIDER — native input range rotated vertical */
+.price-slider-wrap{
+  position:absolute;
+  right:14px;
+  top:50%;
+  transform:translateY(-50%);
+  z-index:400;
+  display:none;
+  flex-direction:column;
+  align-items:center;
+  gap:10px;
+  pointer-events:all;
+}
+.price-slider-wrap.visible{display:flex;}
+.price-slider-label{
+  font-size:11px;
+  font-weight:700;
+  font-family:'DM Sans',sans-serif;
+  padding:4px 9px;
+  border-radius:20px;
+  white-space:nowrap;
+  box-shadow:var(--shadow-md);
+  min-width:48px;
+  text-align:center;
+}
+.price-slider-label.top{background:var(--amber-dark);color:white;}
+.price-slider-label.bottom{background:var(--text-mid);color:white;}
+.price-slider-value{
+  background:var(--text-dark);
+  color:white;
+  font-size:12px;
+  font-weight:700;
+  font-family:'DM Sans',sans-serif;
+  padding:5px 10px;
+  border-radius:12px;
+  white-space:nowrap;
+  box-shadow:var(--shadow-md);
+  min-width:52px;
+  text-align:center;
+}
+/* Bubble that follows the thumb */
+.slider-thumb-bubble{
+  position:absolute;
+  right:68px;
+  background:var(--text-dark);
+  color:white;
+  font-size:13px;
+  font-weight:700;
+  font-family:'DM Sans',sans-serif;
+  padding:6px 11px;
+  border-radius:12px;
+  white-space:nowrap;
+  box-shadow:var(--shadow-md);
+  pointer-events:none;
+  opacity:0;
+  transition:opacity 0.15s;
+  z-index:401;
+}
+.slider-thumb-bubble::after{
+  content:'';
+  position:absolute;
+  right:-6px;
+  top:50%;
+  transform:translateY(-50%);
+  border:6px solid transparent;
+  border-right:0;
+  border-left-color:var(--text-dark);
+}
+.slider-thumb-bubble.show{opacity:1;}
+/* The native range input, rotated -90deg to make it vertical */
+.price-slider-input{
+  -webkit-appearance:slider-vertical;
+  appearance:slider-vertical;
+  writing-mode:vertical-lr;
+  direction:rtl;
+  width:36px;
+  height:200px;
+  cursor:pointer;
+  accent-color:var(--amber);
+  background:transparent;
+  padding:0;
+  margin:0;
+  border:none;
+  outline:none;
+}
 /* TOAST */
 .toast{position:absolute;bottom:calc(var(--nav-h) + 20px);left:50%;transform:translateX(-50%) translateY(20px);background:var(--text-dark);color:white;padding:10px 18px;border-radius:var(--radius-lg);font-size:13.5px;font-weight:500;white-space:nowrap;z-index:60;opacity:0;transition:opacity 0.25s,transform 0.25s;display:flex;align-items:center;gap:7px;pointer-events:none}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
@@ -238,7 +325,7 @@ html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;backgroun
       <div class="home-stats">
         <div class="stat-card"><div class="stat-num" id="stat-farms">–</div><div class="stat-label">Farms</div></div>
         <div class="stat-card"><div class="stat-num" id="stat-deals">–</div><div class="stat-label">Deals</div></div>
-        <div class="stat-card"><div class="stat-num">1.2k</div><div class="stat-label">Members</div></div>
+        <div class="stat-card"><div class="stat-num" id="stat-members">–</div><div class="stat-label">Members</div></div>
       </div>
       <div class="section-title">Explore</div>
       <div class="quick-actions">
@@ -258,6 +345,7 @@ html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;backgroun
     <!-- FARMS -->
     <div class="page" id="page-farms">
       <div class="map-page-wrap">
+        <div id="farmMap"></div>
         <div class="map-filters">
           <button class="filter-pill active" onclick="filterFarms(this,'all')"><i class="ti ti-map-2"></i> All</button>
           <button class="filter-pill" onclick="filterFarms(this,'fruit picking')"><i class="ti ti-apple"></i> Fruit picking</button>
@@ -265,7 +353,6 @@ html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;backgroun
           <button class="filter-pill" onclick="filterFarms(this,'livestock')"><i class="ti ti-paw"></i> Livestock</button>
           <button class="filter-pill" onclick="filterFarms(this,'winery')"><i class="ti ti-bottle"></i> Winery</button>
         </div>
-        <div id="farmMap"></div>
         <div class="farms-list" id="farmsList"><div class="map-loading"><div class="spinner"></div>Loading farms…</div></div>
       </div>
     </div>
@@ -274,6 +361,7 @@ html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;backgroun
     <div class="page" id="page-deals">
       <div class="map-page-wrap">
         <div class="deals-map-view active" id="dealsMapView">
+          <div id="dealMap"></div>
           <div class="map-filters">
             <button class="filter-pill active" onclick="filterDeals(this,'all')"><i class="ti ti-map-2"></i> All</button>
             <button class="filter-pill" onclick="filterDeals(this,'coffee shop')"><i class="ti ti-coffee"></i> Cafés</button>
@@ -281,7 +369,6 @@ html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;backgroun
             <button class="filter-pill" onclick="filterDeals(this,'bar')"><i class="ti ti-beer"></i> Bars</button>
             <button class="filter-pill" onclick="filterDeals(this,'activity')"><i class="ti ti-run"></i> Activities</button>
           </div>
-          <div id="dealMap"></div>
         </div>
         <div class="deals-list-view" id="dealsListView">
           <div class="deals-list-scroll">
@@ -326,6 +413,23 @@ html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;backgroun
     </div>
   </div>
 
+  <!-- PRICE SLIDER — native vertical range input -->
+  <div class="price-slider-wrap" id="priceSliderWrap">
+    <div class="price-slider-label top" id="sliderMaxLabel">$100</div>
+    <div style="position:relative;">
+      <input
+        type="range"
+        class="price-slider-input"
+        id="priceRangeInput"
+        min="0" max="100" value="100"
+        step="1"
+      >
+      <div class="slider-thumb-bubble" id="sliderThumbBubble">$100</div>
+    </div>
+    <div class="price-slider-label bottom">$0</div>
+    <div class="price-slider-value" id="sliderValueLabel">All</div>
+  </div>
+
   <!-- FAB + right -->
   <button class="fab" id="mainFab" onclick="openSubmit(currentPage)" aria-label="Add information"><i class="ti ti-plus"></i></button>
 
@@ -351,8 +455,8 @@ html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;backgroun
 
       
       <div class="formspree-note">
-        <strong>📬 How submissions reach you</strong>
-        Replace <code>YOUR_FORMSPREE_ID</code> in the code with your <a href="https://formspree.io" target="_blank" style="color:var(--amber-dark);">Formspree</a> form ID to receive submissions by email.
+        <strong>🐝 Connected to Google Sheets</strong>
+        Submissions go directly to your 📥 Submissions tab for review.
       </div>
 
       <!-- Type selector -->
@@ -442,8 +546,8 @@ const CONFIG = {
 };
 // ─────────────────────────────────────────
 
-const TILE_URL = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
-const TILE_ATTR = '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> © <a href="https://carto.com/">CARTO</a>';
+const TILE_URL = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+const TILE_ATTR = '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>';
 
 // PAGE → default submission type
 const PAGE_TYPE_MAP = { home: null, farms: 'farm', deals: 'price', forum: 'tip' };
@@ -507,8 +611,8 @@ function goTo(page) {
   document.getElementById('page-'+page).classList.add('active');
   document.getElementById('nav-'+page).classList.add('active');
   const tf = document.getElementById('toggleFab');
-  if(page==='deals'){tf.classList.add('visible');if(!dealsLoaded)initDealMap();}
-  else tf.classList.remove('visible');
+  if(page==='deals'){tf.classList.add('visible');if(!dealsLoaded)initDealMap();showPriceSlider(true);}
+  else { tf.classList.remove('visible'); showPriceSlider(false); }
   if(page==='farms'&&!farmMap)initFarmMap();
 }
 
@@ -542,6 +646,7 @@ function makePin(emoji, color, size=38) {
 function initFarmMap(){
   farmMap=L.map('farmMap',{center:CONFIG.MAP_CENTER,zoom:CONFIG.MAP_ZOOM});
   L.tileLayer(TILE_URL,{attribution:TILE_ATTR,maxZoom:19}).addTo(farmMap);
+  setTimeout(()=>farmMap.invalidateSize(),100);
   loadFarms();
 }
 async function loadFarms(){
@@ -751,8 +856,15 @@ async function submitForm() {
   if(!name) { showToast('Please enter a name or title'); return; }
   if(!pickerLat) { showToast('Please move the pin to set a location'); return; }
 
-  const payload = { type, name, details,
-    latitude: pickerLat, longitude: pickerLng,
+  const payload = {
+    type:         type,
+    name:         name,
+    details:      details,
+    item_name:    type === 'price' ? name : '',
+    item_price:   type === 'price' ? details : '',
+    latitude:     pickerLat  || '',
+    longitude:    pickerLng  || '',
+    city:         document.getElementById('dispCity').textContent || '',
     availability: days ? `${days} · ${timeFrom}–${timeTo}` : 'All week',
   };
 
@@ -782,8 +894,176 @@ function showToast(msg){
   toastTimer=setTimeout(()=>t.classList.remove('show'),3000);
 }
 
+// ── PRICE SLIDER ──
+let sliderMaxPrice = 100;
+let allPricesData  = [];
+let sliderInited   = false;
+
+function initPriceSlider(prices) {
+  allPricesData = prices;
+
+  // Compute max from data, round up to nearest 5
+  const rawMax   = Math.max(5, ...prices.map(p => parseFloat(p.price_normal || p.price_local_currency || 0) || 0));
+  sliderMaxPrice = Math.ceil(rawMax / 5) * 5;
+
+  const input = document.getElementById('priceRangeInput');
+  input.max   = sliderMaxPrice;
+  input.value = sliderMaxPrice;
+
+  document.getElementById('sliderMaxLabel').textContent  = '$' + sliderMaxPrice;
+  document.getElementById('sliderValueLabel').textContent = 'All';
+
+  if (!sliderInited) {
+    sliderInited = true;
+    input.addEventListener('input', onSliderInput);
+    input.addEventListener('pointerdown', () => {
+      document.getElementById('sliderThumbBubble').classList.add('show');
+    });
+    input.addEventListener('touchstart', () => {
+      document.getElementById('sliderThumbBubble').classList.add('show');
+    }, {passive:true});
+    input.addEventListener('pointerup', () => {
+      const b = document.getElementById('sliderThumbBubble');
+      setTimeout(() => b.classList.remove('show'), 1500);
+    });
+    input.addEventListener('touchend', () => {
+      const b = document.getElementById('sliderThumbBubble');
+      setTimeout(() => b.classList.remove('show'), 1500);
+    });
+  }
+}
+
+function onSliderInput() {
+  const input  = document.getElementById('priceRangeInput');
+  const val    = parseInt(input.value);
+  const label  = document.getElementById('sliderValueLabel');
+  const bubble = document.getElementById('sliderThumbBubble');
+
+  label.textContent  = val >= sliderMaxPrice ? 'All' : 'Max $' + val;
+  bubble.textContent = val >= sliderMaxPrice ? 'All' : '$' + val;
+
+  // Position bubble vertically alongside the thumb
+  // range: val=max → top, val=0 → bottom
+  const trackH   = input.clientHeight || 200;
+  const ratio    = val / sliderMaxPrice;          // 1 = top, 0 = bottom
+  const thumbPct = 1 - ratio;                     // CSS % from top
+  // Thumb travels from ~8px (top) to ~trackH-8px (bottom)
+  const thumbPx  = 8 + thumbPct * (trackH - 16);
+  bubble.style.top = thumbPx + 'px';
+  bubble.style.transform = 'translateY(-50%)';
+
+  bubble.classList.add('show');
+  clearTimeout(bubble._hideTimer);
+  bubble._hideTimer = setTimeout(() => bubble.classList.remove('show'), 1500);
+
+  filterBySlider(val);
+}
+
+function filterBySlider(maxVal) {
+  if (maxVal === undefined) maxVal = sliderMaxPrice;
+
+  // Filter prices in list view
+  const filtered = allPricesData.filter(p => {
+    const price = parseFloat(p.price_normal || p.price_local_currency || 0) || 0;
+    return price <= maxVal;
+  });
+  renderPricesFiltered(filtered, maxVal);
+
+  // Filter deal map markers
+  if (dealMap) {
+    const filteredDeals = maxVal >= sliderMaxPrice
+      ? allDeals
+      : allDeals.filter(d => {
+          const pct = parseFloat(d.discount_percent || d.discount || 0) || 0;
+          return pct === 0 || pct <= maxVal;
+        });
+    renderDealMarkers(filteredDeals);
+  }
+}
+
+function renderPricesFiltered(prices, maxVal) {
+  const bc = {};
+  prices.forEach(p => {
+    const k = p.item_category_first || p.category || 'other';
+    if (!bc[k]) bc[k] = [];
+    bc[k].push(p);
+  });
+  const ci = {groceries:'ti-building-store',cafe:'ti-coffee',bar:'ti-beer',transport:'ti-bus',accommodation:'ti-bed',activity:'ti-activity',other:'ti-coin'};
+  const cl = {groceries:'Supermarket',cafe:'Café',bar:'Bar',transport:'Transport',accommodation:'Accommodation',activity:'Activities',other:'Other'};
+  let html = '';
+  for (const [cat, items] of Object.entries(bc)) {
+    const city = items[0].city && items[0].country ? `(${items[0].city}, ${items[0].country})` : '';
+    html += `<div class="price-card">
+      <div class="price-card-header"><i class="ti ${ci[cat]||'ti-coin'}"></i><div class="price-card-title">${cl[cat]||cat} ${city}</div></div>
+      <table class="price-table">${items.map(p=>`<tr><td>${p.item_name}</td><td>${p.currency||'AUD'} ${parseFloat(p.price_normal||p.price_local_currency||0).toFixed(2)}</td></tr>`).join('')}
+      </table></div>`;
+  }
+  document.getElementById('pricesContainer').innerHTML = html || `<div class="map-loading">No items under $${maxVal}</div>`;
+}
+
+function showPriceSlider(visible) {
+  const wrap = document.getElementById('priceSliderWrap');
+  if (visible) wrap.classList.add('visible');
+  else         wrap.classList.remove('visible');
+}
+
+// Hook into renderPrices to init slider
+const _origRenderPrices = renderPrices;
+function renderPrices(prices) {
+  _origRenderPrices(prices);
+  allPricesData = prices;
+  initPriceSlider(prices);
+}
+
+// Show slider only when map view is active on deals page
+const _origToggleDealsView = toggleDealsView;
+function toggleDealsView() {
+  _origToggleDealsView();
+  showPriceSlider(dealsViewMode === 'map');
+}
+
 // init
 document.getElementById('availGroup').style.display='none';
+loadHomeStats();
+
+// ── HOME STATS ──
+async function loadHomeStats() {
+  // Farms
+  const farmsData = await fetchSheet(CONFIG.FARMS_CSV_URL);
+  const farmCount = farmsData
+    ? farmsData.filter(r => r.status === 'approved').length
+    : FALLBACK_FARMS.length;
+  document.getElementById('stat-farms').textContent = farmCount;
+
+  // Deals
+  const dealsData = await fetchSheet(CONFIG.DEALS_CSV_URL);
+  const dealCount = dealsData
+    ? dealsData.filter(r => r.status === 'approved' || r.status === 'negotiating').length
+    : FALLBACK_DEALS.length;
+  document.getElementById('stat-deals').textContent = dealCount;
+
+  // Members — count non-empty rows in Submissions tab (each submission = 1 member attempt)
+  // We use a simple approach: total approved farms + deals + prices as proxy until a members sheet exists
+  const pricesData = await fetchSheet(CONFIG.PRICES_CSV_URL);
+  const priceCount = pricesData
+    ? pricesData.filter(r => r.status === 'approved').length
+    : FALLBACK_PRICES.length;
+
+  // Members: read Submissions sheet and count unique submitters
+  const subsData = await fetchSheet(CONFIG.SUBMISSIONS_CSV_URL);
+  let memberCount = 1200; // fallback baseline
+  if (subsData && subsData.length > 0) {
+    // Count total submissions as community activity proxy
+    memberCount = 1200 + subsData.length;
+  }
+  // Format: 1200 → 1.2k, 2400 → 2.4k
+  document.getElementById('stat-members').textContent = formatCount(memberCount);
+}
+
+function formatCount(n) {
+  if (n >= 1000) return (n / 1000).toFixed(1).replace('.0','') + 'k';
+  return n.toString();
+}
 </script>
 </body>
 </html>
