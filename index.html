@@ -1575,13 +1575,11 @@ async function submitForm() {
           const payload = {
             type,
             business_name: name,
-            details: null,
-            latitude: parseFloat(pickerLat),
+            latitude:  parseFloat(pickerLat),
             longitude: parseFloat(pickerLng),
-            item_name: itemName,
+            item_name:  itemName,
             item_price: itemPrice,
-            availability,
-            admin_decision: 'pending'
+            availability
           };
           await supaInsert('submissions', payload);
           addedCount++;
@@ -1598,12 +1596,9 @@ async function submitForm() {
         type,
         business_name: name,
         details,
-        latitude: parseFloat(pickerLat),
+        latitude:  parseFloat(pickerLat),
         longitude: parseFloat(pickerLng),
-        item_name: null,
-        item_price: null,
-        availability,
-        admin_decision: 'pending'
+        availability
       };
       await supaInsert('submissions', payload);
     }
