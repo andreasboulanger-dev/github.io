@@ -332,6 +332,27 @@ input#priceRangeInput::-moz-range-thumb{
   background: var(--off-white);
 }
 
+/* DETAIL PAGES */
+.detail-hero{background:var(--amber-pale);padding:24px 20px 20px;border-bottom:0.5px solid var(--border);}
+.detail-hero-emoji{font-size:40px;margin-bottom:10px;}
+.detail-hero-name{font-family:'Fraunces',serif;font-size:22px;font-weight:700;line-height:1.2;margin-bottom:4px;}
+.detail-hero-sub{font-size:13px;color:var(--text-light);display:flex;align-items:center;gap:5px;}
+.detail-hero-sub i{font-size:14px;color:var(--amber);}
+.detail-badges{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;}
+.detail-section{padding:18px 20px;border-bottom:0.5px solid var(--border);}
+.detail-section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;color:var(--text-light);margin-bottom:12px;}
+.detail-row{display:flex;align-items:flex-start;gap:12px;margin-bottom:12px;}
+.detail-row:last-child{margin-bottom:0;}
+.detail-row-icon{width:34px;height:34px;border-radius:var(--radius-md);background:var(--off-white);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px;color:var(--amber-dark);}
+.detail-row-content{flex:1;}
+.detail-row-label{font-size:11px;color:var(--text-light);font-weight:500;margin-bottom:2px;}
+.detail-row-value{font-size:14px;font-weight:500;color:var(--text-dark);line-height:1.4;}
+.detail-discount-banner{background:var(--amber);color:white;border-radius:var(--radius-lg);padding:16px 18px;margin:18px 20px;display:flex;align-items:center;gap:14px;}
+.detail-discount-pct{font-family:'Fraunces',serif;font-size:36px;font-weight:700;line-height:1;}
+.detail-discount-text{flex:1;font-size:13px;line-height:1.4;}
+.detail-discount-label{font-size:11px;opacity:0.8;margin-bottom:2px;}
+.detail-map-mini{height:160px;border-radius:var(--radius-lg);overflow:hidden;margin:0 20px 18px;border:0.5px solid var(--border);}
+
 /* FORUM NEW BTN */
 .forum-new-btn{flex-shrink:0;margin:10px 18px 12px;padding:13px;background:var(--amber);color:white;border:none;border-radius:var(--radius-lg);font-family:'Fraunces',serif;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:var(--shadow-fab)}
 .forum-new-btn i{font-size:17px}
@@ -500,7 +521,33 @@ input#priceRangeInput::-moz-range-thumb{
       </div>
     </div>
 
-    <!-- NEW POST MODAL -->
+    <!-- FARM DETAIL PAGE -->
+    <div class="page" id="page-farm-detail">
+      <div style="display:flex;flex-direction:column;height:100%;overflow:hidden;">
+        <div class="post-detail-header">
+          <button class="icon-btn" onclick="goTo('farms')"><i class="ti ti-arrow-left"></i></button>
+          <span class="post-detail-title">Farm details</span>
+          <div style="width:36px;"></div>
+        </div>
+        <div class="post-detail-content" id="farmDetailContent" style="padding:0;">
+          <div class="map-loading"><div class="spinner"></div>Loading…</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DEAL DETAIL PAGE -->
+    <div class="page" id="page-deal-detail">
+      <div style="display:flex;flex-direction:column;height:100%;overflow:hidden;">
+        <div class="post-detail-header">
+          <button class="icon-btn" onclick="goTo('deals')"><i class="ti ti-arrow-left"></i></button>
+          <span class="post-detail-title">Deal details</span>
+          <div style="width:36px;"></div>
+        </div>
+        <div class="post-detail-content" id="dealDetailContent" style="padding:0;">
+          <div class="map-loading"><div class="spinner"></div>Loading…</div>
+        </div>
+      </div>
+    </div>
     <div class="modal-backdrop" id="newPostModal" onclick="handleNewPostBackdrop(event)">
       <div class="modal-sheet">
         <div class="modal-handle"></div>
@@ -791,7 +838,7 @@ function makePin(emoji, color) {
 let farmsViewMode = 'map';
 
 function initFarmMap() {
-  farmMap = L.map('farmMap', {center:[-30,147], zoom:4, zoomControl:true});
+  farmMap = L.map('farmMap', {center:[-30,147], zoom:4, zoomControl:false});
   L.tileLayer(TILE_URL, {attribution:TILE_ATTR, maxZoom:19}).addTo(farmMap);
   setTimeout(() => farmMap.invalidateSize(), 100);
   loadFarms();
@@ -818,7 +865,7 @@ function renderFarmMarkers(farms) {
     const icon = makePin(farmEmoji[t]||farmEmoji.default, farmColors[t]||farmColors.default);
     const pay  = f.pay_per_hour_aud ? `<span class="badge pay">$${f.pay_per_hour_aud}/hr</span>` : '';
     const acc  = f.accommodation&&f.accommodation.toLowerCase().startsWith('y') ? `<span class="badge deal">Housing</span>` : '';
-    const popup = L.popup({className:'hive-popup',closeButton:true}).setContent(`<div class="popup-inner"><div class="popup-name">${f.business_name}</div><div class="popup-detail">${f.city||''}${f.state_region?', '+f.state_region:''} · ${f.country||''}</div><div class="popup-badges"><span class="badge">${f.farm_category_first||'Farm'}</span>${pay}${acc}</div>${f.notes?`<div style="font-size:12px;color:var(--text-light);margin-bottom:10px;">${f.notes}</div>`:''}<button class="popup-btn" onclick="showToast('Detail page coming soon!')">View details</button></div>`);
+    const popup = L.popup({className:'hive-popup',closeButton:true}).setContent(`<div class="popup-inner"><div class="popup-name">${f.business_name}</div><div class="popup-detail">${f.city||''}${f.state_region?', '+f.state_region:''} · ${f.country||''}</div><div class="popup-badges"><span class="badge">${f.farm_category_first||'Farm'}</span>${pay}${acc}</div>${f.notes?`<div style="font-size:12px;color:var(--text-light);margin-bottom:10px;">${f.notes}</div>`:''}<button class="popup-btn" onclick="openFarmDetail('${f.id}')">View details</button></div>`);
     farmMarkers.push(L.marker([lat,lng],{icon}).addTo(farmMap).bindPopup(popup));
   });
 }
@@ -870,13 +917,123 @@ function locateUser() {
   });
 }
 
-// ── DEALS MAP ──
+// ── FARM DETAIL ──
+function openFarmDetail(id) {
+  const f = allFarms.find(x => x.id == id);
+  if (!f) return;
+
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-farm-detail').classList.add('active');
+
+  const t       = (f.farm_category_first||'').toLowerCase();
+  const emoji   = farmEmoji[t]  || farmEmoji.default;
+  const color   = farmColors[t] || farmColors.default;
+  const pay     = f.pay_per_hour_aud ? `<span class="badge pay">$${f.pay_per_hour_aud}/hr</span>` : '';
+  const acc     = f.accommodation && f.accommodation.toLowerCase().startsWith('y') ? `<span class="badge deal">Housing</span>` : '';
+  const is88    = (f.farm_category_first||'').toLowerCase().includes('88') ? `<span class="badge" style="background:#E6F1FB;color:#185FA5;">88 days eligible</span>` : '';
+
+  const el = document.getElementById('farmDetailContent');
+  el.innerHTML = `
+    <div class="detail-hero">
+      <div class="detail-hero-emoji">${emoji}</div>
+      <div class="detail-hero-name">${f.business_name}</div>
+      <div class="detail-hero-sub"><i class="ti ti-map-pin"></i>${f.city||''}${f.state_region?', '+f.state_region:''} · ${f.country||''}</div>
+      <div class="detail-badges">
+        <span class="badge">${f.farm_category_first||'Farm'}</span>${pay}${acc}${is88}
+      </div>
+    </div>
+
+    <div class="detail-section">
+      <div class="detail-section-title">Details</div>
+      ${f.pay_per_hour_aud ? `<div class="detail-row"><div class="detail-row-icon"><i class="ti ti-currency-dollar"></i></div><div class="detail-row-content"><div class="detail-row-label">Pay rate</div><div class="detail-row-value">$${f.pay_per_hour_aud} AUD / hour</div></div></div>` : ''}
+      ${f.accommodation ? `<div class="detail-row"><div class="detail-row-icon"><i class="ti ti-home"></i></div><div class="detail-row-content"><div class="detail-row-label">Accommodation</div><div class="detail-row-value">${f.accommodation}</div></div></div>` : ''}
+      ${f.season ? `<div class="detail-row"><div class="detail-row-icon"><i class="ti ti-calendar"></i></div><div class="detail-row-content"><div class="detail-row-label">Season</div><div class="detail-row-value">${f.season}</div></div></div>` : ''}
+      ${f.phone ? `<div class="detail-row"><div class="detail-row-icon"><i class="ti ti-phone"></i></div><div class="detail-row-content"><div class="detail-row-label">Phone</div><div class="detail-row-value">${f.phone}</div></div></div>` : ''}
+      ${f.email ? `<div class="detail-row"><div class="detail-row-icon"><i class="ti ti-mail"></i></div><div class="detail-row-content"><div class="detail-row-label">Email</div><div class="detail-row-value">${f.email}</div></div></div>` : ''}
+      ${f.website ? `<div class="detail-row"><div class="detail-row-icon"><i class="ti ti-world"></i></div><div class="detail-row-content"><div class="detail-row-label">Website</div><div class="detail-row-value"><a href="${f.website}" target="_blank" style="color:var(--amber-dark);">${f.website}</a></div></div></div>` : ''}
+      ${f.notes ? `<div class="detail-row"><div class="detail-row-icon"><i class="ti ti-notes"></i></div><div class="detail-row-content"><div class="detail-row-label">Notes</div><div class="detail-row-value">${f.notes}</div></div></div>` : ''}
+    </div>
+
+    ${f.latitude && f.longitude ? `<div class="detail-section"><div class="detail-section-title">Location</div><div class="detail-map-mini" id="farmMiniMap"></div></div>` : ''}
+    <div style="height:30px;"></div>
+  `;
+
+  if (f.latitude && f.longitude) {
+    setTimeout(() => {
+      const lat = parseFloat(f.latitude), lng = parseFloat(f.longitude);
+      const miniMap = L.map('farmMiniMap', {zoomControl:false, dragging:false, scrollWheelZoom:false, attributionControl:false});
+      L.tileLayer(TILE_URL, {maxZoom:19}).addTo(miniMap);
+      miniMap.setView([lat, lng], 13);
+      L.marker([lat, lng], {icon: makePin(emoji, color)}).addTo(miniMap);
+    }, 100);
+  }
+}
+
+// ── DEAL DETAIL ──
+function openDealDetail(id) {
+  const d = allDeals.find(x => x.id == id);
+  if (!d) return;
+
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-deal-detail').classList.add('active');
+
+  const t    = (d.business_type||'').toLowerCase();
+  const emoji = dealEmoji[t] || dealEmoji.default;
+  const color = dealColor[t] || dealColor.default;
+  const pct   = parseFloat(d.discount||0);
+  const statusBadge = d.status === 'approved'
+    ? `<span class="badge" style="background:#EAF3DE;color:#3B6D11;">Active</span>`
+    : `<span class="badge" style="background:#FEF3DC;color:#854F0B;">Negotiating</span>`;
+
+  const el = document.getElementById('dealDetailContent');
+  el.innerHTML = `
+    <div class="detail-hero">
+      <div class="detail-hero-emoji">${emoji}</div>
+      <div class="detail-hero-name">${d.business_name}</div>
+      <div class="detail-hero-sub"><i class="ti ti-map-pin"></i>${d.city||''}${d.country?', '+d.country:''}</div>
+      <div class="detail-badges">
+        <span class="badge">${d.business_type||'Business'}</span>${statusBadge}
+      </div>
+    </div>
+
+    ${pct > 0 ? `
+    <div class="detail-discount-banner">
+      <div class="detail-discount-pct">-${pct}%</div>
+      <div class="detail-discount-text">
+        <div class="detail-discount-label">Discount for Hive members</div>
+        ${d.discount_description||'Show the app to redeem'}
+      </div>
+    </div>` : ''}
+
+    <div class="detail-section">
+      <div class="detail-section-title">How to redeem</div>
+      ${d.discount_description ? `<div class="detail-row"><div class="detail-row-icon"><i class="ti ti-tag"></i></div><div class="detail-row-content"><div class="detail-row-label">Offer</div><div class="detail-row-value">${d.discount_description}</div></div></div>` : ''}
+      ${d.availability ? `<div class="detail-row"><div class="detail-row-icon"><i class="ti ti-clock"></i></div><div class="detail-row-content"><div class="detail-row-label">Available</div><div class="detail-row-value">${d.availability}</div></div></div>` : ''}
+      ${d.notes ? `<div class="detail-row"><div class="detail-row-icon"><i class="ti ti-info-circle"></i></div><div class="detail-row-content"><div class="detail-row-label">Notes</div><div class="detail-row-value">${d.notes}</div></div></div>` : ''}
+      ${d.phone ? `<div class="detail-row"><div class="detail-row-icon"><i class="ti ti-phone"></i></div><div class="detail-row-content"><div class="detail-row-label">Phone</div><div class="detail-row-value">${d.phone}</div></div></div>` : ''}
+      ${d.website ? `<div class="detail-row"><div class="detail-row-icon"><i class="ti ti-world"></i></div><div class="detail-row-content"><div class="detail-row-label">Website</div><div class="detail-row-value"><a href="${d.website}" target="_blank" style="color:var(--amber-dark);">${d.website}</a></div></div></div>` : ''}
+    </div>
+
+    ${d.latitude && d.longitude ? `<div class="detail-section"><div class="detail-section-title">Location</div><div class="detail-map-mini" id="dealMiniMap"></div></div>` : ''}
+    <div style="height:30px;"></div>
+  `;
+
+  if (d.latitude && d.longitude) {
+    setTimeout(() => {
+      const lat = parseFloat(d.latitude), lng = parseFloat(d.longitude);
+      const miniMap = L.map('dealMiniMap', {zoomControl:false, dragging:false, scrollWheelZoom:false, attributionControl:false});
+      L.tileLayer(TILE_URL, {maxZoom:19}).addTo(miniMap);
+      miniMap.setView([lat, lng], 15);
+      L.marker([lat, lng], {icon: makePin(emoji, color)}).addTo(miniMap);
+    }, 100);
+  }
+}
 const dealEmoji = {'coffee shop':'☕','hostel':'🛏️','bar':'🍺','restaurant':'🍽️','activity':'🏄','default':'🏪'};
 const dealColor = {'coffee shop':'#795548','hostel':'#1565C0','bar':'#D84315','restaurant':'#2E7D32','activity':'#6A1B9A','default':'#D4851A'};
 
 function initDealMap() {
   dealsLoaded = true;
-  dealMap = L.map('dealMap', {center:[-30,147], zoom:4});
+  dealMap = L.map('dealMap', {center:[-30,147], zoom:4, zoomControl:false});
   L.tileLayer(TILE_URL, {attribution:TILE_ATTR, maxZoom:19}).addTo(dealMap);
   setTimeout(() => dealMap.invalidateSize(), 100);
   loadDeals();
@@ -904,7 +1061,7 @@ function renderDealMarkers(deals) {
     const sb   = d.status==='approved'
       ? `<span style="font-size:11px;font-weight:600;padding:3px 8px;border-radius:20px;background:#EAF3DE;color:#3B6D11;">Active</span>`
       : `<span style="font-size:11px;font-weight:600;padding:3px 8px;border-radius:20px;background:#FEF3DC;color:#854F0B;">Negotiating</span>`;
-    const popup = L.popup({className:'hive-popup',closeButton:true}).setContent(`<div class="popup-inner"><div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;"><span style="font-size:22px;">${dealEmoji[t]||dealEmoji.default}</span><div><div class="popup-name" style="margin-bottom:1px;">${d.business_name}</div><div class="popup-detail" style="margin:0;">${d.city||''}</div></div>${pct>0?`<div style="margin-left:auto;font-family:'Fraunces',serif;font-size:20px;font-weight:700;color:var(--amber-dark);">-${pct}%</div>`:''}</div><p style="font-size:13px;color:var(--text-mid);margin-bottom:10px;">${d.discount_description||''}</p><div style="display:flex;gap:8px;margin-bottom:10px;">${sb}${d.notes?`<span style="font-size:11px;color:var(--text-light);">${d.notes}</span>`:''}</div><button class="popup-btn" onclick="toggleDealsView()">See all deals</button></div>`);
+    const popup = L.popup({className:'hive-popup',closeButton:true}).setContent(`<div class="popup-inner"><div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;"><span style="font-size:22px;">${dealEmoji[t]||dealEmoji.default}</span><div><div class="popup-name" style="margin-bottom:1px;">${d.business_name}</div><div class="popup-detail" style="margin:0;">${d.city||''}</div></div>${pct>0?`<div style="margin-left:auto;font-family:'Fraunces',serif;font-size:20px;font-weight:700;color:var(--amber-dark);">-${pct}%</div>`:''}</div><p style="font-size:13px;color:var(--text-mid);margin-bottom:10px;">${d.discount_description||''}</p><div style="display:flex;gap:8px;margin-bottom:10px;">${sb}${d.notes?`<span style="font-size:11px;color:var(--text-light);">${d.notes}</span>`:''}</div><button class="popup-btn" onclick="openDealDetail('${d.id}')">View details</button></div>`);
     dealMarkers.push(L.marker([lat,lng],{icon}).addTo(dealMap).bindPopup(popup));
   });
 }
