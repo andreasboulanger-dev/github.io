@@ -1054,6 +1054,9 @@ input#priceRangeInput::-moz-range-thumb{
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+<script src="https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.min.js"></script>
 <script>
 // ─────────────────────────────────────────────────────────────
 // SUPABASE CONFIG
@@ -1065,7 +1068,7 @@ const PAGE_TYPE_MAP = { home: null, farms: 'farm', deals: 'price', forum: 'tip' 
 
 async function supaFetch(table, params='') {
   const res = await fetch(`${SUPA_URL}/rest/v1/${table}?${params}`, {
-    headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}`, 'Range': '0-49999' }
+    headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` }
   });
   if (!res.ok) throw new Error(await res.text());
   return res.json();
@@ -1096,7 +1099,7 @@ const TILE_ATTR = '© <a href="https://www.openstreetmap.org/copyright">OpenStre
 // ── STATE ──
 let currentPage   = 'home';
 let farmMap       = null, dealMap = null, pickerMap = null, pickerMarker = null;
-let farmMarkers   = [], dealMarkers = [];
+let farmMarkers   = [], dealMarkers = [], farmCluster = null;
 let allFarms      = [], allDeals = [], allPrices = [];
 let dealsViewMode = 'map';
 let dealsLoaded   = false;
@@ -1259,11 +1262,88 @@ async function loadFarms() {
   renderFarmsList(allFarms);
 }
 
-const farmColors = {'fruit picking':'#2E7D32','vegetables':'#00796B','livestock':'#6D4C41','winery':'#4527A0','88 days':'#185FA5','default':'#D4851A'};
-const farmEmoji  = {'fruit picking':'🍎','vegetables':'🥦','livestock':'🐄','winery':'🍇','88 days':'📅','default':'🌾'};
+const farmColors = {
+  'fruits farm':'#2E7D32',
+  'vegetables farm':'#00796B',
+  'cattle farm':'#6D4C41',
+  'livestock breeder':'#795548',
+  'vineyard':'#4527A0',
+  'honey farm':'#F9A825',
+  'poultry farm':'#EF6C00',
+  'dairy farm':'#0277BD',
+  'ranch':'#4E342E',
+  'sheeps farm':'#78909C',
+  'plants nursery':'#388E3C',
+  'wholesale plant':'#43A047',
+  'nuts farm':'#827717',
+  'aquaculture farm':'#00838F',
+  'oyster supplier':'#00695C',
+  'fish farm':'#0288D1',
+  'flowers farm':'#AD1457',
+  'horse stud':'#4E342E',
+  'alpacas farm':'#8D6E63',
+  'mushrooms farm':'#6D4C41',
+  'grains farm':'#F57F17',
+  'mixed farm':'#558B2F',
+  'pigs farm':'#D81B60',
+  'goats farm':'#6D4C41',
+  'medicinal cannabis farm':'#1B5E20',
+  'seafood farm':'#006064',
+  'station':'#4A148C',
+  'roadhouses':'#BF360C',
+  'chrismas tree':'#1B5E20',
+  'default':'#D4851A'
+};
+const farmEmoji = {
+  'fruits farm':'🍎',
+  'vegetables farm':'🥦',
+  'cattle farm':'🐄',
+  'livestock breeder':'🐑',
+  'vineyard':'🍇',
+  'honey farm':'🍯',
+  'poultry farm':'🐔',
+  'dairy farm':'🥛',
+  'ranch':'🤠',
+  'sheeps farm':'🐑',
+  'plants nursery':'🌱',
+  'wholesale plant':'🪴',
+  'nuts farm':'🥜',
+  'aquaculture farm':'🦐',
+  'oyster supplier':'🦪',
+  'fish farm':'🐟',
+  'flowers farm':'🌸',
+  'horse stud':'🐴',
+  'alpacas farm':'🦙',
+  'mushrooms farm':'🍄',
+  'grains farm':'🌾',
+  'mixed farm':'🚜',
+  'pigs farm':'🐷',
+  'goats farm':'🐐',
+  'medicinal cannabis farm':'🌿',
+  'seafood farm':'🦞',
+  'station':'🏜️',
+  'roadhouses':'🛣️',
+  'chrismas tree':'🎄',
+  'default':'🌾'
+};
 
 function renderFarmMarkers(farms) {
-  farmMarkers.forEach(m => farmMap.removeLayer(m)); farmMarkers = [];
+  if (farmCluster) { farmMap.removeLayer(farmCluster); }
+  farmMarkers = [];
+  farmCluster = L.markerClusterGroup({
+    maxClusterRadius: 50,
+    spiderfyOnMaxZoom: true,
+    showCoverageOnHover: false,
+    zoomToBoundsOnClick: true,
+    iconCreateFunction: function(cluster) {
+      const count = cluster.getChildCount();
+      return L.divIcon({
+        html: `<div style="background:#3B6D11;color:white;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;font-family:'DM Sans',sans-serif;box-shadow:0 2px 8px rgba(0,0,0,0.25);">${count}</div>`,
+        className: '',
+        iconSize: L.point(36, 36)
+      });
+    }
+  });
   farms.forEach(f => {
     const lat = parseFloat(f.latitude), lng = parseFloat(f.longitude);
     if (isNaN(lat)||isNaN(lng)) return;
@@ -1273,7 +1353,7 @@ function renderFarmMarkers(farms) {
     const acc  = f.accommodation&&f.accommodation.toLowerCase().startsWith('y') ? `<span class="badge deal">Housing</span>` : '';
     const is88popup = (f.eighty_eight_days||'').toLowerCase().startsWith('y') ? `<span class="badge" style="background:#E6F1FB;color:#185FA5;">88 days</span>` : '';
     const popup = L.popup({className:'hive-popup',closeButton:true}).setContent(`<div class="popup-inner"><div class="popup-name">${f.business_name}</div><div class="popup-detail" style="display:flex;align-items:center;gap:6px;">${f.city||''}${f.state_region?', '+f.state_region:''} · ${f.country||''}<span id="popup-stars-${f.id}" style="display:inline-flex;align-items:center;gap:2px;margin-left:2px;"></span></div><div class="popup-badges"><span class="badge">${f.farm_category_first||'Farm'}</span>${pay}${acc}${is88popup}</div>${f.notes?`<div style="font-size:12px;color:var(--text-light);margin-bottom:10px;">${f.notes}</div>`:''}<button class="popup-btn" onclick="openFarmDetail('${f.id}')">View details</button></div>`);
-    const marker = L.marker([lat,lng],{icon}).addTo(farmMap).bindPopup(popup);
+    const marker = L.marker([lat,lng],{icon}).bindPopup(popup);
     marker.on('popupopen', function() {
       const span = document.getElementById('popup-stars-' + f.id);
       if (!span || span.dataset.loaded) return;
@@ -1285,7 +1365,9 @@ function renderFarmMarkers(farms) {
       });
     });
     farmMarkers.push(marker);
+    farmCluster.addLayer(marker);
   });
+  farmMap.addLayer(farmCluster);
 }
 
 function renderFarmsList(farms) {
