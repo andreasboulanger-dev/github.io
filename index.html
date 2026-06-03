@@ -730,11 +730,13 @@ function goTo(page) {
   } else if (page === 'farms') {
     tf.classList.remove('visible');
     tfFarms.classList.add('visible');
+    document.getElementById('mainFab').style.display = '';
     showSlider(false);
     if (!farmMap) initFarmMap();
   } else {
     tf.classList.remove('visible');
     tfFarms.classList.remove('visible');
+    document.getElementById('mainFab').style.display = '';
     showSlider(false);
   }
   if (page === 'forum') loadForumPosts();
@@ -922,15 +924,19 @@ function openFarmDetail(id) {
   const f = allFarms.find(x => x.id == id);
   if (!f) return;
 
+  // Hide FABs
+  document.getElementById('toggleFarmsFab').classList.remove('visible');
+  document.getElementById('mainFab').style.display = 'none';
+
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('page-farm-detail').classList.add('active');
 
-  const t       = (f.farm_category_first||'').toLowerCase();
-  const emoji   = farmEmoji[t]  || farmEmoji.default;
-  const color   = farmColors[t] || farmColors.default;
-  const pay     = f.pay_per_hour_aud ? `<span class="badge pay">$${f.pay_per_hour_aud}/hr</span>` : '';
-  const acc     = f.accommodation && f.accommodation.toLowerCase().startsWith('y') ? `<span class="badge deal">Housing</span>` : '';
-  const is88    = (f.farm_category_first||'').toLowerCase().includes('88') ? `<span class="badge" style="background:#E6F1FB;color:#185FA5;">88 days eligible</span>` : '';
+  const t     = (f.farm_category_first||'').toLowerCase();
+  const emoji = farmEmoji[t]  || farmEmoji.default;
+  const color = farmColors[t] || farmColors.default;
+  const pay   = f.pay_per_hour_aud ? `<span class="badge pay">$${f.pay_per_hour_aud}/hr</span>` : '';
+  const acc   = f.accommodation && f.accommodation.toLowerCase().startsWith('y') ? `<span class="badge deal">Housing</span>` : '';
+  const is88  = (f.eighty_eight_days||'').toLowerCase().startsWith('y') ? `<span class="badge" style="background:#E6F1FB;color:#185FA5;">88 days eligible</span>` : '';
 
   const el = document.getElementById('farmDetailContent');
   el.innerHTML = `
@@ -947,10 +953,10 @@ function openFarmDetail(id) {
       <div class="detail-section-title">Details</div>
       ${f.pay_per_hour_aud ? `<div class="detail-row"><div class="detail-row-icon"><i class="ti ti-currency-dollar"></i></div><div class="detail-row-content"><div class="detail-row-label">Pay rate</div><div class="detail-row-value">$${f.pay_per_hour_aud} AUD / hour</div></div></div>` : ''}
       ${f.accommodation ? `<div class="detail-row"><div class="detail-row-icon"><i class="ti ti-home"></i></div><div class="detail-row-content"><div class="detail-row-label">Accommodation</div><div class="detail-row-value">${f.accommodation}</div></div></div>` : ''}
-      ${f.season ? `<div class="detail-row"><div class="detail-row-icon"><i class="ti ti-calendar"></i></div><div class="detail-row-content"><div class="detail-row-label">Season</div><div class="detail-row-value">${f.season}</div></div></div>` : ''}
-      ${f.phone ? `<div class="detail-row"><div class="detail-row-icon"><i class="ti ti-phone"></i></div><div class="detail-row-content"><div class="detail-row-label">Phone</div><div class="detail-row-value">${f.phone}</div></div></div>` : ''}
-      ${f.email ? `<div class="detail-row"><div class="detail-row-icon"><i class="ti ti-mail"></i></div><div class="detail-row-content"><div class="detail-row-label">Email</div><div class="detail-row-value">${f.email}</div></div></div>` : ''}
-      ${f.website ? `<div class="detail-row"><div class="detail-row-icon"><i class="ti ti-world"></i></div><div class="detail-row-content"><div class="detail-row-label">Website</div><div class="detail-row-value"><a href="${f.website}" target="_blank" style="color:var(--amber-dark);">${f.website}</a></div></div></div>` : ''}
+      ${f.season ? `<div class="detail-row"><div class="detail-row-icon"><i class="ti ti-calendar"></i></div><div class="detail-row-content"><div class="detail-row-label">Season</div><div class="detail-row-value">${f.season}</div></div></div>` : '<div class="detail-row"><div class="detail-row-icon"><i class="ti ti-calendar"></i></div><div class="detail-row-content"><div class="detail-row-label">Season</div><div class="detail-row-value" style="color:var(--text-light);">Not specified</div></div></div>'}
+      ${f.phone ? `<div class="detail-row"><div class="detail-row-icon"><i class="ti ti-phone"></i></div><div class="detail-row-content"><div class="detail-row-label">Phone</div><div class="detail-row-value"><a href="tel:${f.phone}" style="color:var(--amber-dark);">${f.phone}</a></div></div></div>` : '<div class="detail-row"><div class="detail-row-icon"><i class="ti ti-phone"></i></div><div class="detail-row-content"><div class="detail-row-label">Phone</div><div class="detail-row-value" style="color:var(--text-light);">Not listed</div></div></div>'}
+      ${f.email ? `<div class="detail-row"><div class="detail-row-icon"><i class="ti ti-mail"></i></div><div class="detail-row-content"><div class="detail-row-label">Email</div><div class="detail-row-value"><a href="mailto:${f.email}" style="color:var(--amber-dark);">${f.email}</a></div></div></div>` : '<div class="detail-row"><div class="detail-row-icon"><i class="ti ti-mail"></i></div><div class="detail-row-content"><div class="detail-row-label">Email</div><div class="detail-row-value" style="color:var(--text-light);">Not listed</div></div></div>'}
+      ${f.website ? `<div class="detail-row"><div class="detail-row-icon"><i class="ti ti-world"></i></div><div class="detail-row-content"><div class="detail-row-label">Website</div><div class="detail-row-value"><a href="${f.website}" target="_blank" style="color:var(--amber-dark);">${f.website}</a></div></div></div>` : '<div class="detail-row"><div class="detail-row-icon"><i class="ti ti-world"></i></div><div class="detail-row-content"><div class="detail-row-label">Website</div><div class="detail-row-value" style="color:var(--text-light);">Not listed</div></div></div>'}
       ${f.notes ? `<div class="detail-row"><div class="detail-row-icon"><i class="ti ti-notes"></i></div><div class="detail-row-content"><div class="detail-row-label">Notes</div><div class="detail-row-value">${f.notes}</div></div></div>` : ''}
     </div>
 
