@@ -88,6 +88,21 @@ html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;backgroun
 .recent-posts{padding:0 18px 100px;display:flex;flex-direction:column;gap:10px}
 .scroll-pad{height:110px}
 
+/* HOME COMMUNITY BAR */
+.home-community-bar{display:flex;align-items:center;justify-content:space-between;background:var(--amber-pale);border:0.5px solid rgba(245,166,35,0.25);border-radius:var(--radius-lg);margin:16px 18px 0;padding:12px 16px}
+.home-community-left{display:flex;flex-direction:column;gap:3px}
+.home-community-title{font-size:13px;font-weight:600;color:var(--text-dark);display:flex;align-items:center;gap:6px}
+.home-community-title i{color:var(--amber);font-size:15px}
+.home-community-count{font-family:'Fraunces',serif;font-size:20px;font-weight:700;color:var(--amber-dark)}
+.home-community-right{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.home-community-progress-wrap{width:80px;height:6px;background:var(--border-mid);border-radius:3px;overflow:hidden}
+.home-community-progress-fill{height:100%;background:var(--amber);border-radius:3px}
+.home-community-goal{font-size:11px;color:var(--text-light);font-weight:500}
+
+/* PICKER LOCATE BTN */
+.picker-locate-btn{position:absolute;bottom:10px;right:10px;width:36px;height:36px;border-radius:50%;background:var(--white);border:0.5px solid var(--border-mid);box-shadow:var(--shadow-md);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:500;color:var(--amber-dark);font-size:18px;}
+.picker-locate-btn:active{background:var(--off-white);}
+
 /* MAP shared */
 .map-page-wrap{display:flex;flex-direction:column;height:100%;overflow:hidden;position:relative}
 /* Filter pills above map (static) */
@@ -412,6 +427,16 @@ input#priceRangeInput::-moz-range-thumb{
         <div class="stat-card"><div class="stat-num" id="stat-deals">–</div><div class="stat-label">Deals</div></div>
         <div class="stat-card"><div class="stat-num" id="stat-members">–</div><div class="stat-label">Members</div></div>
       </div>
+      <div class="home-community-bar">
+        <div class="home-community-left">
+          <div class="home-community-title"><i class="ti ti-users"></i> Community Power</div>
+          <div class="home-community-count">1,200 members</div>
+        </div>
+        <div class="home-community-right">
+          <div class="home-community-progress-wrap"><div class="home-community-progress-fill" style="width:60%"></div></div>
+          <div class="home-community-goal">Goal: 2,000</div>
+        </div>
+      </div>
       <div class="section-title">Explore</div>
       <div class="quick-actions">
         <div class="qa-card" onclick="goTo('farms')"><div class="qa-icon farms"><i class="ti ti-plant-2"></i></div><div><div class="qa-name">Farm Directory</div><div class="qa-sub">Aus & NZ map</div></div></div>
@@ -419,7 +444,7 @@ input#priceRangeInput::-moz-range-thumb{
         <div class="qa-card" onclick="openSubmit('home')"><div class="qa-icon prices"><i class="ti ti-circle-plus"></i></div><div><div class="qa-name">Add Info</div><div class="qa-sub">Contribute to the hive</div></div></div>
         <div class="qa-card" onclick="goTo('forum')"><div class="qa-icon community"><i class="ti ti-messages"></i></div><div><div class="qa-name">Community</div><div class="qa-sub">Tips, stories & help</div></div></div>
       </div>
-      <div class="section-title">Latest from the community</div>
+      <div class="section-title">Trending in the community</div>
       <div class="recent-posts">
         <div class="post-card"><div class="post-header"><div class="avatar">SL</div><div class="post-meta"><div class="post-author">Sophie L.</div><div class="post-time">2h ago · Byron Bay</div></div><span class="post-tag deal">Deal</span></div><p class="post-text">The Hive Café on Jonson St now gives 15% off coffee to backpackers who show the app!</p><div class="post-footer"><button class="post-action"><i class="ti ti-heart"></i> 24</button><button class="post-action"><i class="ti ti-message-circle"></i> 6</button></div></div>
         <div class="post-card"><div class="post-header"><div class="avatar">MK</div><div class="post-meta"><div class="post-author">Marc K.</div><div class="post-time">Yesterday · Queenstown</div></div><span class="post-tag farm">Farm</span></div><p class="post-text">Summit Ridge Farm near Queenstown is hiring! Accommodation included, $22/hr.</p><div class="post-footer"><button class="post-action"><i class="ti ti-heart"></i> 41</button><button class="post-action"><i class="ti ti-message-circle"></i> 13</button></div></div>
@@ -631,7 +656,7 @@ input#priceRangeInput::-moz-range-thumb{
     </div>
   </div>
 
-  <button class="fab" id="mainFab" onclick="openSubmit(currentPage)" aria-label="Add"><i class="ti ti-plus"></i></button>
+  <button class="fab" id="mainFab" onclick="openSubmit(currentPage)" aria-label="Add" style="display:none;"><i class="ti ti-plus"></i></button>
 
   <button class="toggle-fab" id="toggleFab" onclick="toggleDealsView()">
     <i class="ti ti-list" id="toggleIcon"></i>
@@ -653,7 +678,10 @@ input#priceRangeInput::-moz-range-thumb{
   <div class="modal-backdrop" id="submitModal" onclick="handleBackdropClick(event)">
     <div class="modal-sheet">
       <div class="modal-handle"></div>
-      <div class="modal-title">Add to the hive</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+        <div class="modal-title" style="margin-bottom:0;">Add to the hive</div>
+        <button class="icon-btn" onclick="closeSubmit()" aria-label="Close"><i class="ti ti-x"></i></button>
+      </div>
       <p class="modal-sub">Your submission will be reviewed before going live.</p>
       <div class="form-group"><label class="form-label">What are you adding?</label>
         <div class="type-grid">
@@ -665,12 +693,39 @@ input#priceRangeInput::-moz-range-thumb{
       </div>
       <div class="form-group"><label class="form-label">Name / Title</label><input type="text" class="form-input" id="fieldName" placeholder="e.g. Blue Hills Orchard, Flat white…"></div>
       <div class="form-group">
-        <label class="form-label">Location — drag the pin</label>
-        <div class="location-map-wrap"><div id="pickerMap"></div></div>
-        <p class="picker-hint"><i class="ti ti-hand-finger"></i> Drag the pin to set location</p>
-        <div class="coord-display">
-          <div class="coord-badge">Lat: <span id="dispLat">–</span></div>
-          <div class="coord-badge">Lng: <span id="dispLng">–</span></div>
+        <label class="form-label">Location — drag the pin or use locate</label>
+        <div class="location-map-wrap" style="position:relative;">
+          <div id="pickerMap"></div>
+          <button class="picker-locate-btn" onclick="locateOnPicker()" title="Use my location"><i class="ti ti-current-location"></i></button>
+        </div>
+        <p class="picker-hint"><i class="ti ti-hand-finger"></i> Drag the pin or tap the crosshair to set location</p>
+      </div>
+
+      <!-- Farm-specific fields (shown when type = farm) -->
+      <div id="farmFieldsGroup" style="display:none;">
+        <div class="form-group">
+          <label class="form-label">Contact Number</label>
+          <input type="tel" class="form-input" id="farmFieldPhone" placeholder="+61 400 000 000">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input type="email" class="form-input" id="farmFieldEmail" placeholder="contact@farm.com">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Website</label>
+          <input type="url" class="form-input" id="farmFieldWebsite" placeholder="https://...">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Pay Rate (AUD/hr)</label>
+          <input type="number" class="form-input" id="farmFieldPay" placeholder="e.g. 22" step="0.5">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Accommodation</label>
+          <input type="text" class="form-input" id="farmFieldAccom" placeholder="e.g. Yes – shared room provided">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Season</label>
+          <input type="text" class="form-input" id="farmFieldSeason" placeholder="e.g. Oct – Feb">
         </div>
       </div>
 
@@ -793,7 +848,7 @@ function goTo(page) {
   } else {
     tf.classList.remove('visible');
     tfFarms.classList.remove('visible');
-    document.getElementById('mainFab').style.display = '';
+    document.getElementById('mainFab').style.display = (page === 'home') ? 'none' : '';
     showSlider(false);
   }
   if (page === 'forum') loadForumPosts();
@@ -1497,10 +1552,12 @@ function updateFormForType(type) {
   const ag = document.getElementById('availGroup');
   const stdGroup = document.getElementById('standardDetailsGroup');
   const priceGroup = document.getElementById('priceItemsGroup');
+  const farmFields = document.getElementById('farmFieldsGroup');
   const dl = document.getElementById('detailsLabel');
   const fd = document.getElementById('fieldDetails');
 
   ag.style.display = (type==='deal'||type==='price') ? '' : 'none';
+  farmFields.style.display = (type === 'farm') ? '' : 'none';
 
   if (type === 'price') {
     stdGroup.style.display = 'none';
@@ -1508,7 +1565,7 @@ function updateFormForType(type) {
   } else {
     stdGroup.style.display = 'block';
     priceGroup.style.display = 'none';
-    if (type==='farm')  { dl.textContent='Details'; fd.placeholder='Pay rate, accommodation, crops, season…'; }
+    if (type==='farm')  { dl.textContent='Additional Details'; fd.placeholder='Any other info: crops, conditions, season…'; }
     else if (type==='deal')  { dl.textContent='Discount details'; fd.placeholder='e.g. 15% off coffee, how to redeem…'; }
     else { dl.textContent='Your tip'; fd.placeholder='Share useful info with the community…'; }
   }
@@ -1527,7 +1584,7 @@ function addPriceRow() {
 
 function initPickerMap() {
   if (pickerMap) { pickerMap.invalidateSize(); return; }
-  pickerMap = L.map('pickerMap', {center:[-30,147], zoom:3, zoomControl:true, attributionControl:false});
+  pickerMap = L.map('pickerMap', {center:[-30,147], zoom:3, zoomControl:false, attributionControl:false});
   L.tileLayer(TILE_URL, {maxZoom:19}).addTo(pickerMap);
   pickerMarker = L.marker([-30,147], {draggable:true, icon:makePin('📍','#D4851A',40)}).addTo(pickerMap);
   pickerMarker.on('dragend', updatePickerCoords);
@@ -1537,11 +1594,23 @@ function initPickerMap() {
   updatePickerCoords();
 }
 
+function locateOnPicker() {
+  if (!navigator.geolocation) { showToast('Geolocation not supported'); return; }
+  showToast('Locating…');
+  navigator.geolocation.getCurrentPosition(pos => {
+    const latlng = L.latLng(pos.coords.latitude, pos.coords.longitude);
+    pickerMarker.setLatLng(latlng);
+    pickerMap.flyTo(latlng, 13, {animate:true, duration:1});
+    updatePickerCoords();
+    showToast('Location set!');
+  }, () => {
+    showToast('Could not get location');
+  });
+}
+
 function updatePickerCoords() {
   const ll = pickerMarker.getLatLng();
   pickerLat = ll.lat.toFixed(5); pickerLng = ll.lng.toFixed(5);
-  document.getElementById('dispLat').textContent = pickerLat;
-  document.getElementById('dispLng').textContent = pickerLng;
 }
 
 function toggleDay(btn) { btn.classList.toggle('on'); }
@@ -1604,6 +1673,21 @@ async function submitForm() {
         longitude: parseFloat(pickerLng),
         availability
       };
+      // Include farm-specific fields if type is farm
+      if (type === 'farm') {
+        const phone   = document.getElementById('farmFieldPhone').value.trim();
+        const email   = document.getElementById('farmFieldEmail').value.trim();
+        const website = document.getElementById('farmFieldWebsite').value.trim();
+        const pay     = document.getElementById('farmFieldPay').value.trim();
+        const accom   = document.getElementById('farmFieldAccom').value.trim();
+        const season  = document.getElementById('farmFieldSeason').value.trim();
+        if (phone)   payload.phone   = phone;
+        if (email)   payload.email   = email;
+        if (website) payload.website = website;
+        if (pay)     payload.pay_per_hour_aud = parseFloat(pay);
+        if (accom)   payload.accommodation = accom;
+        if (season)  payload.season  = season;
+      }
       await supaInsert('submissions', payload);
     }
 
