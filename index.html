@@ -46,11 +46,13 @@ html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;backgroun
 .nav-item.active .nav-dot{opacity:1}
 
 /* FAB */
-.fab{position:absolute;bottom:calc(var(--nav-h) + 16px);right:20px;width:52px;height:52px;border-radius:50%;background:var(--amber);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-fab);z-index:30;color:white;font-size:24px;-webkit-tap-highlight-color:transparent}
+/* Remonté pour éviter le slider (calc(var(--nav-h) + 50px)) */
+.fab{position:absolute;bottom:calc(var(--nav-h) + 50px);right:20px;width:52px;height:52px;border-radius:50%;background:var(--amber);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-fab);z-index:30;color:white;font-size:24px;-webkit-tap-highlight-color:transparent}
 .fab:active{transform:scale(0.93);background:var(--amber-dark)}
 
 /* Toggle fab centre */
-.toggle-fab{position:absolute;bottom:calc(var(--nav-h) + 16px);left:50%;transform:translateX(-50%);height:40px;padding:0 20px;border-radius:20px;background:var(--text-dark);border:none;cursor:pointer;display:none;align-items:center;gap:8px;box-shadow:var(--shadow-md);z-index:30;color:white;font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif;white-space:nowrap;-webkit-tap-highlight-color:transparent}
+/* Remonté pour éviter le slider (calc(var(--nav-h) + 50px)) */
+.toggle-fab{position:absolute;bottom:calc(var(--nav-h) + 50px);left:50%;transform:translateX(-50%);height:40px;padding:0 20px;border-radius:20px;background:var(--text-dark);border:none;cursor:pointer;display:none;align-items:center;gap:8px;box-shadow:var(--shadow-md);z-index:30;color:white;font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif;white-space:nowrap;-webkit-tap-highlight-color:transparent}
 .toggle-fab i{font-size:16px}
 .toggle-fab.visible{display:flex}
 
@@ -88,10 +90,10 @@ html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;backgroun
 
 /* MAP shared */
 .map-page-wrap{display:flex;flex-direction:column;height:100%;overflow:hidden;position:relative}
-/* Floating filter pills above map */
-.map-filters{display:flex;gap:8px;padding:10px 14px;overflow-x:auto;flex-shrink:0;scrollbar-width:none;position:absolute;top:12px;left:0;right:0;z-index:15;pointer-events:none}
+/* Filter pills above map (static) */
+.map-filters{display:flex;gap:8px;padding:10px 14px;overflow-x:auto;flex-shrink:0;scrollbar-width:none;background:var(--white);border-bottom:0.5px solid var(--border);z-index:10}
 .map-filters::-webkit-scrollbar{display:none}
-.map-filters .filter-pill{pointer-events:all;box-shadow:0 2px 8px rgba(0,0,0,0.18);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+.map-filters .filter-pill{box-shadow:var(--shadow-sm)}
 .filter-pill{display:flex;align-items:center;gap:5px;padding:6px 14px;border-radius:20px;background:var(--white);border:0.5px solid var(--border-mid);font-size:13px;font-weight:500;color:var(--text-mid);white-space:nowrap;cursor:pointer;transition:all 0.15s;font-family:'DM Sans',sans-serif}
 .filter-pill.active{background:var(--amber);border-color:var(--amber);color:white}
 .filter-pill i{font-size:15px}
@@ -337,7 +339,6 @@ input#priceRangeInput::-moz-range-thumb{
 
   <div class="pages">
 
-    <!-- HOME -->
     <div class="page active" id="page-home">
       <div class="home-hero">
         <p class="home-greeting">Welcome back, traveller</p>
@@ -364,10 +365,8 @@ input#priceRangeInput::-moz-range-thumb{
       </div>
     </div>
 
-    <!-- FARMS -->
     <div class="page" id="page-farms">
       <div class="map-page-wrap">
-        <div id="farmMap"></div>
         <div class="map-filters">
           <button class="filter-pill active" onclick="filterFarms(this,'all')"><i class="ti ti-map-2"></i> All</button>
           <button class="filter-pill" onclick="filterFarms(this,'fruit picking')"><i class="ti ti-apple"></i> Fruit picking</button>
@@ -375,15 +374,14 @@ input#priceRangeInput::-moz-range-thumb{
           <button class="filter-pill" onclick="filterFarms(this,'livestock')"><i class="ti ti-paw"></i> Livestock</button>
           <button class="filter-pill" onclick="filterFarms(this,'winery')"><i class="ti ti-bottle"></i> Winery</button>
         </div>
+        <div id="farmMap"></div>
         <div class="farms-list" id="farmsList"><div class="map-loading"><div class="spinner"></div>Loading farms…</div></div>
       </div>
     </div>
 
-    <!-- LOCAL PRICES -->
     <div class="page" id="page-deals">
       <div class="map-page-wrap">
         <div class="deals-map-view active" id="dealsMapView">
-          <div id="dealMap"></div>
           <div class="map-filters">
             <button class="filter-pill active" onclick="filterDeals(this,'all')"><i class="ti ti-map-2"></i> All</button>
             <button class="filter-pill" onclick="filterDeals(this,'coffee shop')"><i class="ti ti-coffee"></i> Cafés</button>
@@ -391,9 +389,10 @@ input#priceRangeInput::-moz-range-thumb{
             <button class="filter-pill" onclick="filterDeals(this,'bar')"><i class="ti ti-beer"></i> Bars</button>
             <button class="filter-pill" onclick="filterDeals(this,'activity')"><i class="ti ti-run"></i> Activities</button>
           </div>
+          <div id="dealMap"></div>
         </div>
-        <!-- HORIZONTAL PRICE SLIDER -->
         <div class="price-slider-bar" id="priceSliderBar">
+          <span style="font-size:13px; font-weight:600; color:var(--text-mid); margin-right:12px;">Price</span>
           <div class="price-slider-input-wrap">
             <input type="range" id="priceRangeInput" min="0" max="100" value="100" step="1">
             <div class="slider-bubble" id="sliderBubble">$100</div>
@@ -420,7 +419,6 @@ input#priceRangeInput::-moz-range-thumb{
       </div>
     </div>
 
-    <!-- FORUM -->
     <div class="page" id="page-forum">
       <div style="display:flex;flex-direction:column;height:100%;">
         <div class="forum-tabs">
@@ -455,7 +453,6 @@ input#priceRangeInput::-moz-range-thumb{
     <button class="nav-item" onclick="goTo('forum')" id="nav-forum"><i class="ti ti-messages"></i><span>Community</span><div class="nav-dot"></div></button>
   </nav>
 
-  <!-- SUBMIT MODAL -->
   <div class="modal-backdrop" id="submitModal" onclick="handleBackdropClick(event)">
     <div class="modal-sheet">
       <div class="modal-handle"></div>
@@ -480,17 +477,14 @@ input#priceRangeInput::-moz-range-thumb{
         </div>
       </div>
 
-      <!-- Champs standards (Farm, Deal, Tip) -->
       <div class="form-group" id="standardDetailsGroup">
         <label class="form-label" id="detailsLabel">Details</label>
         <textarea class="form-textarea" id="fieldDetails" placeholder="Pay rate, discount, price, conditions…"></textarea>
       </div>
 
-      <!-- Champs dynamiques (Local Price uniquement) -->
       <div class="form-group" id="priceItemsGroup" style="display:none">
         <label class="form-label">Items & Prices</label>
         <div id="priceRowsContainer">
-          <!-- Première ligne par défaut -->
           <div class="price-row">
             <input type="text" class="form-input item-name" placeholder="e.g. Capuccino">
             <input type="number" class="form-input item-price" placeholder="Price ($)" step="0.01">
