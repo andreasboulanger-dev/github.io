@@ -101,8 +101,19 @@ html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;backgroun
 .spinner{width:28px;height:28px;border:3px solid var(--amber-light);border-top-color:var(--amber);border-radius:50%;animation:spin 0.7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 
+/* FARMS dual-view */
+.farms-map-view{flex:1;min-height:0;position:relative;display:flex;flex-direction:column;}
+.farms-list-view{display:none;overflow-y:auto;height:100%;}
+.farms-list-view.active{display:block;}
+.farms-list-view #farmsListScroll{padding-bottom:100px;}
+
+/* LOCATE BUTTON */
+.locate-btn{position:absolute;bottom:16px;right:16px;width:42px;height:42px;border-radius:50%;background:var(--white);border:0.5px solid var(--border-mid);box-shadow:var(--shadow-md);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:10;color:var(--amber-dark);font-size:20px;}
+.locate-btn:active{background:var(--off-white);}
+
 /* FARM MAP */
 #farmMap{flex:1;min-height:0;z-index:1}
+
 .farms-list{position:absolute;bottom:0;left:0;right:0;max-height:200px;overflow-y:auto;background:var(--white);border-top:0.5px solid var(--border);z-index:10;border-radius:16px 16px 0 0;box-shadow:0 -4px 20px rgba(0,0,0,0.10)}
 .farm-row{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:0.5px solid var(--border);cursor:pointer}
 .farm-row:active{background:var(--off-white)}
@@ -403,9 +414,15 @@ input#priceRangeInput::-moz-range-thumb{
           <button class="filter-pill" onclick="filterFarms(this,'vegetables')"><i class="ti ti-leaf"></i> Vegetables</button>
           <button class="filter-pill" onclick="filterFarms(this,'livestock')"><i class="ti ti-paw"></i> Livestock</button>
           <button class="filter-pill" onclick="filterFarms(this,'winery')"><i class="ti ti-bottle"></i> Winery</button>
+          <button class="filter-pill" onclick="filterFarms(this,'88 days')"><i class="ti ti-calendar-stats"></i> 88 days</button>
         </div>
-        <div id="farmMap"></div>
-        <div class="farms-list" id="farmsList"><div class="map-loading"><div class="spinner"></div>Loading farms…</div></div>
+        <div class="farms-map-view active" id="farmsMapView" style="flex:1;min-height:0;position:relative;display:flex;flex-direction:column;">
+          <div id="farmMap" style="flex:1;min-height:0;z-index:1;"></div>
+          <button class="locate-btn" onclick="locateUser()" title="My location"><i class="ti ti-current-location"></i></button>
+        </div>
+        <div class="farms-list-view" id="farmsListView">
+          <div id="farmsListScroll"><div class="map-loading"><div class="spinner"></div>Loading farms…</div></div>
+        </div>
       </div>
     </div>
 
@@ -519,6 +536,11 @@ input#priceRangeInput::-moz-range-thumb{
   <button class="toggle-fab" id="toggleFab" onclick="toggleDealsView()">
     <i class="ti ti-list" id="toggleIcon"></i>
     <span id="toggleLabel">List</span>
+  </button>
+
+  <button class="toggle-fab" id="toggleFarmsFab" onclick="toggleFarmsView()">
+    <i class="ti ti-list" id="toggleFarmsIcon"></i>
+    <span id="toggleFarmsLabel">List</span>
   </button>
 
   <nav class="bottom-nav">
@@ -650,16 +672,24 @@ function goTo(page) {
   const navEl = document.getElementById('nav-' + page);
   if (navEl) navEl.classList.add('active');
 
-  const tf = document.getElementById('toggleFab');
+  const tf      = document.getElementById('toggleFab');
+  const tfFarms = document.getElementById('toggleFarmsFab');
+
   if (page === 'deals') {
     tf.classList.add('visible');
+    tfFarms.classList.remove('visible');
     showSlider(true);
     if (!dealsLoaded) initDealMap();
+  } else if (page === 'farms') {
+    tf.classList.remove('visible');
+    tfFarms.classList.add('visible');
+    showSlider(false);
+    if (!farmMap) initFarmMap();
   } else {
     tf.classList.remove('visible');
+    tfFarms.classList.remove('visible');
     showSlider(false);
   }
-  if (page === 'farms' && !farmMap) initFarmMap();
   if (page === 'forum') loadForumPosts();
 }
 
@@ -758,8 +788,10 @@ function makePin(emoji, color) {
 }
 
 // ── FARMS MAP ──
+let farmsViewMode = 'map';
+
 function initFarmMap() {
-  farmMap = L.map('farmMap', {center:[-30,147], zoom:4});
+  farmMap = L.map('farmMap', {center:[-30,147], zoom:4, zoomControl:true});
   L.tileLayer(TILE_URL, {attribution:TILE_ATTR, maxZoom:19}).addTo(farmMap);
   setTimeout(() => farmMap.invalidateSize(), 100);
   loadFarms();
@@ -774,8 +806,8 @@ async function loadFarms() {
   renderFarmsList(allFarms);
 }
 
-const farmColors = {'fruit picking':'#2E7D32','vegetables':'#00796B','livestock':'#6D4C41','winery':'#4527A0','default':'#D4851A'};
-const farmEmoji  = {'fruit picking':'🍎','vegetables':'🥦','livestock':'🐄','winery':'🍇','default':'🌾'};
+const farmColors = {'fruit picking':'#2E7D32','vegetables':'#00796B','livestock':'#6D4C41','winery':'#4527A0','88 days':'#185FA5','default':'#D4851A'};
+const farmEmoji  = {'fruit picking':'🍎','vegetables':'🥦','livestock':'🐄','winery':'🍇','88 days':'📅','default':'🌾'};
 
 function renderFarmMarkers(farms) {
   farmMarkers.forEach(m => farmMap.removeLayer(m)); farmMarkers = [];
@@ -792,9 +824,9 @@ function renderFarmMarkers(farms) {
 }
 
 function renderFarmsList(farms) {
-  const el = document.getElementById('farmsList');
+  const el = document.getElementById('farmsListScroll');
   if (!farms.length) { el.innerHTML = '<div class="map-loading">No farms found.</div>'; return; }
-  el.innerHTML = farms.map(f => `<div class="farm-row" onclick="flyTo(farmMap,${f.latitude},${f.longitude},10)"><div class="farm-icon-wrap"><i class="ti ti-plant-2"></i></div><div class="farm-info"><div class="farm-name">${f.business_name}</div><div class="farm-meta">${f.city||''}${f.state_region?', '+f.state_region:''} · ${f.farm_category_first||'Farm'}</div></div>${f.pay_per_hour_aud?`<span class="farm-chip">$${f.pay_per_hour_aud}/hr</span>`:''}</div>`).join('');
+  el.innerHTML = farms.map(f => `<div class="farm-row" onclick="flyTo(farmMap,${f.latitude},${f.longitude},10);if(farmsViewMode==='list')toggleFarmsView();"><div class="farm-icon-wrap"><i class="ti ti-plant-2"></i></div><div class="farm-info"><div class="farm-name">${f.business_name}</div><div class="farm-meta">${f.city||''}${f.state_region?', '+f.state_region:''} · ${f.farm_category_first||'Farm'}</div></div>${f.pay_per_hour_aud?`<span class="farm-chip">$${f.pay_per_hour_aud}/hr</span>`:''}</div>`).join('') + '<div style="height:100px;"></div>';
 }
 
 function filterFarms(btn, type) {
@@ -802,6 +834,40 @@ function filterFarms(btn, type) {
   btn.classList.add('active');
   const f = type==='all' ? allFarms : allFarms.filter(f => (f.farm_category_first||'').toLowerCase().includes(type));
   renderFarmMarkers(f); renderFarmsList(f);
+}
+
+function toggleFarmsView() {
+  const mv   = document.getElementById('farmsMapView');
+  const lv   = document.getElementById('farmsListView');
+  const icon = document.getElementById('toggleFarmsIcon');
+  const lbl  = document.getElementById('toggleFarmsLabel');
+  if (farmsViewMode === 'map') {
+    farmsViewMode = 'list';
+    mv.classList.remove('active'); mv.style.display = 'none';
+    lv.classList.add('active');
+    icon.className = 'ti ti-map-2'; lbl.textContent = 'Map';
+  } else {
+    farmsViewMode = 'map';
+    lv.classList.remove('active');
+    mv.style.display = ''; mv.classList.add('active');
+    icon.className = 'ti ti-list'; lbl.textContent = 'List';
+    if (farmMap) setTimeout(() => farmMap.invalidateSize(), 50);
+  }
+}
+
+function locateUser() {
+  if (!navigator.geolocation) { showToast('Geolocation not supported'); return; }
+  showToast('Locating…');
+  navigator.geolocation.getCurrentPosition(pos => {
+    const lat = pos.coords.latitude, lng = pos.coords.longitude;
+    if (farmsViewMode === 'list') toggleFarmsView();
+    farmMap.flyTo([lat, lng], 10, {animate:true, duration:1.2});
+    L.circleMarker([lat, lng], {radius:8, color:'#D4851A', fillColor:'#F5A623', fillOpacity:0.9, weight:2})
+      .addTo(farmMap).bindPopup('You are here').openPopup();
+    showToast('Location found!');
+  }, () => {
+    showToast('Could not get location');
+  });
 }
 
 // ── DEALS MAP ──
