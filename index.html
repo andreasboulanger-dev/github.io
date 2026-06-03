@@ -552,7 +552,10 @@ input#priceRangeInput::-moz-range-thumb{
     <div class="modal-backdrop" id="editFarmModal" onclick="handleEditFarmBackdrop(event)">
       <div class="modal-sheet" style="max-height:96vh;">
         <div class="modal-handle"></div>
-        <div class="modal-title">Suggest an edit</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+          <div class="modal-title" style="margin-bottom:0;">Suggest an edit</div>
+          <button class="icon-btn" onclick="document.getElementById('editFarmModal').classList.remove('open')"><i class="ti ti-x"></i></button>
+        </div>
         <p class="modal-sub">Your changes will be reviewed before going live.</p>
         <input type="hidden" id="editFarmId">
         <div class="form-group">
