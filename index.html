@@ -742,12 +742,16 @@ async function supaInsert(table, data) {
       'apikey': SUPA_KEY,
       'Authorization': `Bearer ${SUPA_KEY}`,
       'Content-Type': 'application/json',
-      'Prefer': 'return=minimal'
+      'Prefer': 'return=representation'
     },
     body: JSON.stringify(data)
   });
-  if (!res.ok) throw new Error(await res.text());
-  return true;
+  if (!res.ok) {
+    const errText = await res.text();
+    console.error('Supabase insert error:', res.status, errText);
+    throw new Error(errText);
+  }
+  return res.json();
 }
 
 const TILE_URL  = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
@@ -1606,7 +1610,8 @@ async function submitForm() {
     closeSubmit();
     setTimeout(() => showToast('Sent! We\'ll review your submission soon.'), 300);
   } catch(e) {
-    showToast('Error sending — please try again');
+    console.error('Submit error:', e);
+    showToast('Error: ' + (e.message ? e.message.slice(0,60) : 'please try again'));
   }
 }
 
