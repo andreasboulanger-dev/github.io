@@ -321,6 +321,36 @@ input#priceRangeInput::-moz-range-thumb{
   background: var(--off-white);
 }
 
+/* FORUM NEW BTN */
+.forum-new-btn{flex-shrink:0;margin:10px 18px 12px;padding:13px;background:var(--amber);color:white;border:none;border-radius:var(--radius-lg);font-family:'Fraunces',serif;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:var(--shadow-fab)}
+.forum-new-btn i{font-size:17px}
+.forum-new-btn:active{background:var(--amber-dark)}
+
+/* POST DETAIL */
+.post-detail-header{height:var(--header-h);border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 14px;flex-shrink:0;background:var(--white)}
+.post-detail-title{font-family:'Fraunces',serif;font-size:17px;font-weight:700}
+.post-detail-content{flex:1;overflow-y:auto;padding:16px 18px 10px}
+.post-full-title{font-family:'Fraunces',serif;font-size:20px;font-weight:700;line-height:1.3;margin-bottom:10px}
+.post-full-body{font-size:14px;color:var(--text-mid);line-height:1.6;margin-bottom:14px}
+.post-full-actions{display:flex;gap:14px;padding:12px 0;border-top:0.5px solid var(--border);border-bottom:0.5px solid var(--border);margin-bottom:16px}
+.like-btn{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--text-light);background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;padding:6px 10px;border-radius:var(--radius-sm);transition:background 0.15s}
+.like-btn:active{background:var(--off-white)}
+.like-btn.liked{color:var(--amber-dark)}
+.like-btn i{font-size:17px}
+.replies-title{font-family:'Fraunces',serif;font-size:15px;font-weight:600;margin-bottom:12px;color:var(--text-dark)}
+.reply-card{background:var(--off-white);border-radius:var(--radius-md);padding:12px 14px;margin-bottom:8px}
+.reply-author{font-size:12px;font-weight:600;color:var(--text-dark);margin-bottom:4px;display:flex;align-items:center;justify-content:space-between}
+.reply-time{font-size:11px;color:var(--text-light);font-weight:400}
+.reply-text{font-size:13.5px;color:var(--text-mid);line-height:1.5}
+.reply-like-btn{display:flex;align-items:center;gap:4px;font-size:12px;color:var(--text-light);background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:8px;padding:0}
+.reply-like-btn.liked{color:var(--amber-dark)}
+.reply-bar{display:flex;align-items:center;gap:10px;padding:10px 14px;border-top:0.5px solid var(--border);background:var(--white);flex-shrink:0;padding-bottom:calc(10px + env(safe-area-inset-bottom))}
+.reply-input{flex:1;height:40px;border:0.5px solid var(--border-mid);border-radius:20px;padding:0 16px;font-family:'DM Sans',sans-serif;font-size:14px;outline:none;background:var(--off-white)}
+.reply-input:focus{border-color:var(--amber)}
+.reply-send-btn{width:40px;height:40px;border-radius:50%;background:var(--amber);border:none;color:white;font-size:17px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
+.reply-send-btn:active{background:var(--amber-dark)}
+.no-posts{padding:40px 20px;text-align:center;color:var(--text-light);font-size:14px}
+
 /* TOAST */
 .toast{position:absolute;bottom:calc(var(--nav-h) + 20px);left:50%;transform:translateX(-50%) translateY(20px);background:var(--text-dark);color:white;padding:10px 18px;border-radius:var(--radius-lg);font-size:13.5px;font-weight:500;white-space:nowrap;z-index:60;opacity:0;transition:opacity 0.25s,transform 0.25s;display:flex;align-items:center;gap:7px;pointer-events:none}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
@@ -420,21 +450,66 @@ input#priceRangeInput::-moz-range-thumb{
     </div>
 
     <div class="page" id="page-forum">
-      <div style="display:flex;flex-direction:column;height:100%;">
+      <div style="display:flex;flex-direction:column;height:100%;overflow:hidden;">
         <div class="forum-tabs">
-          <button class="forum-tab active" onclick="switchForumTab(this)">All</button>
-          <button class="forum-tab" onclick="switchForumTab(this)">Farms</button>
-          <button class="forum-tab" onclick="switchForumTab(this)">Deals</button>
-          <button class="forum-tab" onclick="switchForumTab(this)">Visa tips</button>
-          <button class="forum-tab" onclick="switchForumTab(this)">General</button>
+          <button class="forum-tab active" data-cat="all" onclick="switchForumTab(this)">All</button>
+          <button class="forum-tab" data-cat="farms" onclick="switchForumTab(this)">Farms</button>
+          <button class="forum-tab" data-cat="deals" onclick="switchForumTab(this)">Deals</button>
+          <button class="forum-tab" data-cat="visa" onclick="switchForumTab(this)">Visa tips</button>
+          <button class="forum-tab" data-cat="general" onclick="switchForumTab(this)">General</button>
         </div>
-        <div class="forum-content">
-          <div class="forum-post"><div class="forum-post-header"><div class="forum-avatar fa-amber">SL</div><div class="fp-meta"><div class="fp-author">Sophie L.</div><div class="fp-time">2h ago · Byron Bay</div></div><span class="fp-category fp-cat-deal">Deal</span></div><div class="fp-title">New coffee deal at The Hive Café — 15% off all day!</div><p class="fp-preview">Just got back from there. Super friendly, show the app and ask for the Hive rate.</p><div class="fp-footer"><span class="fp-stat"><i class="ti ti-heart"></i> 24</span><span class="fp-stat"><i class="ti ti-message-circle"></i> 6</span><span class="fp-pinned"><i class="ti ti-pin"></i> Pinned</span></div></div>
-          <div class="forum-post"><div class="forum-post-header"><div class="forum-avatar fa-green">MK</div><div class="fp-meta"><div class="fp-author">Marc K.</div><div class="fp-time">Yesterday · Queenstown</div></div><span class="fp-category fp-cat-farm">Farm</span></div><div class="fp-title">Summit Ridge is hiring — accommodation included</div><p class="fp-preview">$22/hr + housing + stunning views of the Remarkables. Prefer 3+ weeks.</p><div class="fp-footer"><span class="fp-stat"><i class="ti ti-heart"></i> 41</span><span class="fp-stat"><i class="ti ti-message-circle"></i> 13</span></div></div>
-          <div class="forum-post"><div class="forum-post-header"><div class="forum-avatar fa-blue">JR</div><div class="fp-meta"><div class="fp-author">Jules R.</div><div class="fp-time">2 days ago</div></div><span class="fp-category fp-cat-visa">Visa tips</span></div><div class="fp-title">WHV renewal: what farm work actually counts?</div><p class="fp-preview">Just finished my 88 days — here's everything I learnt. Fruit picking yes, admin no...</p><div class="fp-footer"><span class="fp-stat"><i class="ti ti-heart"></i> 87</span><span class="fp-stat"><i class="ti ti-message-circle"></i> 34</span><span class="fp-pinned"><i class="ti ti-pin"></i> Pinned</span></div></div>
-          <div class="forum-post"><div class="forum-post-header"><div class="forum-avatar fa-pink">AI</div><div class="fp-meta"><div class="fp-author">Ana I.</div><div class="fp-time">3 days ago · Melbourne</div></div><span class="fp-category fp-cat-tips">Tips</span></div><div class="fp-title">Budget breakdown: 1 month in Melbourne</div><p class="fp-preview">Accommodation $650, food $140, transport $80, activities $120. Total: $990.</p><div class="fp-footer"><span class="fp-stat"><i class="ti ti-heart"></i> 62</span><span class="fp-stat"><i class="ti ti-message-circle"></i> 19</span></div></div>
-          <div class="scroll-pad"></div>
+        <div class="forum-content" id="forumContent">
+          <div class="map-loading"><div class="spinner"></div>Loading posts…</div>
         </div>
+        <button class="forum-new-btn" onclick="openNewPost()"><i class="ti ti-pencil"></i> New post</button>
+      </div>
+    </div>
+
+    <!-- POST DETAIL VIEW -->
+    <div class="page" id="page-post">
+      <div style="display:flex;flex-direction:column;height:100%;overflow:hidden;">
+        <div class="post-detail-header">
+          <button class="icon-btn" onclick="goTo('forum')"><i class="ti ti-arrow-left"></i></button>
+          <span class="post-detail-title">Post</span>
+          <div style="width:36px;"></div>
+        </div>
+        <div class="post-detail-content" id="postDetailContent">
+          <div class="map-loading"><div class="spinner"></div>Loading…</div>
+        </div>
+        <div class="reply-bar">
+          <input type="text" class="reply-input" id="replyInput" placeholder="Write a reply…">
+          <button class="reply-send-btn" onclick="submitReply()"><i class="ti ti-send"></i></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- NEW POST MODAL -->
+    <div class="modal-backdrop" id="newPostModal" onclick="handleNewPostBackdrop(event)">
+      <div class="modal-sheet">
+        <div class="modal-handle"></div>
+        <div class="modal-title">New post</div>
+        <div class="form-group">
+          <label class="form-label">Category</label>
+          <div class="type-grid">
+            <button class="type-option selected" data-cat="farms" onclick="selectPostCat(this)"><i class="ti ti-plant-2"></i><span>Farms</span></button>
+            <button class="type-option" data-cat="deals" onclick="selectPostCat(this)"><i class="ti ti-tag"></i><span>Deals</span></button>
+            <button class="type-option" data-cat="visa" onclick="selectPostCat(this)"><i class="ti ti-id"></i><span>Visa tips</span></button>
+            <button class="type-option" data-cat="general" onclick="selectPostCat(this)"><i class="ti ti-messages"></i><span>General</span></button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Your name (optional)</label>
+          <input type="text" class="form-input" id="postAuthor" placeholder="Leave blank to post anonymously">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Title</label>
+          <input type="text" class="form-input" id="postTitle" placeholder="What's your post about?">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Content</label>
+          <textarea class="form-textarea" id="postContent" placeholder="Share your experience, tip or question…" style="min-height:100px;"></textarea>
+        </div>
+        <button class="submit-btn" onclick="submitNewPost()">Post to community</button>
       </div>
     </div>
   </div>
@@ -572,7 +647,8 @@ function goTo(page) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById('page-' + page).classList.add('active');
-  document.getElementById('nav-' + page).classList.add('active');
+  const navEl = document.getElementById('nav-' + page);
+  if (navEl) navEl.classList.add('active');
 
   const tf = document.getElementById('toggleFab');
   if (page === 'deals') {
@@ -584,6 +660,7 @@ function goTo(page) {
     showSlider(false);
   }
   if (page === 'farms' && !farmMap) initFarmMap();
+  if (page === 'forum') loadForumPosts();
 }
 
 // ── DEALS TOGGLE ──
@@ -826,9 +903,210 @@ function flyTo(map, lat, lng, zoom) {
   map.flyTo([parseFloat(lat), parseFloat(lng)], zoom, {animate:true, duration:1});
 }
 
+// ── FORUM ──
+let allPosts      = [];
+let currentPostId = null;
+let currentCat    = 'all';
+let selectedPostCat = 'farms';
+
 function switchForumTab(el) {
   document.querySelectorAll('.forum-tab').forEach(t => t.classList.remove('active'));
   el.classList.add('active');
+  currentCat = el.dataset.cat;
+  renderForumPosts();
+}
+
+async function loadForumPosts() {
+  const el = document.getElementById('forumContent');
+  el.innerHTML = '<div class="map-loading"><div class="spinner"></div>Loading posts…</div>';
+  try {
+    allPosts = await supaFetch('forum_posts', 'order=created_at.desc&limit=50');
+  } catch(e) { allPosts = []; }
+  renderForumPosts();
+}
+
+function renderForumPosts() {
+  const el = document.getElementById('forumContent');
+  const filtered = currentCat === 'all' ? allPosts : allPosts.filter(p => p.category === currentCat);
+  if (!filtered.length) {
+    el.innerHTML = '<div class="no-posts">No posts yet — be the first! 🐝</div>';
+    return;
+  }
+  const catColors = {farms:'fp-cat-farm', deals:'fp-cat-deal', visa:'fp-cat-visa', general:'fp-cat-general', tips:'fp-cat-tips'};
+  const catLabels = {farms:'Farm', deals:'Deal', visa:'Visa', general:'General', tips:'Tips'};
+  const avatarColors = ['fa-amber','fa-green','fa-blue','fa-pink'];
+  el.innerHTML = filtered.map(p => {
+    const initials = (p.author_name||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+    const colorIdx = (p.author_name||'A').charCodeAt(0) % avatarColors.length;
+    const timeAgo  = formatTimeAgo(p.created_at);
+    const catClass = catColors[p.category] || 'fp-cat-general';
+    const catLabel = catLabels[p.category] || 'Post';
+    return `<div class="forum-post" onclick="openPost('${p.id}')">
+      <div class="forum-post-header">
+        <div class="forum-avatar ${avatarColors[colorIdx]}">${initials}</div>
+        <div class="fp-meta"><div class="fp-author">${p.author_name||'Anonymous'}</div><div class="fp-time">${timeAgo}</div></div>
+        <span class="fp-category ${catClass}">${catLabel}</span>
+      </div>
+      <div class="fp-title">${p.title}</div>
+      <p class="fp-preview">${p.content}</p>
+      <div class="fp-footer">
+        <span class="fp-stat"><i class="ti ti-heart"></i> ${p.likes||0}</span>
+        <span class="fp-stat"><i class="ti ti-message-circle"></i> Loading…</span>
+      </div>
+    </div>`;
+  }).join('') + '<div class="scroll-pad"></div>';
+
+  // Load reply counts async
+  filtered.forEach(async (p, i) => {
+    try {
+      const replies = await supaFetch('forum_replies', `post_id=eq.${p.id}&select=id`);
+      const posts = el.querySelectorAll('.forum-post');
+      if (posts[i]) {
+        const stat = posts[i].querySelectorAll('.fp-stat')[1];
+        if (stat) stat.innerHTML = `<i class="ti ti-message-circle"></i> ${replies.length}`;
+      }
+    } catch(e) {}
+  });
+}
+
+async function openPost(id) {
+  currentPostId = id;
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-post').classList.add('active');
+
+  const el = document.getElementById('postDetailContent');
+  el.innerHTML = '<div class="map-loading"><div class="spinner"></div>Loading…</div>';
+
+  try {
+    const post = allPosts.find(p => p.id === id) || (await supaFetch('forum_posts', `id=eq.${id}`))[0];
+    const replies = await supaFetch('forum_replies', `post_id=eq.${id}&order=created_at.asc`);
+    const avatarColors = ['fa-amber','fa-green','fa-blue','fa-pink'];
+    const initials = (post.author_name||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+    const colorIdx = (post.author_name||'A').charCodeAt(0) % avatarColors.length;
+    const catColors = {farms:'fp-cat-farm',deals:'fp-cat-deal',visa:'fp-cat-visa',general:'fp-cat-general'};
+    const catLabels = {farms:'Farm',deals:'Deal',visa:'Visa tips',general:'General'};
+
+    const repliesHTML = replies.length ? replies.map(r => {
+      const ri = (r.author_name||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+      return `<div class="reply-card">
+        <div class="reply-author">${r.author_name||'Anonymous'} <span class="reply-time">${formatTimeAgo(r.created_at)}</span></div>
+        <div class="reply-text">${r.content}</div>
+        <button class="reply-like-btn" onclick="likeReply('${r.id}', this)"><i class="ti ti-heart"></i> ${r.likes||0}</button>
+      </div>`;
+    }).join('') : '<div style="color:var(--text-light);font-size:13px;margin-bottom:16px;">No replies yet — be the first!</div>';
+
+    el.innerHTML = `
+      <div class="post-header" style="margin-bottom:12px;">
+        <div class="forum-avatar ${avatarColors[colorIdx]}" style="width:36px;height:36px;font-size:14px;">${initials}</div>
+        <div class="post-meta">
+          <div class="post-author">${post.author_name||'Anonymous'}</div>
+          <div class="post-time">${formatTimeAgo(post.created_at)}</div>
+        </div>
+        <span class="fp-category ${catColors[post.category]||'fp-cat-general'}">${catLabels[post.category]||'Post'}</span>
+      </div>
+      <div class="post-full-title">${post.title}</div>
+      <div class="post-full-body">${post.content}</div>
+      <div class="post-full-actions">
+        <button class="like-btn" id="postLikeBtn" onclick="likePost('${post.id}', this)">
+          <i class="ti ti-heart"></i> <span id="postLikeCount">${post.likes||0}</span> Likes
+        </button>
+      </div>
+      <div class="replies-title">Replies (${replies.length})</div>
+      ${repliesHTML}
+      <div style="height:20px;"></div>`;
+  } catch(e) {
+    el.innerHTML = '<div class="no-posts">Could not load post.</div>';
+  }
+}
+
+async function likePost(id, btn) {
+  if (btn.classList.contains('liked')) return;
+  btn.classList.add('liked');
+  try {
+    const post = allPosts.find(p => p.id === id);
+    const newLikes = (post ? post.likes||0 : 0) + 1;
+    await fetch(`${SUPA_URL}/rest/v1/forum_posts?id=eq.${id}`, {
+      method:'PATCH',
+      headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${SUPA_KEY}`,'Content-Type':'application/json','Prefer':'return=minimal'},
+      body: JSON.stringify({likes: newLikes})
+    });
+    document.getElementById('postLikeCount').textContent = newLikes;
+    if (post) post.likes = newLikes;
+  } catch(e) {}
+}
+
+async function likeReply(id, btn) {
+  if (btn.classList.contains('liked')) return;
+  btn.classList.add('liked');
+  try {
+    const res = await supaFetch('forum_replies', `id=eq.${id}&select=likes`);
+    const newLikes = ((res[0]&&res[0].likes)||0) + 1;
+    await fetch(`${SUPA_URL}/rest/v1/forum_replies?id=eq.${id}`, {
+      method:'PATCH',
+      headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${SUPA_KEY}`,'Content-Type':'application/json','Prefer':'return=minimal'},
+      body: JSON.stringify({likes: newLikes})
+    });
+    btn.innerHTML = `<i class="ti ti-heart"></i> ${newLikes}`;
+  } catch(e) {}
+}
+
+async function submitReply() {
+  const input = document.getElementById('replyInput');
+  const content = input.value.trim();
+  if (!content || !currentPostId) return;
+  input.value = '';
+  try {
+    await supaInsert('forum_replies', {
+      post_id: currentPostId,
+      content,
+      author_name: 'Anonymous',
+      likes: 0
+    });
+    openPost(currentPostId);
+  } catch(e) {
+    showToast('Could not send reply');
+    input.value = content;
+  }
+}
+
+function openNewPost() {
+  document.getElementById('newPostModal').classList.add('open');
+  setTimeout(() => document.getElementById('postTitle').focus(), 400);
+}
+function handleNewPostBackdrop(e) { if (e.target === document.getElementById('newPostModal')) document.getElementById('newPostModal').classList.remove('open'); }
+
+function selectPostCat(el) {
+  document.querySelectorAll('#newPostModal .type-option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedPostCat = el.dataset.cat;
+}
+
+async function submitNewPost() {
+  const title   = document.getElementById('postTitle').value.trim();
+  const content = document.getElementById('postContent').value.trim();
+  const author  = document.getElementById('postAuthor').value.trim() || 'Anonymous';
+  if (!title)   { showToast('Please enter a title'); return; }
+  if (!content) { showToast('Please enter some content'); return; }
+  try {
+    await supaInsert('forum_posts', { title, content, author_name: author, category: selectedPostCat, likes: 0 });
+    document.getElementById('newPostModal').classList.remove('open');
+    document.getElementById('postTitle').value = '';
+    document.getElementById('postContent').value = '';
+    document.getElementById('postAuthor').value = '';
+    await loadForumPosts();
+    showToast('Post published! 🐝');
+  } catch(e) {
+    showToast('Error posting — please try again');
+  }
+}
+
+function formatTimeAgo(dateStr) {
+  const diff = (Date.now() - new Date(dateStr)) / 1000;
+  if (diff < 60)   return 'Just now';
+  if (diff < 3600) return Math.floor(diff/60) + 'm ago';
+  if (diff < 86400) return Math.floor(diff/3600) + 'h ago';
+  if (diff < 604800) return Math.floor(diff/86400) + 'd ago';
+  return new Date(dateStr).toLocaleDateString();
 }
 
 // ── SUBMIT MODAL ──
