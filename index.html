@@ -1297,7 +1297,14 @@ function renderFarmsList(farms) {
 function filterFarms(btn, type) {
   document.querySelectorAll('#page-farms .filter-pill').forEach(p => p.classList.remove('active'));
   btn.classList.add('active');
-  const f = type==='all' ? allFarms : allFarms.filter(f => (f.farm_category_first||'').toLowerCase().includes(type));
+  let f;
+  if (type === 'all') {
+    f = allFarms;
+  } else if (type === '88 days') {
+    f = allFarms.filter(f => (f.eighty_eight_days||'').toLowerCase().startsWith('y'));
+  } else {
+    f = allFarms.filter(f => (f.farm_category_first||'').toLowerCase().includes(type));
+  }
   renderFarmMarkers(f); renderFarmsList(f);
 }
 
