@@ -98,7 +98,7 @@ html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;backgroun
 .home-community-progress-wrap{width:80px;height:6px;background:var(--border-mid);border-radius:3px;overflow:hidden}
 .home-community-progress-fill{height:100%;background:var(--amber);border-radius:3px}
 .home-community-goal{font-size:11px;color:var(--text-light);font-weight:500}
-.home-community-desc{font-size:11.5px;color:var(--text-mid);line-height:1.4;margin-top:4px;max-width:200px}
+.home-community-desc{font-size:12px;color:var(--text-mid);line-height:1.45}
 
 /* PICKER LOCATE BTN */
 .picker-locate-btn{position:absolute;bottom:10px;right:10px;width:36px;height:36px;border-radius:50%;background:var(--white);border:0.5px solid var(--border-mid);box-shadow:var(--shadow-md);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:500;color:var(--amber-dark);font-size:18px;}
@@ -427,6 +427,8 @@ input#priceRangeInput::-moz-range-thumb{
 .auth-skip a{color:var(--amber-dark);font-weight:600;cursor:pointer;text-decoration:none}
 .auth-error{background:#FEEAEA;border:0.5px solid #F5BCBC;border-radius:var(--radius-md);padding:10px 14px;font-size:13px;color:#B91C1C;display:none}
 .auth-error.show{display:block}
+.google-btn{background:var(--white)!important;color:var(--text-dark)!important;border:1px solid var(--border-mid)!important;box-shadow:var(--shadow-sm)!important;display:flex;align-items:center;justify-content:center;gap:10px;font-family:'DM Sans',sans-serif!important;font-size:15px!important;font-weight:600!important}
+.google-btn:active{background:var(--off-white)!important}
 
 /* PROFILE PAGE */
 .profile-header{background:var(--amber-pale);padding:28px 20px 24px;border-bottom:0.5px solid var(--border);text-align:center}
@@ -504,14 +506,16 @@ input#priceRangeInput::-moz-range-thumb{
         <div class="stat-card"><div class="stat-num" id="stat-members">–</div><div class="stat-label">Members</div></div>
       </div>
       <div class="home-community-bar">
-        <div class="home-community-left">
-          <div class="home-community-title"><i class="ti ti-users"></i> Community Power</div>
-          <div class="home-community-count">1,200 members</div>
+        <div style="width:100%">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+            <div class="home-community-title"><i class="ti ti-users"></i> Community Power</div>
+            <div class="home-community-count">1,200 members</div>
+          </div>
           <div class="home-community-desc">More members = more negotiating power. Help us reach 2,000 travellers to unlock country-wide deals.</div>
-        </div>
-        <div class="home-community-right">
-          <div class="home-community-progress-wrap"><div class="home-community-progress-fill" style="width:60%"></div></div>
-          <div class="home-community-goal">Goal: 2,000 for next deals round</div>
+          <div style="display:flex;align-items:center;gap:10px;margin-top:10px;">
+            <div class="home-community-progress-wrap" style="flex:1;width:auto;"><div class="home-community-progress-fill" style="width:60%"></div></div>
+            <div class="home-community-goal">60%</div>
+          </div>
         </div>
       </div>
       <div class="section-title">Explore</div>
@@ -738,9 +742,14 @@ input#priceRangeInput::-moz-range-thumb{
             <div class="auth-sub">Sign in to write reviews, post & contribute.</div>
             <div class="auth-form">
               <div class="auth-error" id="loginError"></div>
+              <button class="auth-btn google-btn" onclick="doGoogleLogin()">
+                <svg width="18" height="18" viewBox="0 0 18 18" style="flex-shrink:0"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"/></svg>
+                Continue with Google
+              </button>
+              <div class="auth-sep">or</div>
               <input type="email" class="form-input" id="loginEmail" placeholder="Email address">
               <input type="password" class="form-input" id="loginPassword" placeholder="Password">
-              <button class="auth-btn" onclick="doLogin()">Sign in</button>
+              <button class="auth-btn" onclick="doLogin()">Sign in with email</button>
             </div>
           </div>
           <div id="authPanelRegister" style="display:none;">
@@ -748,10 +757,15 @@ input#priceRangeInput::-moz-range-thumb{
             <div class="auth-sub">Create a free account to contribute and connect with other travellers.</div>
             <div class="auth-form">
               <div class="auth-error" id="registerError"></div>
+              <button class="auth-btn google-btn" onclick="doGoogleLogin()">
+                <svg width="18" height="18" viewBox="0 0 18 18" style="flex-shrink:0"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"/></svg>
+                Sign up with Google
+              </button>
+              <div class="auth-sep">or</div>
               <input type="text" class="form-input" id="registerName" placeholder="Your name (display name)">
               <input type="email" class="form-input" id="registerEmail" placeholder="Email address">
               <input type="password" class="form-input" id="registerPassword" placeholder="Password (min. 6 characters)">
-              <button class="auth-btn" onclick="doRegister()">Create account</button>
+              <button class="auth-btn" onclick="doRegister()">Create account with email</button>
             </div>
           </div>
           <div class="auth-skip"><a onclick="goTo('home')">Browse without an account →</a></div>
@@ -800,7 +814,9 @@ input#priceRangeInput::-moz-range-thumb{
       </div>
       <button class="submit-btn" onclick="submitReviewModal()">Submit review</button>
     </div>
-  </div> onclick="openSubmit(currentPage)" aria-label="Add" style="display:none;"><i class="ti ti-plus"></i></button>
+  </div><!-- end reviewModal -->
+
+  <button class="fab" id="mainFab" onclick="openSubmit(currentPage)" aria-label="Add" style="display:none;"><i class="ti ti-plus"></i></button>
 
   <button class="toggle-fab" id="toggleFab" onclick="toggleDealsView()">
     <i class="ti ti-list" id="toggleIcon"></i>
@@ -1956,8 +1972,36 @@ async function doRegister() {
   }
 }
 
+function doGoogleLogin() {
+  const redirectTo = encodeURIComponent(window.location.href.split('?')[0].split('#')[0]);
+  const oauthUrl = `${SUPA_URL}/auth/v1/authorize?provider=google&redirect_to=${redirectTo}`;
+  window.location.href = oauthUrl;
+}
+
+function handleOAuthRedirect() {
+  const hash = window.location.hash;
+  if (!hash.includes('access_token')) return;
+  const params = new URLSearchParams(hash.substring(1));
+  const token = params.get('access_token');
+  if (!token) return;
+  fetch(`${SUPA_URL}/auth/v1/user`, {
+    headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${token}` }
+  }).then(r => r.json()).then(data => {
+    if (data.id) {
+      currentUser = {
+        id: data.id,
+        email: data.email,
+        name: data.user_metadata?.full_name || data.user_metadata?.name || data.email.split('@')[0],
+        access_token: token
+      };
+      updateHeaderAuth();
+      history.replaceState(null, '', window.location.pathname);
+      showToast('Welcome, ' + currentUser.name + '! 🐝');
+    }
+  }).catch(() => {});
+}
+
 function doLogout() {
-  currentUser = null;
   updateHeaderAuth();
   goTo('home');
   showToast('Signed out');
@@ -2124,6 +2168,7 @@ async function submitReviewModal() {
 }
 
 // ── INIT ──
+handleOAuthRedirect();
 updateHeaderAuth();
 loadHomeStats();
 </script>
