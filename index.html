@@ -22,6 +22,14 @@
   --shadow-md:0 4px 16px rgba(0,0,0,0.12);
   --shadow-fab:0 4px 20px rgba(245,166,35,0.38),0 2px 8px rgba(0,0,0,0.12);
 }
+html.dark{
+  --amber:#F5A623;--amber-dark:#FFB74D;--amber-light:#2C1F00;--amber-pale:#1A1200;
+  --off-white:#1A1A1A;--white:#121212;--text-dark:#F0EDE8;--text-mid:#A89F96;--text-light:#6B6460;
+  --border:rgba(255,255,255,0.07);--border-mid:rgba(255,255,255,0.12);
+  --shadow-sm:0 1px 4px rgba(0,0,0,0.4),0 0 0 0.5px rgba(255,255,255,0.05);
+  --shadow-md:0 4px 16px rgba(0,0,0,0.5);
+  --shadow-fab:0 4px 20px rgba(245,166,35,0.3),0 2px 8px rgba(0,0,0,0.4);
+}
 html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;background:var(--off-white);color:var(--text-dark);-webkit-font-smoothing:antialiased}
 #app{display:flex;flex-direction:column;height:100dvh;max-width:480px;margin:0 auto;position:relative;background:var(--white);overflow:hidden}
 
@@ -591,6 +599,53 @@ mark.search-hl{background:var(--amber-light);color:var(--amber-dark);border-radi
 .adv-range-row input[type=range]{flex:1;accent-color:var(--amber);}
 .adv-range-val{font-size:13px;font-weight:700;color:var(--amber-dark);min-width:48px;text-align:right;}
 .adv-select{width:100%;height:40px;border:0.5px solid var(--border-mid);border-radius:var(--radius-md);padding:0 12px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text-dark);background:var(--white);outline:none;margin-top:6px;}
+/* ── DARK MODE OVERRIDES ── */
+html.dark body{background:var(--off-white)}
+html.dark #app{background:var(--white)}
+html.dark .app-header{background:var(--white);border-color:var(--border)}
+html.dark .bottom-nav{background:var(--white);border-color:var(--border)}
+html.dark .page{background:var(--white)}
+html.dark .modal-sheet{background:#1E1E1E}
+html.dark .form-input,html.dark .form-textarea{background:#2A2A2A;border-color:var(--border-mid);color:var(--text-dark)}
+html.dark .form-input::placeholder,html.dark .form-textarea::placeholder{color:var(--text-light)}
+html.dark .stat-card{background:#1E1E1E;border-color:var(--border)}
+html.dark .qa-card{background:#1E1E1E;border-color:var(--border)}
+html.dark .post-card{background:#1E1E1E;border-color:var(--border)}
+html.dark .deal-card{background:#1E1E1E;border-color:var(--border)}
+html.dark .farm-row{background:var(--white)}
+html.dark .farm-row:active{background:#1E1E1E}
+html.dark .forum-post{background:var(--white);border-color:var(--border)}
+html.dark .forum-post:active{background:#1E1E1E}
+html.dark .forum-tabs{background:var(--white);border-color:var(--border)}
+html.dark .filter-pill{background:#1E1E1E;border-color:var(--border-mid);color:var(--text-mid)}
+html.dark .filter-pill.active{background:var(--amber);border-color:var(--amber);color:#1A1714}
+html.dark .home-hero{background:var(--amber-pale)}
+html.dark .home-search{background:#1E1E1E;border-color:var(--border-mid)}
+html.dark .home-search input{color:var(--text-dark)}
+html.dark .icon-btn{background:#1E1E1E;color:var(--text-mid)}
+html.dark .type-option{background:#1E1E1E;border-color:var(--border-mid)}
+html.dark .type-option.selected{background:var(--amber-pale);border-color:var(--amber)}
+html.dark .type-option.locked{opacity:0.3}
+html.dark .price-card{background:#1E1E1E;border-color:var(--border)}
+html.dark .price-card-header{background:#2A2A2A}
+html.dark .farms-list{background:#1E1E1E;border-color:var(--border)}
+html.dark .map-filters{background:var(--white);border-color:var(--border)}
+html.dark .search-modal{background:#1E1E1E}
+html.dark .search-modal-input{background:#2A2A2A;color:var(--text-dark);border-color:var(--border-mid)}
+html.dark .search-result{background:#1E1E1E;border-color:var(--border)}
+html.dark .search-result:active{background:#2A2A2A}
+html.dark .home-community-bar{background:var(--amber-pale);border-color:rgba(245,166,35,0.15)}
+html.dark .deals-intro{background:var(--amber-pale)}
+html.dark .community-bar{background:#1E1E1E}
+html.dark .toggle-fab{background:rgba(30,30,30,0.92);border-color:rgba(255,255,255,0.1);color:var(--text-dark)}
+html.dark .adv-sheet{background:#1E1E1E}
+html.dark .price-slider-bar{background:var(--white);border-color:var(--border)}
+html.dark .leaflet-popup-content-wrapper{background:#1E1E1E;color:var(--text-dark)}
+html.dark .leaflet-popup-tip{background:#1E1E1E}
+html.dark .reply-input{background:#2A2A2A;color:var(--text-dark);border-color:var(--border-mid)}
+html.dark .auth-card{background:#1E1E1E}
+html.dark .profile-card{background:#1E1E1E}
+
 </style>
 </head>
 <body>
@@ -598,6 +653,7 @@ mark.search-hl{background:var(--amber-light);color:var(--amber-dark);border-radi
   <header class="app-header">
     <div class="logo">the <span>hive</span></div>
     <div class="header-actions">
+      <button class="icon-btn" id="themeToggleBtn" onclick="toggleTheme()" aria-label="Toggle theme"><i class="ti ti-moon"></i></button>
       <button class="icon-btn" onclick="openSearch()"><i class="ti ti-search"></i></button>
       <button id="headerAuthBtn" class="header-login-btn" onclick="openAuthOrProfile()">Sign in</button>
     </div>
@@ -1369,6 +1425,50 @@ navigator.geolocation && navigator.geolocation.getCurrentPosition(pos => {
   window._userLng = pos.coords.longitude;
 });
 
+// ── THEME ──
+let _themeManual = false;
+
+function applyTheme(dark) {
+  document.documentElement.classList.toggle('dark', dark);
+  const btn = document.getElementById('themeToggleBtn');
+  if (btn) btn.innerHTML = dark ? '<i class="ti ti-sun"></i>' : '<i class="ti ti-moon"></i>';
+  document.querySelector('meta[name="theme-color"]').setAttribute('content', dark ? '#121212' : '#F5A623');
+  // Swap tile layers on all active maps
+  const newUrl = dark
+    ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+    : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
+  [window.farmMap, window.dealMap, window.pickerMap, window.communityMap, window.activityPickerMap]
+    .filter(Boolean)
+    .forEach(map => {
+      map.eachLayer(layer => { if (layer._url) map.removeLayer(layer); });
+      L.tileLayer(newUrl, {attribution: TILE_ATTR, maxZoom:19}).addTo(map);
+    });
+}
+
+function toggleTheme() {
+  _themeManual = true;
+  const isDark = document.documentElement.classList.contains('dark');
+  applyTheme(!isDark);
+  localStorage.setItem('hive_theme', !isDark ? 'dark' : 'light');
+}
+
+function initTheme() {
+  const saved = localStorage.getItem('hive_theme');
+  if (saved) {
+    _themeManual = true;
+    applyTheme(saved === 'dark');
+  } else {
+    applyTheme(isNightTime());
+  }
+}
+
+// Auto-switch at sunrise/sunset if no manual override
+setInterval(() => {
+  if (!_themeManual) applyTheme(isNightTime());
+}, 60000);
+
+document.addEventListener('DOMContentLoaded', initTheme);
+
 // ── STATE ──
 let currentPage   = 'home';
 let farmMap       = null, dealMap = null, pickerMap = null, pickerMarker = null;
@@ -1558,7 +1658,7 @@ function getUserLocation() {
 }
 
 function initFarmMap() {
-  farmMap = L.map('farmMap', {center:[-30,147], zoom:4, zoomControl:false});
+  window.farmMap = farmMap = L.map('farmMap', {center:[-30,147], zoom:4, zoomControl:false});
   L.tileLayer(TILE_URL, {attribution:TILE_ATTR, maxZoom:19}).addTo(farmMap);
   setTimeout(() => farmMap.invalidateSize(), 100);
   getUserLocation().then(pos => {
@@ -2187,7 +2287,7 @@ const dealColor = {'coffee shop':'#795548','hostel':'#1565C0','bar':'#D84315','r
 
 function initDealMap() {
   dealsLoaded = true;
-  dealMap = L.map('dealMap', {center:[-30,147], zoom:4, zoomControl:false});
+  window.dealMap = dealMap = L.map('dealMap', {center:[-30,147], zoom:4, zoomControl:false});
   L.tileLayer(TILE_URL, {attribution:TILE_ATTR, maxZoom:19}).addTo(dealMap);
   setTimeout(() => dealMap.invalidateSize(), 100);
   getUserLocation().then(pos => {
@@ -2680,7 +2780,7 @@ function addPriceRow() {
 
 function initPickerMap() {
   if (pickerMap) { pickerMap.invalidateSize(); return; }
-  pickerMap = L.map('pickerMap', {center:[-30,147], zoom:3, zoomControl:false, attributionControl:false});
+  window.pickerMap = pickerMap = L.map('pickerMap', {center:[-30,147], zoom:3, zoomControl:false, attributionControl:false});
   L.tileLayer(TILE_URL, {maxZoom:19}).addTo(pickerMap);
   pickerMarker = L.marker([-30,147], {draggable:true, icon:makePin('📍','#D4851A',40)}).addTo(pickerMap);
   pickerMarker.on('dragend', updatePickerCoords);
@@ -3258,7 +3358,7 @@ const DEMO_ACTIVITIES = [
 ];
 
 function initCommunityMap() {
-  communityMap = L.map('communityMap', {center:[-30,147], zoom:4, zoomControl:false});
+  window.communityMap = communityMap = L.map('communityMap', {center:[-30,147], zoom:4, zoomControl:false});
   getUserLocation().then(pos => { if (pos) communityMap.setView([pos.lat, pos.lng], 11); });
   L.tileLayer(TILE_URL, {attribution:TILE_ATTR, maxZoom:19}).addTo(communityMap);
   allActivities = [...DEMO_ACTIVITIES];
@@ -3369,7 +3469,7 @@ function selectActivityCat(btn) {
 function initActivityPickerMap() {
   if (activityPickerMap) { activityPickerMap.invalidateSize(); return; }
   const defaultLat = -33.87, defaultLng = 151.21;
-  activityPickerMap = L.map('activityPickerMap', {zoomControl:false}).setView([defaultLat, defaultLng], 12);
+  window.activityPickerMap = activityPickerMap = L.map('activityPickerMap', {zoomControl:false}).setView([defaultLat, defaultLng], 12);
   L.tileLayer(TILE_URL, {attribution:TILE_ATTR,maxZoom:18}).addTo(activityPickerMap);
   activityPickerLat = defaultLat; activityPickerLng = defaultLng;
   activityPickerMarker = L.marker([defaultLat, defaultLng], {draggable:true}).addTo(activityPickerMap);
