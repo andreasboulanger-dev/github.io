@@ -309,6 +309,19 @@ input#priceRangeInput::-moz-range-thumb{
 .location-map-wrap{border-radius:var(--radius-md);overflow:hidden;border:0.5px solid var(--border-mid)}
 #pickerMap{height:180px;z-index:1}
 .picker-hint{text-align:center;font-size:12px;color:var(--text-light);margin-top:6px;display:flex;align-items:center;justify-content:center;gap:4px}
+.picker-search-wrap{position:relative;margin-bottom:8px;}
+.picker-search-input{width:100%;height:42px;border:0.5px solid var(--border-mid);border-radius:var(--radius-md);padding:0 40px 0 36px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text-dark);background:var(--white);outline:none;}
+.picker-search-input::placeholder{color:var(--text-light);}
+.picker-search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--text-light);font-size:16px;pointer-events:none;}
+.picker-search-clear{position:absolute;right:10px;top:50%;transform:translateY(-50%);width:22px;height:22px;border-radius:50%;background:var(--border-mid);border:none;cursor:pointer;display:none;align-items:center;justify-content:center;color:var(--text-mid);font-size:12px;}
+.picker-search-clear.visible{display:flex;}
+.picker-search-results{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--white);border:0.5px solid var(--border-mid);border-radius:var(--radius-md);box-shadow:var(--shadow-md);z-index:600;max-height:200px;overflow-y:auto;display:none;}
+.picker-search-results.open{display:block;}
+.picker-search-result{padding:10px 14px;font-size:13px;cursor:pointer;border-bottom:0.5px solid var(--border);line-height:1.35;}
+.picker-search-result:last-child{border-bottom:none;}
+.picker-search-result:active{background:var(--off-white);}
+.picker-search-result strong{color:var(--text-dark);font-weight:600;}
+.picker-search-result span{color:var(--text-light);font-size:12px;}
 .coord-display{display:flex;gap:8px;margin-top:8px}
 .coord-badge{flex:1;background:var(--off-white);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:8px 10px;font-size:12px;color:var(--text-mid);font-family:monospace}
 .coord-badge span{color:var(--text-dark);font-weight:600}
@@ -1119,12 +1132,23 @@ mark.search-hl{background:var(--amber-light);color:var(--amber-dark);border-radi
       </div>
       <div class="form-group"><label class="form-label">Name / Title</label><input type="text" class="form-input" id="fieldName" placeholder="e.g. Blue Hills Orchard, Flat white…"></div>
       <div class="form-group">
-        <label class="form-label">Location — drag the pin or use locate</label>
+        <label class="form-label">Location</label>
+        <div class="picker-search-wrap">
+          <i class="ti ti-search picker-search-icon"></i>
+          <input type="text" class="picker-search-input" id="pickerSearchInput"
+            placeholder="Search address, place name…"
+            autocomplete="off"
+            oninput="onPickerSearch(this.value)"
+            onfocus="if(this.value.trim().length>1)document.getElementById('pickerSearchResults').classList.add('open')"
+          >
+          <button class="picker-search-clear" id="pickerSearchClear" onclick="clearPickerSearch()"><i class="ti ti-x"></i></button>
+          <div class="picker-search-results" id="pickerSearchResults"></div>
+        </div>
         <div class="location-map-wrap" style="position:relative;">
           <div id="pickerMap"></div>
-          <button class="picker-locate-btn" onclick="locateOnPicker()" title="Use my location"><i class="ti ti-current-location"></i></button>
+          <button class="picker-locate-btn" onclick="locateOnPicker()" title="My location"><i class="ti ti-current-location"></i></button>
         </div>
-        <p class="picker-hint"><i class="ti ti-hand-finger"></i> Drag the pin or tap the crosshair to set location</p>
+        <p class="picker-hint"><i class="ti ti-hand-finger"></i> Drag the pin or tap the crosshair to refine</p>
       </div>
 
       <!-- Farm-specific fields (shown when type = farm) -->
@@ -1198,6 +1222,9 @@ mark.search-hl{background:var(--amber-light);color:var(--amber-dark);border-radi
         <div class="time-row">
           <div><label class="form-label" style="font-size:11px;">From</label><input type="time" class="form-input" id="timeFrom" value="08:00"></div>
           <div><label class="form-label" style="font-size:11px;">Until</label><input type="time" class="form-input" id="timeTo" value="22:00"></div>
+          <div style="display:flex;align-items:flex-end;padding-bottom:2px;">
+            <button type="button" class="day-btn" id="allDayBtn" onclick="toggleAllDay()" style="font-size:11px;white-space:nowrap;height:44px;padding:0 12px;">All day</button>
+          </div>
         </div>
       </div>
       <button class="submit-btn" onclick="submitForm()">Send for review</button>
@@ -1475,10 +1502,26 @@ function makePricePin(emoji, color, label) {
 // ── FARMS MAP ──
 let farmsViewMode = 'map';
 
+// ── GEOLOCATION HELPER ──
+// Resolves with {lat, lng} if granted, null if denied/unavailable
+function getUserLocation() {
+  return new Promise(resolve => {
+    if (!navigator.geolocation) { resolve(null); return; }
+    navigator.geolocation.getCurrentPosition(
+      pos => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      ()  => resolve(null),
+      { timeout: 5000, maximumAge: 60000 }
+    );
+  });
+}
+
 function initFarmMap() {
   farmMap = L.map('farmMap', {center:[-30,147], zoom:4, zoomControl:false});
   L.tileLayer(TILE_URL, {attribution:TILE_ATTR, maxZoom:19}).addTo(farmMap);
   setTimeout(() => farmMap.invalidateSize(), 100);
+  getUserLocation().then(pos => {
+    if (pos) farmMap.setView([pos.lat, pos.lng], 9);
+  });
   loadFarms();
 }
 
@@ -2105,6 +2148,9 @@ function initDealMap() {
   dealMap = L.map('dealMap', {center:[-30,147], zoom:4, zoomControl:false});
   L.tileLayer(TILE_URL, {attribution:TILE_ATTR, maxZoom:19}).addTo(dealMap);
   setTimeout(() => dealMap.invalidateSize(), 100);
+  getUserLocation().then(pos => {
+    if (pos) dealMap.setView([pos.lat, pos.lng], 11);
+  });
   loadDeals();
 }
 
@@ -2594,10 +2640,75 @@ function initPickerMap() {
   pickerMarker = L.marker([-30,147], {draggable:true, icon:makePin('📍','#D4851A',40)}).addTo(pickerMap);
   pickerMarker.on('dragend', updatePickerCoords);
   pickerMap.on('click', e => { pickerMarker.setLatLng(e.latlng); updatePickerCoords(); });
-  
-  // Correction: initialiser les coordonnées pour éviter de bloquer l'utilisateur
+  getUserLocation().then(pos => {
+    if (pos) {
+      const ll = L.latLng(pos.lat, pos.lng);
+      pickerMarker.setLatLng(ll);
+      pickerMap.setView(ll, 13);
+      updatePickerCoords();
+    }
+  });
   updatePickerCoords();
 }
+
+let pickerSearchDebounce = null;
+
+function onPickerSearch(val) {
+  const clear = document.getElementById('pickerSearchClear');
+  const results = document.getElementById('pickerSearchResults');
+  clear.classList.toggle('visible', val.length > 0);
+  clearTimeout(pickerSearchDebounce);
+  if (val.trim().length < 2) { results.classList.remove('open'); results.innerHTML = ''; return; }
+  results.classList.add('open');
+  results.innerHTML = '<div class="picker-search-result"><span>Searching…</span></div>';
+  pickerSearchDebounce = setTimeout(() => runPickerSearch(val.trim()), 450);
+}
+
+async function runPickerSearch(q) {
+  const results = document.getElementById('pickerSearchResults');
+  try {
+    const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=6&q=${encodeURIComponent(q)}`, {
+      headers: { 'Accept-Language': 'en', 'User-Agent': 'TheHiveApp/1.0' }
+    });
+    const data = await res.json();
+    if (!data.length) {
+      results.innerHTML = '<div class="picker-search-result"><span>No results found</span></div>';
+      return;
+    }
+    results.innerHTML = data.map((r, i) => {
+      const parts = r.display_name.split(', ');
+      const name = parts.slice(0, 2).join(', ');
+      const rest = parts.slice(2).join(', ');
+      return `<div class="picker-search-result" onclick="pickSearchResult(${r.lat},${r.lon},'${r.display_name.replace(/'/g,"\'")}')">
+        <strong>${name}</strong><br><span>${rest}</span>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    results.innerHTML = '<div class="picker-search-result"><span>Search unavailable — drag the pin manually</span></div>';
+  }
+}
+
+function pickSearchResult(lat, lon, label) {
+  const latlng = L.latLng(parseFloat(lat), parseFloat(lon));
+  if (!pickerMap) { initPickerMap(); setTimeout(() => { pickerMarker.setLatLng(latlng); pickerMap.flyTo(latlng, 15); updatePickerCoords(); }, 400); }
+  else { pickerMarker.setLatLng(latlng); pickerMap.flyTo(latlng, 15, {animate:true, duration:1}); updatePickerCoords(); }
+  document.getElementById('pickerSearchInput').value = label.split(',').slice(0,2).join(',');
+  document.getElementById('pickerSearchResults').classList.remove('open');
+  document.getElementById('pickerSearchClear').classList.add('visible');
+}
+
+function clearPickerSearch() {
+  document.getElementById('pickerSearchInput').value = '';
+  document.getElementById('pickerSearchClear').classList.remove('visible');
+  document.getElementById('pickerSearchResults').classList.remove('open');
+  document.getElementById('pickerSearchResults').innerHTML = '';
+}
+
+// Close results on outside click
+document.addEventListener('click', e => {
+  const wrap = document.querySelector('.picker-search-wrap');
+  if (wrap && !wrap.contains(e.target)) document.getElementById('pickerSearchResults')?.classList.remove('open');
+});
 
 function locateOnPicker() {
   if (!navigator.geolocation) { showToast('Geolocation not supported'); return; }
@@ -2624,6 +2735,26 @@ function toggleAllDays() {
   const allOn = [...btns].every(b => b.classList.contains('on'));
   btns.forEach(b => allOn ? b.classList.remove('on') : b.classList.add('on'));
 }
+function toggleAllDay() {
+  const btn = document.getElementById('allDayBtn');
+  const from = document.getElementById('timeFrom');
+  const to   = document.getElementById('timeTo');
+  const isAllDay = btn.classList.contains('on');
+  if (isAllDay) {
+    btn.classList.remove('on');
+    from.value = '08:00';
+    to.value   = '22:00';
+    from.disabled = false;
+    to.disabled   = false;
+  } else {
+    btn.classList.add('on');
+    from.value = '00:00';
+    to.value   = '23:59';
+    from.disabled = true;
+    to.disabled   = true;
+  }
+}
+
 function getSelectedDays() {
   return [...document.querySelectorAll('.day-btn[data-day].on')].map(b => b.dataset.day).join(', ');
 }
@@ -3047,6 +3178,7 @@ const DEMO_ACTIVITIES = [
 
 function initCommunityMap() {
   communityMap = L.map('communityMap', {center:[-30,147], zoom:4, zoomControl:false});
+  getUserLocation().then(pos => { if (pos) communityMap.setView([pos.lat, pos.lng], 11); });
   L.tileLayer(TILE_URL, {attribution:TILE_ATTR, maxZoom:19}).addTo(communityMap);
   allActivities = [...DEMO_ACTIVITIES];
   renderActivityMarkers(allActivities);
