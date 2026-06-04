@@ -1122,7 +1122,7 @@ mark.search-hl{background:var(--amber-light);color:var(--amber-dark);border-radi
         <button class="icon-btn" onclick="closeSubmit()" aria-label="Close"><i class="ti ti-x"></i></button>
       </div>
       <p class="modal-sub">Your submission will be reviewed before going live.</p>
-      <div class="form-group"><label class="form-label">What are you adding?</label>
+      <div class="form-group" id="typeSelectGroup"><label class="form-label">What are you adding?</label>
         <div class="type-grid">
           <button class="type-option" data-type="farm" onclick="selectType(this)"><i class="ti ti-plant-2"></i><span>Farm</span></button>
           <button class="type-option" data-type="deal" onclick="selectType(this)"><i class="ti ti-tag"></i><span>Deal</span></button>
@@ -2210,15 +2210,10 @@ function renderDealMarkers(deals, priceFilter) {
     const lat = parseFloat(p.latitude), lng = parseFloat(p.longitude);
     if (isNaN(lat)||isNaN(lng)) return;
 
-    // For bars: find cheapest item and show price on pin
-    let icon;
-    if (cat === 'bar') {
-      const minPrice = Math.min(...items.map(i => parseFloat(i.price_normal||0)||Infinity).filter(v => v !== Infinity));
-      const priceLabel = isFinite(minPrice) ? `$${minPrice.toFixed(2)}` : '';
-      icon = makePricePin('🍺', dealColor['bar'], priceLabel);
-    } else {
-      icon = makePin(dealEmoji[cat]||'💰', dealColor[cat]||'#5C5750');
-    }
+    // Show emoji + cheapest price on pin for all categories
+    const minPrice = Math.min(...items.map(i => parseFloat(i.price_normal||0)||Infinity).filter(v => v !== Infinity));
+    const priceLabel = isFinite(minPrice) ? `$${minPrice.toFixed(2)}` : '';
+    const icon = makePricePin(dealEmoji[cat]||'💰', dealColor[cat]||'#5C5750', priceLabel);
 
     const rows = items.map(i => `<tr><td style="font-size:13px;padding:3px 0;">${i.item_name}</td><td style="font-size:13px;font-weight:700;color:var(--amber-dark);padding:3px 0 3px 12px;">$${parseFloat(i.price_normal||0).toFixed(2)}</td></tr>`).join('');
     const loc = [p.city, p.country].filter(Boolean).join(', ');
@@ -2567,6 +2562,7 @@ function openSubmit(fromPage) {
   const page = fromPage || currentPage;
   lockedType = PAGE_TYPE_MAP[page] || null;
 
+  const typeGroup = document.getElementById('typeSelectGroup');
   document.querySelectorAll('.type-option[data-type]').forEach(o => {
     o.classList.remove('selected','locked');
     if (lockedType) {
@@ -2574,7 +2570,14 @@ function openSubmit(fromPage) {
       else o.classList.add('locked');
     }
   });
-  if (!lockedType) document.querySelector('.type-option[data-type]').classList.add('selected');
+
+  if (lockedType) {
+    typeGroup.style.display = 'none';
+  } else {
+    typeGroup.style.display = '';
+    document.querySelector('.type-option[data-type]').classList.add('selected');
+  }
+
   updateFormForType(lockedType || 'farm');
   setTimeout(initPickerMap, 350);
 }
@@ -2759,17 +2762,42 @@ function getSelectedDays() {
   return [...document.querySelectorAll('.day-btn[data-day].on')].map(b => b.dataset.day).join(', ');
 }
 
+async function reverseGeocode(lat, lng) {
+  try {
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`,
+      { headers: { 'Accept-Language': 'en' } }
+    );
+    const data = await res.json();
+    const a = data.address || {};
+    return {
+      country:      a.country      || null,
+      state_region: a.state        || a.region       || a.province || null,
+      city:         a.city         || a.town          || a.village  || a.suburb || null,
+      address:      data.display_name || null
+    };
+  } catch(e) {
+    console.warn('Reverse geocode failed:', e);
+    return { country: null, state_region: null, city: null, address: null };
+  }
+}
+
 async function submitForm() {
   const typeEl = document.querySelector('.type-option.selected');
-  const type   = typeEl ? typeEl.dataset.type : 'unknown';
+  const type   = (typeEl ? typeEl.dataset.type : null) || lockedType;
   const name   = document.getElementById('fieldName').value.trim();
   const details= document.getElementById('fieldDetails').value.trim();
 
-  if (!name) { showToast('Please enter a name or title'); return; }
+  if (!type)  { showToast('Please select a type'); return; }
+  if (!name)  { showToast('Please enter a name or title'); return; }
   if (!pickerLat) { showToast('Please move the pin to set a location'); return; }
 
   const days = getSelectedDays();
   const availability = days ? `${days} · ${document.getElementById('timeFrom').value}–${document.getElementById('timeTo').value}` : 'All week';
+
+  // Reverse geocode the pin location
+  showToast('Locating…');
+  const geo = await reverseGeocode(pickerLat, pickerLng);
 
   try {
     if (type === 'price') {
@@ -2781,18 +2809,22 @@ async function submitForm() {
       let addedCount = 0;
 
       for (const row of rows) {
-        const itemName = row.querySelector('.item-name').value.trim();
+        const itemName  = row.querySelector('.item-name').value.trim();
         const itemPrice = parseFloat(row.querySelector('.item-price').value);
 
         if (itemName && !isNaN(itemPrice)) {
           const payload = {
             type,
-            business_name: name,
-            business_type: priceCategory,
-            latitude:  parseFloat(pickerLat),
-            longitude: parseFloat(pickerLng),
-            item_name:  itemName,
-            item_price: itemPrice,
+            business_name:  name,
+            item_category:  priceCategory,
+            latitude:       parseFloat(pickerLat),
+            longitude:      parseFloat(pickerLng),
+            country:        geo.country,
+            state_region:   geo.state_region,
+            city:           geo.city,
+            address:        geo.address,
+            item_name:      itemName,
+            item_price:     itemPrice,
             availability
           };
           await supaInsert('submissions', payload);
@@ -2810,11 +2842,15 @@ async function submitForm() {
         type,
         business_name: name,
         details,
-        latitude:  parseFloat(pickerLat),
-        longitude: parseFloat(pickerLng),
+        latitude:      parseFloat(pickerLat),
+        longitude:     parseFloat(pickerLng),
+        country:       geo.country,
+        state_region:  geo.state_region,
+        city:          geo.city,
+        address:       geo.address,
         availability
       };
-      // Include farm-specific fields if type is farm
+      // Farm-specific fields stored in details
       if (type === 'farm') {
         const phone   = document.getElementById('farmFieldPhone').value.trim();
         const email   = document.getElementById('farmFieldEmail').value.trim();
@@ -2822,12 +2858,15 @@ async function submitForm() {
         const pay     = document.getElementById('farmFieldPay').value.trim();
         const accom   = document.getElementById('farmFieldAccom').value.trim();
         const season  = document.getElementById('farmFieldSeason').value.trim();
-        if (phone)   payload.phone   = phone;
-        if (email)   payload.email   = email;
-        if (website) payload.website = website;
-        if (pay)     payload.pay_per_hour_aud = parseFloat(pay);
-        if (accom)   payload.accommodation = accom;
-        if (season)  payload.season  = season;
+        const extra = [
+          phone   ? 'Phone: ' + phone     : '',
+          email   ? 'Email: ' + email     : '',
+          website ? 'Website: ' + website : '',
+          pay     ? 'Pay: ' + pay + ' AUD/h' : '',
+          accom   ? 'Accom: ' + accom     : '',
+          season  ? 'Season: ' + season   : ''
+        ].filter(Boolean).join(' | ');
+        if (extra) payload.details = (payload.details ? payload.details + ' | ' : '') + extra;
       }
       await supaInsert('submissions', payload);
     }
