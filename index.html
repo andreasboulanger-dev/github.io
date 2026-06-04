@@ -124,7 +124,7 @@ html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;backgroun
 .farms-list-view #farmsListScroll{padding-bottom:100px;}
 
 /* LOCATE BUTTON */
-.locate-btn{position:absolute;bottom:16px;right:16px;width:42px;height:42px;border-radius:50%;background:var(--white);border:0.5px solid var(--border-mid);box-shadow:var(--shadow-md);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:10;color:var(--amber-dark);font-size:20px;}
+.locate-btn{position:absolute;top:14px;right:14px;width:42px;height:42px;border-radius:50%;background:var(--white);border:0.5px solid var(--border-mid);box-shadow:var(--shadow-md);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:10;color:var(--amber-dark);font-size:20px;}
 .locate-btn:active{background:var(--off-white);}
 
 /* FARM MAP */
@@ -138,11 +138,11 @@ html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;backgroun
 .farm-chip{font-size:11px;font-weight:600;padding:4px 9px;border-radius:20px;background:#EAF3DE;color:#3B6D11;flex-shrink:0}
 
 /* DEALS dual-view */
-.deals-map-view{position:relative;height:100%}
+.deals-map-view{position:relative;height:100%;display:flex;flex-direction:column}
 .deals-map-view.active{display:flex;flex-direction:column}
 .deals-list-view{display:none;overflow-y:auto;height:100%}
 .deals-list-view.active{display:block}
-#dealMap{flex:1;min-height:0;z-index:1;width:100%}
+#dealMap{z-index:1;width:100%;height:100%}
 
 /* PRICE SLIDER — horizontal, below map, above list */
 .price-slider-bar{
@@ -503,6 +503,77 @@ input#priceRangeInput::-moz-range-thumb{
 /* activity pin colors */
 .act-pin{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.25)}
 .act-hike{background:#3B6D11}.act-surf{background:#185FA5}.act-social{background:#993556}.act-sport{background:#D4851A}.act-other{background:#5C5750}
+
+/* ── SEARCH MODAL ── */
+.search-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:200;opacity:0;pointer-events:none;transition:opacity 0.2s;}
+.search-overlay.open{opacity:1;pointer-events:all;}
+.search-modal{position:fixed;top:0;left:50%;transform:translateX(-50%) translateY(-100%);width:100%;max-width:480px;background:var(--white);z-index:201;border-radius:0 0 var(--radius-lg) var(--radius-lg);box-shadow:var(--shadow-md);transition:transform 0.25s cubic-bezier(0.4,0,0.2,1);display:flex;flex-direction:column;max-height:88dvh;}
+.search-modal.open{transform:translateX(-50%) translateY(0);}
+.search-modal-bar{display:flex;align-items:center;gap:10px;padding:14px 16px 10px;border-bottom:0.5px solid var(--border);}
+.search-modal-input{flex:1;border:none;outline:none;font-family:'DM Sans',sans-serif;font-size:16px;background:transparent;color:var(--text-dark);}
+.search-modal-input::placeholder{color:var(--text-light);}
+.search-close-btn{width:32px;height:32px;border-radius:50%;border:none;background:var(--off-white);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-mid);font-size:17px;flex-shrink:0;}
+.search-tabs{display:flex;gap:6px;padding:10px 14px;border-bottom:0.5px solid var(--border);flex-shrink:0;}
+.search-tab{padding:6px 14px;border-radius:20px;border:0.5px solid var(--border-mid);background:var(--white);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;color:var(--text-mid);cursor:pointer;display:flex;align-items:center;gap:4px;transition:all 0.15s;}
+.search-tab i{font-size:14px;}
+.search-tab.active{background:var(--amber);border-color:var(--amber);color:white;}
+.search-results{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+.search-empty{display:flex;flex-direction:column;align-items:center;gap:12px;padding:48px 20px;color:var(--text-light);font-size:14px;text-align:center;}
+.search-loading{display:flex;align-items:center;gap:10px;padding:24px 20px;color:var(--text-light);font-size:14px;}
+.search-section-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-light);padding:14px 16px 6px;}
+.search-result-item{display:flex;align-items:center;gap:12px;padding:12px 16px;cursor:pointer;border-bottom:0.5px solid var(--border);transition:background 0.1s;-webkit-tap-highlight-color:transparent;}
+.search-result-item:active{background:var(--off-white);}
+.search-result-icon{width:40px;height:40px;border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.search-result-icon.farm{background:#EAF3DE;color:#3B6D11;}
+.search-result-icon.deal{background:#FEF3DC;color:#854F0B;}
+.search-result-info{flex:1;min-width:0;}
+.search-result-name{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.search-result-sub{font-size:12px;color:var(--text-light);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.search-result-badge{font-size:11px;font-weight:600;padding:3px 8px;border-radius:20px;flex-shrink:0;}
+.search-result-badge.farm{background:#EAF3DE;color:#3B6D11;}
+.search-result-badge.deal{background:#FEF3DC;color:#854F0B;}
+.search-no-results{padding:32px 20px;text-align:center;color:var(--text-light);font-size:14px;}
+mark.search-hl{background:var(--amber-light);color:var(--amber-dark);border-radius:2px;padding:0 1px;}
+
+/* ── FILTER BTN (pill) ── */
+.filter-pill-adv{padding:6px 11px;flex-shrink:0;background:var(--white);color:var(--text-mid);position:relative;}
+.filter-pill-adv.has-filters{background:var(--amber);border-color:var(--amber);color:white;}
+.filter-pill-adv .adv-dot{position:absolute;top:4px;right:4px;width:7px;height:7px;border-radius:50%;background:var(--amber-dark);border:1.5px solid white;display:none;}
+.filter-pill-adv.has-filters .adv-dot{display:block;background:white;}
+.search-tab-adv{padding:6px 11px;flex-shrink:0;position:relative;}
+.search-tab-adv.has-filters{background:var(--amber);border-color:var(--amber);color:white;}
+.search-tab-adv .adv-dot{position:absolute;top:3px;right:3px;width:7px;height:7px;border-radius:50%;background:var(--amber-dark);border:1.5px solid white;display:none;}
+.search-tab-adv.has-filters .adv-dot{display:block;background:white;}
+
+/* ── ADV FILTER PANEL ── */
+.adv-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:300;opacity:0;pointer-events:none;transition:opacity 0.2s;}
+.adv-overlay.open{opacity:1;pointer-events:all;}
+.adv-panel{position:fixed;bottom:0;left:50%;transform:translateX(-50%) translateY(100%);width:100%;max-width:480px;background:var(--white);z-index:301;border-radius:var(--radius-lg) var(--radius-lg) 0 0;box-shadow:var(--shadow-md);transition:transform 0.28s cubic-bezier(0.4,0,0.2,1);display:flex;flex-direction:column;max-height:82dvh;}
+.adv-panel.open{transform:translateX(-50%) translateY(0);}
+.adv-panel-header{display:flex;align-items:center;padding:16px 16px 12px;border-bottom:0.5px solid var(--border);flex-shrink:0;gap:8px;}
+.adv-panel-title{font-family:'Fraunces',serif;font-size:17px;font-weight:700;flex:1;}
+.adv-reset-btn{font-size:13px;font-weight:600;color:var(--amber-dark);background:none;border:none;cursor:pointer;padding:4px 8px;}
+.adv-panel-body{flex:1;overflow-y:auto;padding:16px;}
+.adv-panel-footer{padding:14px 16px;border-top:0.5px solid var(--border);flex-shrink:0;padding-bottom:calc(14px + env(safe-area-inset-bottom));}
+.adv-apply-btn{width:100%;height:48px;border-radius:var(--radius-lg);background:var(--amber);border:none;color:white;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:700;cursor:pointer;}
+.adv-apply-btn:active{background:var(--amber-dark);}
+.adv-section{margin-bottom:20px;}
+.adv-section-label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;color:var(--text-light);margin-bottom:10px;}
+.adv-chips{display:flex;flex-wrap:wrap;gap:8px;}
+.adv-chip{padding:7px 14px;border-radius:20px;border:0.5px solid var(--border-mid);background:var(--white);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;color:var(--text-mid);cursor:pointer;transition:all 0.15s;}
+.adv-chip.active{background:var(--amber-light);border-color:var(--amber);color:var(--amber-dark);font-weight:700;}
+.adv-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:0.5px solid var(--border);}
+.adv-row:last-child{border-bottom:none;}
+.adv-row-label{font-size:14px;font-weight:500;}
+.adv-row-sub{font-size:12px;color:var(--text-light);margin-top:1px;}
+.adv-toggle{width:44px;height:26px;border-radius:13px;background:var(--border-mid);border:none;cursor:pointer;position:relative;transition:background 0.2s;flex-shrink:0;}
+.adv-toggle::after{content:'';position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:white;box-shadow:0 1px 4px rgba(0,0,0,0.2);transition:transform 0.2s;}
+.adv-toggle.on{background:var(--amber);}
+.adv-toggle.on::after{transform:translateX(18px);}
+.adv-range-row{display:flex;align-items:center;gap:10px;margin-top:6px;}
+.adv-range-row input[type=range]{flex:1;accent-color:var(--amber);}
+.adv-range-val{font-size:13px;font-weight:700;color:var(--amber-dark);min-width:48px;text-align:right;}
+.adv-select{width:100%;height:40px;border:0.5px solid var(--border-mid);border-radius:var(--radius-md);padding:0 12px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text-dark);background:var(--white);outline:none;margin-top:6px;}
 </style>
 </head>
 <body>
@@ -510,7 +581,7 @@ input#priceRangeInput::-moz-range-thumb{
   <header class="app-header">
     <div class="logo">the <span>hive</span></div>
     <div class="header-actions">
-      <button class="icon-btn" onclick="showToast('Search coming soon!')"><i class="ti ti-search"></i></button>
+      <button class="icon-btn" onclick="openSearch()"><i class="ti ti-search"></i></button>
       <button id="headerAuthBtn" class="header-login-btn" onclick="openAuthOrProfile()">Sign in</button>
     </div>
   </header>
@@ -521,7 +592,7 @@ input#priceRangeInput::-moz-range-thumb{
       <div class="home-hero">
         <p class="home-greeting">Welcome back, traveller</p>
         <h1 class="home-title">Find farms, deals<br>& <em>local prices</em></h1>
-        <div class="home-search"><i class="ti ti-search"></i><input type="text" placeholder="Search city, farm, deal…"></div>
+        <div class="home-search" onclick="openSearch()"><i class="ti ti-search"></i><input type="text" placeholder="Search city, farm, deal…" readonly style="cursor:pointer;"></div>
       </div>
       <div class="home-stats">
         <div class="stat-card"><div class="stat-num" id="stat-farms">–</div><div class="stat-label">Farms</div></div>
@@ -559,6 +630,7 @@ input#priceRangeInput::-moz-range-thumb{
     <div class="page" id="page-farms">
       <div class="map-page-wrap">
         <div class="map-filters">
+          <button class="filter-pill filter-pill-adv" id="farmsAdvBtn" onclick="openAdvFilter('farms')"><i class="ti ti-adjustments-horizontal"></i></button>
           <button class="filter-pill active" onclick="filterFarms(this,'all')"><i class="ti ti-map-2"></i> All</button>
           <button class="filter-pill" onclick="filterFarms(this,'fruits')"><i class="ti ti-apple"></i> Fruit Picking</button>
           <button class="filter-pill" onclick="filterFarms(this,'nursery')"><i class="ti ti-plant-2"></i> Nursery</button>
@@ -580,15 +652,19 @@ input#priceRangeInput::-moz-range-thumb{
 
     <div class="page" id="page-deals">
       <div class="map-page-wrap">
-        <div class="deals-map-view active" id="dealsMapView">
+        <div class="deals-map-view active" id="dealsMapView" style="position:relative;">
           <div class="map-filters">
+            <button class="filter-pill filter-pill-adv" id="dealsAdvBtn" onclick="openAdvFilter('deals')"><i class="ti ti-adjustments-horizontal"></i></button>
             <button class="filter-pill active" onclick="filterDeals(this,'all')"><i class="ti ti-map-2"></i> All</button>
             <button class="filter-pill" onclick="filterDeals(this,'coffee shop')"><i class="ti ti-coffee"></i> Cafés</button>
             <button class="filter-pill" onclick="filterDeals(this,'hostel')"><i class="ti ti-bed"></i> Hostels</button>
             <button class="filter-pill" onclick="filterDeals(this,'bar')"><i class="ti ti-beer"></i> Bars</button>
             <button class="filter-pill" onclick="filterDeals(this,'activity')"><i class="ti ti-run"></i> Activities</button>
           </div>
-          <div id="dealMap"></div>
+          <div style="flex:1;min-height:0;position:relative;">
+            <div id="dealMap" style="width:100%;height:100%;z-index:1;"></div>
+            <button class="locate-btn" onclick="locateDealUser()" title="My location"><i class="ti ti-current-location"></i></button>
+          </div>
         </div>
         <div class="price-slider-bar" id="priceSliderBar">
           <span style="font-size:13px; font-weight:600; color:var(--text-mid); margin-right:12px;">Price</span>
@@ -624,7 +700,10 @@ input#priceRangeInput::-moz-range-thumb{
           <button class="filter-pill" onclick="filterActivities(this,'shopping')"><i class="ti ti-shopping-bag"></i> Shopping</button>
           <button class="filter-pill" onclick="filterActivities(this,'wellness')"><i class="ti ti-heart"></i> Wellness</button>
         </div>
-        <div id="communityMap" style="flex:1;min-height:0;z-index:1;"></div>
+        <div style="flex:1;min-height:0;position:relative;">
+          <div id="communityMap" style="width:100%;height:100%;z-index:1;"></div>
+          <button class="locate-btn" onclick="locateCommunityUser()" title="My location"><i class="ti ti-current-location"></i></button>
+        </div>
       </div>
       <!-- COMMUNITY FORUM VIEW -->
       <div id="communityForumView" style="display:none;flex-direction:column;height:100%;overflow:hidden;">
@@ -1017,6 +1096,16 @@ input#priceRangeInput::-moz-range-thumb{
         <textarea class="form-textarea" id="fieldDetails" placeholder="Pay rate, discount, price, conditions…"></textarea>
       </div>
 
+      <div class="form-group" id="priceCategoryGroup" style="display:none">
+        <label class="form-label">Category <span style="color:#E53935;">*</span></label>
+        <div class="type-grid" style="grid-template-columns:repeat(2,1fr);">
+          <button class="type-option" data-pcat="coffee shop" onclick="selectPriceCat(this)"><i class="ti ti-coffee"></i><span>Caf&eacute;s</span></button>
+          <button class="type-option" data-pcat="bar" onclick="selectPriceCat(this)"><i class="ti ti-beer"></i><span>Bars</span></button>
+          <button class="type-option" data-pcat="hostel" onclick="selectPriceCat(this)"><i class="ti ti-bed"></i><span>Hostels</span></button>
+          <button class="type-option" data-pcat="activity" onclick="selectPriceCat(this)"><i class="ti ti-run"></i><span>Activities</span></button>
+        </div>
+      </div>
+
       <div class="form-group" id="priceItemsGroup" style="display:none">
         <label class="form-label">Items & Prices</label>
         <div id="priceRowsContainer">
@@ -1052,6 +1141,38 @@ input#priceRangeInput::-moz-range-thumb{
     </div>
   </div>
 
+  <!-- ADV FILTER PANEL -->
+  <div class="adv-overlay" id="advOverlay" onclick="closeAdvFilter()"></div>
+  <div class="adv-panel" id="advPanel">
+    <div class="adv-panel-header">
+      <span class="adv-panel-title" id="advPanelTitle">Filters</span>
+      <button class="adv-reset-btn" onclick="resetAdvFilter()">Reset</button>
+      <button class="search-close-btn" onclick="closeAdvFilter()" style="margin-left:4px;"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="adv-panel-body" id="advPanelBody"></div>
+    <div class="adv-panel-footer">
+      <button class="adv-apply-btn" onclick="applyAdvFilter()">Apply filters</button>
+    </div>
+  </div>
+
+  <!-- SEARCH MODAL -->
+  <div class="search-overlay" id="searchOverlay" onclick="closeSearch()"></div>
+  <div class="search-modal" id="searchModal">
+    <div class="search-modal-bar">
+      <i class="ti ti-search" style="color:var(--text-light);font-size:18px;flex-shrink:0;"></i>
+      <input type="text" id="searchInput" class="search-modal-input" placeholder="City, farm name, deal, address…" autocomplete="off" oninput="onSearchInput(this.value)" />
+      <button class="search-close-btn" onclick="closeSearch()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="search-tabs">
+      <button class="search-tab active" data-type="all" onclick="switchSearchTab(this,'all')">All</button>
+      <button class="search-tab" data-type="farms" onclick="switchSearchTab(this,'farms')"><i class="ti ti-plant-2"></i> Farms</button>
+      <button class="search-tab" data-type="deals" onclick="switchSearchTab(this,'deals')"><i class="ti ti-tag"></i> Deals</button>
+    </div>
+    <div class="search-results" id="searchResults">
+      <div class="search-empty"><i class="ti ti-search" style="font-size:36px;color:var(--border-mid);"></i><div>Search farms, deals, cities…</div></div>
+    </div>
+  </div>
+
   <div class="toast" id="toast" role="status"></div>
 </div>
 
@@ -1069,11 +1190,28 @@ const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsI
 const PAGE_TYPE_MAP = { home: null, farms: 'farm', deals: 'price', forum: 'tip' };
 
 async function supaFetch(table, params='') {
-  const res = await fetch(`${SUPA_URL}/rest/v1/${table}?${params}`, {
-    headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` }
-  });
-  if (!res.ok) throw new Error(await res.text());
-  return res.json();
+  // Auto-paginate to get ALL rows (Supabase default cap = 1000)
+  const allRows = [];
+  let from = 0;
+  const pageSize = 1000;
+  while (true) {
+    const res = await fetch(`${SUPA_URL}/rest/v1/${table}?${params}`, {
+      headers: {
+        'apikey': SUPA_KEY,
+        'Authorization': `Bearer ${SUPA_KEY}`,
+        'Range': `${from}-${from + pageSize - 1}`,
+        'Range-Unit': 'items',
+        'Prefer': 'count=none'
+      }
+    });
+    if (!res.ok) throw new Error(await res.text());
+    const rows = await res.json();
+    if (!Array.isArray(rows) || rows.length === 0) break;
+    allRows.push(...rows);
+    if (rows.length < pageSize) break;
+    from += pageSize;
+  }
+  return allRows;
 }
 
 async function supaInsert(table, data) {
@@ -1103,6 +1241,7 @@ let currentPage   = 'home';
 let farmMap       = null, dealMap = null, pickerMap = null, pickerMarker = null;
 let farmMarkers   = [], dealMarkers = [], farmCluster = null;
 let allFarms      = [], allDeals = [], allPrices = [];
+let currentFilteredFarms = [], currentFilteredDeals = [];
 let dealsViewMode = 'map';
 let dealsLoaded   = false;
 let pickerLat     = null, pickerLng = null;
@@ -1123,6 +1262,7 @@ function goTo(page) {
   if (page === 'deals') {
     tf.classList.add('visible');
     tfFarms.classList.remove('visible');
+    document.getElementById('mainFab').style.display = '';
     showSlider(true);
     if (!dealsLoaded) initDealMap();
   } else if (page === 'farms') {
@@ -1163,6 +1303,7 @@ function toggleDealsView() {
     lv.classList.add('active');
     icon.className = 'ti ti-map-2'; lbl.textContent = 'Map';
     showSlider(false);
+    renderDealsList(currentFilteredDeals.length ? currentFilteredDeals : allDeals);
   } else {
     dealsViewMode = 'map';
     lv.classList.remove('active');
@@ -1298,8 +1439,21 @@ async function loadFarmsInViewport() {
     if (!newFarms.length) return;
 
     newFarms.forEach(f => { farmLoadedIds.add(f.id); allFarms.push(f); });
-    addFarmMarkers(newFarms);
-    renderFarmsList(allFarms);
+
+    // Detect active filter
+    const activeBtn = document.querySelector('#page-farms .filter-pill.active');
+    const match = activeBtn ? (activeBtn.getAttribute('onclick')||'').match(/filterFarms\(this,'([^']+)'\)/) : null;
+    const activeType = match ? match[1] : 'all';
+
+    if (activeType === 'all') {
+      addFarmMarkers(newFarms);
+      currentFilteredFarms = allFarms;
+      renderFarmsList(allFarms);
+    } else {
+      const filtered = filterFarmsType(activeType);
+      renderFarmMarkers(filtered);
+      renderFarmsList(filtered);
+    }
   } catch(e) {
     console.error('loadFarmsInViewport error', e);
   } finally {
@@ -1438,9 +1592,7 @@ const farmFilterGroups = {
   '88days':    null
 };
 
-function filterFarms(btn, type) {
-  document.querySelectorAll('#page-farms .filter-pill').forEach(p => p.classList.remove('active'));
-  btn.classList.add('active');
+function filterFarmsType(type) {
   let f;
   if (type === 'all') {
     f = allFarms;
@@ -1454,7 +1606,16 @@ function filterFarms(btn, type) {
       f = allFarms.filter(f => (f.farm_category_first||'').toLowerCase().includes(type));
     }
   }
-  renderFarmMarkers(f); renderFarmsList(f);
+  currentFilteredFarms = f;
+  renderFarmsList(f);
+  return f;
+}
+
+function filterFarms(btn, type) {
+  document.querySelectorAll('#page-farms .filter-pill').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  const f = filterFarmsType(type);
+  renderFarmMarkers(f);
 }
 
 function toggleFarmsView() {
@@ -1467,6 +1628,7 @@ function toggleFarmsView() {
     mv.classList.remove('active'); mv.style.display = 'none';
     lv.classList.add('active');
     icon.className = 'ti ti-map-2'; lbl.textContent = 'Map';
+    renderFarmsList(currentFilteredFarms.length ? currentFilteredFarms : allFarms);
   } else {
     farmsViewMode = 'map';
     lv.classList.remove('active');
@@ -1485,6 +1647,38 @@ function locateUser() {
     farmMap.flyTo([lat, lng], 10, {animate:true, duration:1.2});
     L.circleMarker([lat, lng], {radius:8, color:'#D4851A', fillColor:'#F5A623', fillOpacity:0.9, weight:2})
       .addTo(farmMap).bindPopup('You are here').openPopup();
+    showToast('Location found!');
+  }, () => {
+    showToast('Could not get location');
+  });
+}
+
+function locateDealUser() {
+  if (!navigator.geolocation) { showToast('Geolocation not supported'); return; }
+  showToast('Locating…');
+  navigator.geolocation.getCurrentPosition(pos => {
+    const lat = pos.coords.latitude, lng = pos.coords.longitude;
+    if (dealMap) {
+      dealMap.flyTo([lat, lng], 12, {animate:true, duration:1.2});
+      L.circleMarker([lat, lng], {radius:8, color:'#D4851A', fillColor:'#F5A623', fillOpacity:0.9, weight:2})
+        .addTo(dealMap).bindPopup('You are here').openPopup();
+    }
+    showToast('Location found!');
+  }, () => {
+    showToast('Could not get location');
+  });
+}
+
+function locateCommunityUser() {
+  if (!navigator.geolocation) { showToast('Geolocation not supported'); return; }
+  showToast('Locating…');
+  navigator.geolocation.getCurrentPosition(pos => {
+    const lat = pos.coords.latitude, lng = pos.coords.longitude;
+    if (communityMap) {
+      communityMap.flyTo([lat, lng], 12, {animate:true, duration:1.2});
+      L.circleMarker([lat, lng], {radius:8, color:'#D4851A', fillColor:'#F5A623', fillOpacity:0.9, weight:2})
+        .addTo(communityMap).bindPopup('You are here').openPopup();
+    }
     showToast('Location found!');
   }, () => {
     showToast('Could not get location');
@@ -1703,6 +1897,7 @@ async function loadDeals() {
   try { allDeals  = await supaFetch('deals', 'status=in.(approved,negotiating)'); } catch(e){ allDeals=[]; }
   try { allPrices = await supaFetch('local_prices', 'status=eq.approved'); } catch(e){ allPrices=[]; }
 
+  currentFilteredDeals = allDeals;
   document.getElementById('stat-deals').textContent = allDeals.length;
   renderDealMarkers(allDeals);
   renderDealsList(allDeals);
@@ -1730,7 +1925,9 @@ function filterDeals(btn, type) {
   document.querySelectorAll('#page-deals .map-filters .filter-pill').forEach(p => p.classList.remove('active'));
   btn.classList.add('active');
   const f = type==='all' ? allDeals : allDeals.filter(d => (d.business_type||'').toLowerCase().includes(type));
+  currentFilteredDeals = f;
   renderDealMarkers(f);
+  renderDealsList(f);
 }
 
 function renderDealsList(deals) {
@@ -2000,14 +2197,14 @@ function openSubmit(fromPage) {
   const page = fromPage || currentPage;
   lockedType = PAGE_TYPE_MAP[page] || null;
 
-  document.querySelectorAll('.type-option').forEach(o => {
+  document.querySelectorAll('.type-option[data-type]').forEach(o => {
     o.classList.remove('selected','locked');
     if (lockedType) {
       if (o.dataset.type === lockedType) o.classList.add('selected');
       else o.classList.add('locked');
     }
   });
-  if (!lockedType) document.querySelector('.type-option').classList.add('selected');
+  if (!lockedType) document.querySelector('.type-option[data-type]').classList.add('selected');
   updateFormForType(lockedType || 'farm');
   setTimeout(initPickerMap, 350);
 }
@@ -2026,6 +2223,7 @@ function updateFormForType(type) {
   const ag = document.getElementById('availGroup');
   const stdGroup = document.getElementById('standardDetailsGroup');
   const priceGroup = document.getElementById('priceItemsGroup');
+  const priceCatGroup = document.getElementById('priceCategoryGroup');
   const farmFields = document.getElementById('farmFieldsGroup');
   const dl = document.getElementById('detailsLabel');
   const fd = document.getElementById('fieldDetails');
@@ -2036,13 +2234,22 @@ function updateFormForType(type) {
   if (type === 'price') {
     stdGroup.style.display = 'none';
     priceGroup.style.display = 'block';
+    priceCatGroup.style.display = 'block';
   } else {
     stdGroup.style.display = 'block';
     priceGroup.style.display = 'none';
+    priceCatGroup.style.display = 'none';
+    // Reset price category selection when switching away
+    document.querySelectorAll('[data-pcat]').forEach(b => b.classList.remove('selected'));
     if (type==='farm')  { dl.textContent='Additional Details'; fd.placeholder='Any other info: crops, conditions, season…'; }
     else if (type==='deal')  { dl.textContent='Discount details'; fd.placeholder='e.g. 15% off coffee, how to redeem…'; }
     else { dl.textContent='Your tip'; fd.placeholder='Share useful info with the community…'; }
   }
+}
+
+function selectPriceCat(el) {
+  document.querySelectorAll('[data-pcat]').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
 }
 
 function addPriceRow() {
@@ -2111,6 +2318,10 @@ async function submitForm() {
 
   try {
     if (type === 'price') {
+      const catEl = document.querySelector('[data-pcat].selected');
+      if (!catEl) { showToast('Please select a category'); return; }
+      const priceCategory = catEl.dataset.pcat;
+
       const rows = document.querySelectorAll('.price-row');
       let addedCount = 0;
 
@@ -2122,6 +2333,7 @@ async function submitForm() {
           const payload = {
             type,
             business_name: name,
+            business_type: priceCategory,
             latitude:  parseFloat(pickerLat),
             longitude: parseFloat(pickerLng),
             item_name:  itemName,
@@ -2670,6 +2882,378 @@ function submitNewActivity() {
   if (communityViewMode !== 'map') toggleCommunityView();
   // Pan to the new marker
   if (communityMap) communityMap.setView([newAct.lat, newAct.lng], 13);
+}
+
+// ── ADVANCED FILTERS ──
+let advContext = null; // 'farms' | 'deals'
+
+// Farm category groups (broad)
+const FARM_CAT_GROUPS = {
+  'Fruit':      ['fruits farm','fruit farm'],
+  'Vegetables': ['vegetables farm'],
+  'Livestock':  ['cattle farm','cattle','livestock breeder','ranch','station','sheeps farm','goats farm','deer farm','alpacas farm','horse stud','pigs farm','emu','camel farm','donkey farm','animals'],
+  'Vineyard':   ['vineyard'],
+  'Dairy':      ['dairy farm'],
+  'Nursery':    ['plants nursery','wholesale plant'],
+  'Seafood':    ['aquaculture farm','oyster supplier','fish farm','seafood farm'],
+  'Other':      ['honey farm','poultry farm','nuts farm','flowers farm','mushrooms farm','grains farm','mixed farm','medicinal cannabis farm','roadhouses','chrismas tree']
+};
+
+// Specific farm subcategories (within each group)
+const FARM_SUBCAT_BY_GROUP = {
+  'Fruit':      ['Apple Farm','Stone Fruit','Citrus Farm','Tropical Fruit','Berry Farm','Avocado Farm','Mango Farm','Strawberry Farm'],
+  'Vegetables': ['Mixed Vegetables','Lettuce Farm','Potato Farm','Tomato Farm','Capsicum Farm','Onion Farm'],
+  'Livestock':  ['Cattle Farm','Sheep Farm','Goat Farm','Alpacas Farm','Horse Stud','Pig Farm','Deer Farm','Poultry Farm'],
+  'Vineyard':   ['Vineyard','Winery'],
+  'Dairy':      ['Dairy Farm'],
+  'Nursery':    ['Plants Nursery','Wholesale Plant'],
+  'Seafood':    ['Aquaculture Farm','Oyster Supplier','Fish Farm'],
+  'Other':      ['Honey Farm','Nuts Farm','Flowers Farm','Mushrooms Farm','Grains Farm','Mixed Farm','Cannabis Farm']
+};
+
+const advState = {
+  farms: { country:'', accom:false, days88:false, minPay:0, organic:false, catGroup:'', subcats:[] },
+  deals: { country:'', minDiscount:0 },
+};
+
+function openAdvFilter(ctx) {
+  advContext = ctx;
+  document.getElementById('advOverlay').classList.add('open');
+  document.getElementById('advPanel').classList.add('open');
+  renderAdvPanel(ctx);
+}
+
+function closeAdvFilter() {
+  document.getElementById('advOverlay').classList.remove('open');
+  document.getElementById('advPanel').classList.remove('open');
+}
+
+function resetAdvFilter() {
+  if (advContext === 'farms') {
+    advState.farms = { country:'', accom:false, days88:false, minPay:0, organic:false, catGroup:'', subcats:[] };
+  } else {
+    advState.deals = { country:'', minDiscount:0 };
+  }
+  renderAdvPanel(advContext);
+  updateAdvBadge(advContext);
+}
+
+function updateAdvBadge(ctx) {
+  const f = advState.farms;
+  const d = advState.deals;
+  const hasFilters = ctx === 'farms'
+    ? !!(f.country || f.accom || f.days88 || f.minPay > 0 || f.organic || f.catGroup || f.subcats.length)
+    : !!(d.country || d.minDiscount > 0);
+
+  const btnId = ctx === 'farms' ? 'farmsAdvBtn' : 'dealsAdvBtn';
+  const btn = document.getElementById(btnId);
+  if (!btn) return;
+  btn.classList.toggle('has-filters', hasFilters);
+  if (!btn.querySelector('.adv-dot')) btn.insertAdjacentHTML('beforeend', '<span class="adv-dot"></span>');
+}
+
+function renderAdvPanel(ctx) {
+  const titles = { farms:'Farm Filters', deals:'Deal Filters' };
+  document.getElementById('advPanelTitle').textContent = titles[ctx] || 'Filters';
+
+  let html = '';
+
+  // ── Country ──
+  const countries = ['', 'Australia', 'New Zealand'];
+  const curCountry = advState[ctx]?.country || '';
+  html += `<div class="adv-section">
+    <div class="adv-section-label">Country</div>
+    <div class="adv-chips">
+      ${countries.map(c => `<button class="adv-chip${curCountry===c?' active':''}" onclick="advSetCountry('${c}')">${c||'Any'}</button>`).join('')}
+    </div>
+  </div>`;
+
+  if (ctx === 'farms') {
+    const s = advState.farms;
+
+    // ── Toggles ──
+    html += `<div class="adv-section">
+      <div class="adv-section-label">Farm options</div>
+      <div class="adv-row">
+        <div><div class="adv-row-label">Accommodation included</div><div class="adv-row-sub">Farm provides housing</div></div>
+        <button class="adv-toggle${s.accom?' on':''}" onclick="advToggleFarm('accom',this)"></button>
+      </div>
+      <div class="adv-row">
+        <div><div class="adv-row-label">88-day visa eligible</div><div class="adv-row-sub">Counts toward regional work</div></div>
+        <button class="adv-toggle${s.days88?' on':''}" onclick="advToggleFarm('days88',this)"></button>
+      </div>
+      <div class="adv-row">
+        <div><div class="adv-row-label">Organic</div><div class="adv-row-sub">Certified or described as organic</div></div>
+        <button class="adv-toggle${s.organic?' on':''}" onclick="advToggleFarm('organic',this)"></button>
+      </div>
+    </div>`;
+
+    // ── Min pay ──
+    html += `<div class="adv-section">
+      <div class="adv-section-label">Min. pay rate</div>
+      <div class="adv-range-row">
+        <input type="range" min="0" max="60" step="1" value="${s.minPay}" oninput="advPayRange(this)">
+        <span class="adv-range-val" id="advPayVal">${s.minPay>0?'$'+s.minPay+'/hr':'Any'}</span>
+      </div>
+    </div>`;
+
+    // ── Category groups ──
+    const groups = Object.keys(FARM_CAT_GROUPS);
+    html += `<div class="adv-section">
+      <div class="adv-section-label">Category</div>
+      <div class="adv-chips">
+        <button class="adv-chip${!s.catGroup?' active':''}" onclick="advSetFarmCat('')">All</button>
+        ${groups.map(g => `<button class="adv-chip${s.catGroup===g?' active':''}" onclick="advSetFarmCat('${g}')">${g}</button>`).join('')}
+      </div>
+    </div>`;
+
+    // ── Subcategories (shown only when a group is selected) ──
+    if (s.catGroup && FARM_SUBCAT_BY_GROUP[s.catGroup]) {
+      const subs = FARM_SUBCAT_BY_GROUP[s.catGroup];
+      html += `<div class="adv-section">
+        <div class="adv-section-label" style="display:flex;align-items:center;gap:6px;">More specific <span style="font-size:10px;background:var(--amber-light);color:var(--amber-dark);padding:2px 7px;border-radius:10px;font-weight:600;">${s.catGroup}</span></div>
+        <div class="adv-chips">
+          ${subs.map(sub => `<button class="adv-chip${s.subcats.includes(sub)?' active':''}" onclick="advToggleSubcat('${sub}')">${sub}</button>`).join('')}
+        </div>
+      </div>`;
+    }
+  }
+
+  if (ctx === 'deals') {
+    const s = advState.deals;
+    html += `<div class="adv-section">
+      <div class="adv-section-label">Min. discount</div>
+      <div class="adv-range-row">
+        <input type="range" min="0" max="50" step="5" value="${s.minDiscount}" oninput="advDiscountRange(this)">
+        <span class="adv-range-val" id="advDiscVal">${s.minDiscount>0?s.minDiscount+'%+':'Any'}</span>
+      </div>
+    </div>`;
+  }
+
+  document.getElementById('advPanelBody').innerHTML = html;
+}
+
+function advSetCountry(c) {
+  advState[advContext].country = c;
+  renderAdvPanel(advContext);
+}
+
+function advToggleFarm(field, btn) {
+  advState.farms[field] = !advState.farms[field];
+  btn.classList.toggle('on', advState.farms[field]);
+}
+
+function advSetFarmCat(g) {
+  advState.farms.catGroup = g;
+  advState.farms.subcats = [];
+  renderAdvPanel('farms');
+}
+
+function advToggleSubcat(sub) {
+  const arr = advState.farms.subcats;
+  const idx = arr.indexOf(sub);
+  if (idx === -1) arr.push(sub); else arr.splice(idx, 1);
+  renderAdvPanel('farms');
+}
+
+function advPayRange(input) {
+  advState.farms.minPay = parseInt(input.value);
+  const el = document.getElementById('advPayVal');
+  if (el) el.textContent = advState.farms.minPay > 0 ? '$'+advState.farms.minPay+'/hr' : 'Any';
+}
+
+function advDiscountRange(input) {
+  advState.deals.minDiscount = parseInt(input.value);
+  const el = document.getElementById('advDiscVal');
+  if (el) el.textContent = advState.deals.minDiscount > 0 ? advState.deals.minDiscount+'%+' : 'Any';
+}
+
+function applyAdvFilter() {
+  closeAdvFilter();
+  updateAdvBadge(advContext);
+
+  if (advContext === 'farms') {
+    const s = advState.farms;
+    let filtered = allFarms.filter(f => {
+      if (s.country && (f.country||'').toLowerCase() !== s.country.toLowerCase()) return false;
+      if (s.accom && !(f.accommodation||'').toLowerCase().startsWith('y')) return false;
+      if (s.days88 && !(f.eighty_eight_days||'').toLowerCase().startsWith('y')) return false;
+      if (s.minPay > 0 && (parseFloat(f.pay_per_hour_aud)||0) < s.minPay) return false;
+      if (s.organic) {
+        const haystack = ((f.notes||'')+(f.farm_category_first||'')).toLowerCase();
+        if (!haystack.includes('organic')) return false;
+      }
+      if (s.catGroup) {
+        const groups = FARM_CAT_GROUPS[s.catGroup] || [];
+        const cat = (f.farm_category_first||'').toLowerCase();
+        if (!groups.some(g => cat.includes(g) || g.includes(cat))) return false;
+      }
+      if (s.subcats.length) {
+        const cat = (f.farm_category_first||'').toLowerCase();
+        const name = (f.business_name||'').toLowerCase();
+        const matched = s.subcats.some(sub => {
+          const sl = sub.toLowerCase();
+          return cat.includes(sl.replace(' farm','')) || name.includes(sl.replace(' farm',''));
+        });
+        if (!matched) return false;
+      }
+      return true;
+    });
+    currentFilteredFarms = filtered;
+    renderFarmMarkers(filtered);
+    renderFarmsList(filtered);
+  } else if (advContext === 'deals') {
+    const s = advState.deals;
+    let filtered = allDeals.filter(d => {
+      if (s.country && (d.country||'').toLowerCase() !== s.country.toLowerCase()) return false;
+      if (s.minDiscount > 0 && (parseFloat(d.discount)||0) < s.minDiscount) return false;
+      return true;
+    });
+    currentFilteredDeals = filtered;
+    renderDealMarkers(filtered);
+    renderDealsList(filtered);
+  }
+}
+
+// ── GLOBAL SEARCH ──
+let searchDebounce = null;
+let searchTabType  = 'all';
+
+function openSearch() {
+  document.getElementById('searchOverlay').classList.add('open');
+  document.getElementById('searchModal').classList.add('open');
+  setTimeout(() => document.getElementById('searchInput').focus(), 300);
+}
+
+function closeSearch() {
+  document.getElementById('searchOverlay').classList.remove('open');
+  document.getElementById('searchModal').classList.remove('open');
+}
+
+function switchSearchTab(btn, type) {
+  document.querySelectorAll('.search-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  searchTabType = type;
+  const q = document.getElementById('searchInput').value.trim();
+  if (q.length >= 2) runSearch(q);
+}
+
+function onSearchInput(val) {
+  clearTimeout(searchDebounce);
+  const q = val.trim();
+  if (q.length < 2) {
+    document.getElementById('searchResults').innerHTML = '<div class="search-empty"><i class="ti ti-search" style="font-size:36px;color:var(--border-mid);"></i><div>Search farms, deals, cities…</div></div>';
+    return;
+  }
+  document.getElementById('searchResults').innerHTML = '<div class="search-loading"><div class="spinner"></div>Searching…</div>';
+  searchDebounce = setTimeout(() => runSearch(q), 350);
+}
+
+async function runSearch(q) {
+  const enc = encodeURIComponent(q);
+  const results = { farms: [], deals: [] };
+
+  try {
+    if (searchTabType === 'all' || searchTabType === 'farms') {
+      const [byName, byCity, byState, byAddr] = await Promise.all([
+        supaFetch('businesses', `status=eq.approved&business_name=ilike.*${enc}*&limit=20`),
+        supaFetch('businesses', `status=eq.approved&city=ilike.*${enc}*&limit=20`),
+        supaFetch('businesses', `status=eq.approved&state_region=ilike.*${enc}*&limit=20`),
+        supaFetch('businesses', `status=eq.approved&address=ilike.*${enc}*&limit=20`),
+      ]);
+      const seen = new Set();
+      [...byName, ...byCity, ...byState, ...byAddr].forEach(f => {
+        if (!seen.has(f.id)) { seen.add(f.id); results.farms.push(f); }
+      });
+    }
+  } catch(e) {}
+
+  try {
+    if (searchTabType === 'all' || searchTabType === 'deals') {
+      const [byName, byCity] = await Promise.all([
+        supaFetch('deals', `status=in.(approved,negotiating)&business_name=ilike.*${enc}*&limit=20`),
+        supaFetch('deals', `status=in.(approved,negotiating)&city=ilike.*${enc}*&limit=20`),
+      ]);
+      const seen = new Set();
+      [...byName, ...byCity].forEach(d => {
+        if (!seen.has(d.id)) { seen.add(d.id); results.deals.push(d); }
+      });
+    }
+  } catch(e) {}
+
+  renderSearchResults(results, q);
+}
+
+function highlightMatch(text, q) {
+  if (!text) return '';
+  const safe = text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const re = new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+  return String(text).replace(re, '<mark class="search-hl">$1</mark>');
+}
+
+function renderSearchResults(results, q) {
+  const el = document.getElementById('searchResults');
+  const totalFarms = results.farms.length;
+  const totalDeals = results.deals.length;
+
+  if (!totalFarms && !totalDeals) {
+    el.innerHTML = `<div class="search-no-results"><i class="ti ti-mood-sad" style="font-size:32px;margin-bottom:8px;display:block;"></i>No results for "<strong>${q}</strong>"</div>`;
+    return;
+  }
+
+  let html = '';
+
+  if (totalFarms) {
+    html += `<div class="search-section-label"><i class="ti ti-plant-2"></i> Farms & Businesses (${totalFarms})</div>`;
+    results.farms.forEach(f => {
+      const sub = [f.city, f.state_region, f.country].filter(Boolean).join(', ');
+      const cat = f.farm_category_first || 'Farm';
+      html += `<div class="search-result-item" onclick="searchGoFarm('${f.id}',${f.latitude},${f.longitude})">
+        <div class="search-result-icon farm">🌾</div>
+        <div class="search-result-info">
+          <div class="search-result-name">${highlightMatch(f.business_name, q)}</div>
+          <div class="search-result-sub">${highlightMatch(sub, q)}${f.address ? ' · ' + highlightMatch(f.address, q) : ''}</div>
+        </div>
+        <span class="search-result-badge farm">${cat}</span>
+      </div>`;
+    });
+  }
+
+  if (totalDeals) {
+    html += `<div class="search-section-label"><i class="ti ti-tag"></i> Deals (${totalDeals})</div>`;
+    results.deals.forEach(d => {
+      const sub = [d.city, d.country].filter(Boolean).join(', ');
+      const pct = parseFloat(d.discount || 0);
+      html += `<div class="search-result-item" onclick="searchGoDeal('${d.id}')">
+        <div class="search-result-icon deal">${dealEmoji[(d.business_type||'').toLowerCase()] || '🏪'}</div>
+        <div class="search-result-info">
+          <div class="search-result-name">${highlightMatch(d.business_name, q)}</div>
+          <div class="search-result-sub">${highlightMatch(sub, q)} · ${d.business_type || 'Business'}</div>
+        </div>
+        ${pct > 0 ? `<span class="search-result-badge deal">-${pct}%</span>` : ''}
+      </div>`;
+    });
+  }
+
+  html += '<div style="height:20px;"></div>';
+  el.innerHTML = html;
+}
+
+function searchGoFarm(id, lat, lng) {
+  closeSearch();
+  goTo('farms');
+  if (!farmMap) {
+    setTimeout(() => { flyTo(farmMap, lat, lng, 13); openFarmDetail(id); }, 800);
+  } else {
+    flyTo(farmMap, lat, lng, 13);
+    setTimeout(() => openFarmDetail(id), 600);
+  }
+}
+
+function searchGoDeal(id) {
+  closeSearch();
+  goTo('deals');
+  setTimeout(() => openDealDetail(id), 600);
 }
 
 // ── INIT ──
