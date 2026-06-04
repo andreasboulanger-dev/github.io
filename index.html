@@ -560,11 +560,13 @@ input#priceRangeInput::-moz-range-thumb{
       <div class="map-page-wrap">
         <div class="map-filters">
           <button class="filter-pill active" onclick="filterFarms(this,'all')"><i class="ti ti-map-2"></i> All</button>
-          <button class="filter-pill" onclick="filterFarms(this,'fruit picking')"><i class="ti ti-apple"></i> Fruit picking</button>
-          <button class="filter-pill" onclick="filterFarms(this,'vegetables')"><i class="ti ti-leaf"></i> Vegetables</button>
+          <button class="filter-pill" onclick="filterFarms(this,'fruits')"><i class="ti ti-apple"></i> Fruit Picking</button>
+          <button class="filter-pill" onclick="filterFarms(this,'nursery')"><i class="ti ti-plant-2"></i> Nursery</button>
           <button class="filter-pill" onclick="filterFarms(this,'livestock')"><i class="ti ti-paw"></i> Livestock</button>
-          <button class="filter-pill" onclick="filterFarms(this,'winery')"><i class="ti ti-bottle"></i> Winery</button>
-          <button class="filter-pill" onclick="filterFarms(this,'88 days')"><i class="ti ti-calendar-stats"></i> 88 days</button>
+          <button class="filter-pill" onclick="filterFarms(this,'vineyard')"><i class="ti ti-bottle"></i> Vineyard</button>
+          <button class="filter-pill" onclick="filterFarms(this,'vegetables')"><i class="ti ti-leaf"></i> Vegetables</button>
+          <button class="filter-pill" onclick="filterFarms(this,'dairy')"><i class="ti ti-droplet"></i> Dairy</button>
+          <button class="filter-pill" onclick="filterFarms(this,'88days')"><i class="ti ti-calendar-stats"></i> 88 Days</button>
         </div>
         <div class="farms-map-view active" id="farmsMapView" style="flex:1;min-height:0;position:relative;display:flex;flex-direction:column;">
           <div id="farmMap" style="flex:1;min-height:0;z-index:1;"></div>
@@ -1426,10 +1428,32 @@ function renderFarmsList(farms) {
   el.innerHTML = farms.map(f => `<div class="farm-row" onclick="flyTo(farmMap,${f.latitude},${f.longitude},10);if(farmsViewMode==='list')toggleFarmsView();"><div class="farm-icon-wrap"><i class="ti ti-plant-2"></i></div><div class="farm-info"><div class="farm-name">${f.business_name}</div><div class="farm-meta">${f.city||''}${f.state_region?', '+f.state_region:''} · ${f.farm_category_first||'Farm'}</div></div>${f.pay_per_hour_aud?`<span class="farm-chip">$${f.pay_per_hour_aud}/hr</span>`:''}</div>`).join('') + '<div style="height:100px;"></div>';
 }
 
+const farmFilterGroups = {
+  'fruits':    ['fruits farm', 'fruit farm'],
+  'nursery':   ['plants nursery', 'wholesale plant'],
+  'livestock': ['cattle farm', 'cattle', 'livestock breeder', 'ranch', 'station', 'sheeps farm', 'goats farm', 'deer farm', 'alpacas farm', 'horse stud', 'pigs farm', 'emu', 'camel farm', 'donkey farm', 'animals'],
+  'vineyard':  ['vineyard'],
+  'vegetables':['vegetables farm'],
+  'dairy':     ['dairy farm'],
+  '88days':    null
+};
+
 function filterFarms(btn, type) {
   document.querySelectorAll('#page-farms .filter-pill').forEach(p => p.classList.remove('active'));
   btn.classList.add('active');
-  const f = type==='all' ? allFarms : allFarms.filter(f => (f.farm_category_first||'').toLowerCase().includes(type));
+  let f;
+  if (type === 'all') {
+    f = allFarms;
+  } else if (type === '88days') {
+    f = allFarms.filter(f => (f.eighty_eight_days||'').toLowerCase().startsWith('y'));
+  } else {
+    const group = farmFilterGroups[type];
+    if (group) {
+      f = allFarms.filter(f => group.includes((f.farm_category_first||'').toLowerCase()));
+    } else {
+      f = allFarms.filter(f => (f.farm_category_first||'').toLowerCase().includes(type));
+    }
+  }
   renderFarmMarkers(f); renderFarmsList(f);
 }
 
