@@ -1324,8 +1324,50 @@ async function supaInsert(table, data) {
   return res.json();
 }
 
-const TILE_URL  = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
 const TILE_ATTR = '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> © <a href="https://carto.com/">CARTO</a>';
+
+// ── DAY/NIGHT TILE SWITCHING ──
+function getSunTimes(lat, lng) {
+  // Simple sunrise/sunset calculation (Jean Meeus algorithm)
+  const now = new Date();
+  const JD = Math.floor(now / 86400000) + 2440587.5;
+  const n = JD - 2451545.0;
+  const L = (280.46 + 0.9856474 * n) % 360;
+  const g = ((357.528 + 0.9856003 * n) % 360) * Math.PI / 180;
+  const lam = (L + 1.915 * Math.sin(g) + 0.02 * Math.sin(2 * g)) * Math.PI / 180;
+  const sinDec = Math.sin(23.439 * Math.PI / 180) * Math.sin(lam);
+  const cosDec = Math.cos(Math.asin(sinDec));
+  const cosH = (Math.cos(90.833 * Math.PI / 180) - sinDec * Math.sin(lat * Math.PI / 180))
+               / (cosDec * Math.cos(lat * Math.PI / 180));
+  if (cosH > 1 || cosH < -1) return null; // polar day/night
+  const H = Math.acos(cosH) * 180 / Math.PI;
+  const EqT = (L - (Math.atan2(Math.cos(23.439 * Math.PI / 180) * Math.sin(lam), Math.cos(lam)) * 180 / Math.PI) + 360) % 360;
+  const noon = 12 - (lng / 15) - (EqT - 360 * Math.floor(EqT / 360 + 0.5)) / 60;
+  return { sunrise: noon - H / 15, sunset: noon + H / 15 };
+}
+
+function isNightTime() {
+  const lat = window._userLat || -33.87;
+  const lng = window._userLng || 151.21;
+  const times = getSunTimes(lat, lng);
+  if (!times) return false;
+  const now = new Date();
+  const h = now.getHours() + now.getMinutes() / 60;
+  return h < times.sunrise || h > times.sunset;
+}
+
+function getTileUrl() {
+  return isNightTime()
+    ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+    : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
+}
+const TILE_URL = getTileUrl();
+
+// Store user location for accurate sun times
+navigator.geolocation && navigator.geolocation.getCurrentPosition(pos => {
+  window._userLat = pos.coords.latitude;
+  window._userLng = pos.coords.longitude;
+});
 
 // ── STATE ──
 let currentPage   = 'home';
