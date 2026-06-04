@@ -536,6 +536,10 @@ input#priceRangeInput::-moz-range-thumb{
 mark.search-hl{background:var(--amber-light);color:var(--amber-dark);border-radius:2px;padding:0 1px;}
 
 /* ── FILTER BTN (pill) ── */
+.map-subfilters{display:flex;gap:6px;padding:8px 14px;overflow-x:auto;flex-shrink:0;scrollbar-width:none;background:var(--amber-pale);border-bottom:0.5px solid rgba(245,166,35,0.2);z-index:10;}
+.map-subfilters::-webkit-scrollbar{display:none}
+.subfilter-pill{display:flex;align-items:center;gap:5px;padding:5px 12px;border-radius:20px;background:var(--white);border:0.5px solid rgba(245,166,35,0.35);font-size:12px;font-weight:500;color:var(--text-mid);white-space:nowrap;cursor:pointer;transition:all 0.15s;font-family:'DM Sans',sans-serif;}
+.subfilter-pill.active{background:var(--amber-dark);border-color:var(--amber-dark);color:white;}
 .filter-pill-adv{padding:6px 11px;flex-shrink:0;background:var(--white);color:var(--text-mid);position:relative;}
 .filter-pill-adv.has-filters{background:var(--amber);border-color:var(--amber);color:white;}
 .filter-pill-adv .adv-dot{position:absolute;top:4px;right:4px;width:7px;height:7px;border-radius:50%;background:var(--amber-dark);border:1.5px solid white;display:none;}
@@ -661,6 +665,7 @@ mark.search-hl{background:var(--amber-light);color:var(--amber-dark);border-radi
             <button class="filter-pill" onclick="filterDeals(this,'bar')"><i class="ti ti-beer"></i> Bars</button>
             <button class="filter-pill" onclick="filterDeals(this,'activity')"><i class="ti ti-run"></i> Activities</button>
           </div>
+          <div class="map-subfilters" id="dealsSubFilters" style="display:none;"></div>
           <div style="flex:1;min-height:0;position:relative;">
             <div id="dealMap" style="width:100%;height:100%;z-index:1;"></div>
             <button class="locate-btn" onclick="locateDealUser()" title="My location"><i class="ti ti-current-location"></i></button>
@@ -765,6 +770,65 @@ mark.search-hl{background:var(--amber-light);color:var(--amber-dark);border-radi
         </div>
       </div>
     </div>
+    <!-- LOCAL PRICE DETAIL PAGE -->
+    <div class="page" id="page-local-price-detail">
+      <div style="display:flex;flex-direction:column;height:100%;overflow:hidden;">
+        <div class="post-detail-header">
+          <button class="icon-btn" onclick="goTo('deals')"><i class="ti ti-arrow-left"></i></button>
+          <span class="post-detail-title">Local Prices</span>
+          <button class="icon-btn" onclick="openEditLocalPrice()" title="Suggest an edit"><i class="ti ti-pencil"></i></button>
+        </div>
+        <div class="post-detail-content" id="localPriceDetailContent" style="padding:0;">
+          <div class="map-loading"><div class="spinner"></div>Loading…</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EDIT LOCAL PRICE MODAL -->
+    <div class="modal-backdrop" id="editLocalPriceModal" onclick="if(event.target===this)document.getElementById('editLocalPriceModal').classList.remove('open')">
+      <div class="modal-sheet" style="max-height:96vh;">
+        <div class="modal-handle"></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+          <div class="modal-title" style="margin-bottom:0;">Suggest an edit</div>
+          <button class="icon-btn" onclick="document.getElementById('editLocalPriceModal').classList.remove('open')"><i class="ti ti-x"></i></button>
+        </div>
+        <p class="modal-sub">Your changes will be reviewed before going live.</p>
+        <input type="hidden" id="editLocalPriceKey">
+        <div class="form-group">
+          <label class="form-label">Business name</label>
+          <input type="text" class="form-input" id="editLPName" placeholder="e.g. Central Bar">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Category</label>
+          <select class="form-input" id="editLPCategory" style="height:44px;">
+            <option value="coffee shop">Café</option>
+            <option value="bar">Bar</option>
+            <option value="hostel">Hostel</option>
+            <option value="activity">Activities</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">City</label>
+          <input type="text" class="form-input" id="editLPCity" placeholder="e.g. Sydney">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Country</label>
+          <input type="text" class="form-input" id="editLPCountry" placeholder="e.g. Australia">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Updated prices / corrections</label>
+          <div id="editLPRows"></div>
+          <button type="button" class="add-price-btn" onclick="addEditLPRow()"><i class="ti ti-plus"></i> Add item</button>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Notes (optional)</label>
+          <textarea class="form-textarea" id="editLPNotes" placeholder="Any other info to add or correct…"></textarea>
+        </div>
+        <button class="submit-btn" onclick="submitLocalPriceEdit()">Submit for review</button>
+        <p class="submit-note"><i class="ti ti-shield-check"></i> Only approved edits will update the listing</p>
+      </div>
+    </div>
+
     <!-- EDIT FARM MODAL -->
     <div class="modal-backdrop" id="editFarmModal" onclick="handleEditFarmBackdrop(event)">
       <div class="modal-sheet" style="max-height:96vh;">
@@ -1374,9 +1438,17 @@ function hideBubble() {
 function filterPrices(maxVal) {
   const filtered = allPrices.filter(p => {
     const price = parseFloat(p.price_normal || 0) || 0;
-    return price <= maxVal;
+    const matchItem = !currentSubFilter || (p.item_name||'').trim() === currentSubFilter;
+    return price <= maxVal && matchItem;
   });
   renderPricesFiltered(filtered, maxVal);
+
+  // Update map respecting active category + subfilter
+  const filteredDeals = currentDealsType === 'all' ? allDeals : allDeals.filter(d => (d.business_type||'').toLowerCase().includes(currentDealsType));
+  const _allPrices = allPrices;
+  allPrices = filtered;
+  renderDealMarkers(filteredDeals, currentDealsType);
+  allPrices = _allPrices;
 }
 
 // ── PIN ICON ──
@@ -1384,6 +1456,20 @@ function makePin(emoji, color) {
   return L.divIcon({className:'',
     html:`<div style="width:36px;height:36px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:${color};border:2.5px solid white;box-shadow:0 2px 10px rgba(0,0,0,0.22);display:flex;align-items:center;justify-content:center;"><span style="transform:rotate(45deg);font-size:15px;line-height:1;">${emoji}</span></div>`,
     iconSize:[36,36],iconAnchor:[18,36],popupAnchor:[0,-38]});
+}
+
+function makePricePin(emoji, color, label) {
+  const labelHtml = label
+    ? `<div style="position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);background:${color};color:white;font-size:10px;font-weight:700;font-family:'DM Sans',sans-serif;padding:2px 5px;border-radius:6px;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,0.25);">${label}</div>`
+    : '';
+  return L.divIcon({className:'',
+    html:`<div style="position:relative;display:inline-block;">
+      <div style="width:36px;height:36px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:${color};border:2.5px solid white;box-shadow:0 2px 10px rgba(0,0,0,0.22);display:flex;align-items:center;justify-content:center;">
+        <span style="transform:rotate(45deg);font-size:15px;line-height:1;">${emoji}</span>
+      </div>
+      ${labelHtml}
+    </div>`,
+    iconSize:[36,54],iconAnchor:[18,36],popupAnchor:[0,-38]});
 }
 
 // ── FARMS MAP ──
@@ -1824,6 +1910,76 @@ async function submitFarmEdit() {
     showToast('Error sending — please try again');
   }
 }
+let currentLocalPriceKey = null;
+
+function openEditLocalPrice() {
+  const group = priceGroupsCache[currentLocalPriceKey];
+  if (!group) return;
+  const { p, cat, items } = group;
+
+  document.getElementById('editLocalPriceKey').value = currentLocalPriceKey;
+  document.getElementById('editLPName').value = p.business_name || '';
+  document.getElementById('editLPCategory').value = cat || 'coffee shop';
+  document.getElementById('editLPCity').value = p.city || '';
+  document.getElementById('editLPCountry').value = p.country || '';
+  document.getElementById('editLPNotes').value = '';
+
+  // Pre-fill existing items
+  const container = document.getElementById('editLPRows');
+  container.innerHTML = items.map(i => `
+    <div class="price-row">
+      <input type="text" class="form-input item-name" placeholder="Item" value="${i.item_name||''}">
+      <input type="number" class="form-input item-price" placeholder="Price ($)" step="0.01" value="${i.price_normal||''}">
+    </div>`).join('');
+
+  document.getElementById('editLocalPriceModal').classList.add('open');
+}
+
+function addEditLPRow() {
+  const container = document.getElementById('editLPRows');
+  const row = document.createElement('div');
+  row.className = 'price-row';
+  row.innerHTML = `
+    <input type="text" class="form-input item-name" placeholder="e.g. Pint of beer">
+    <input type="number" class="form-input item-price" placeholder="Price ($)" step="0.01">`;
+  container.appendChild(row);
+}
+
+async function submitLocalPriceEdit() {
+  const name = document.getElementById('editLPName').value.trim();
+  if (!name) { showToast('Please enter a business name'); return; }
+
+  const rows = document.querySelectorAll('#editLPRows .price-row');
+  const itemLines = [...rows].map(r => {
+    const n = r.querySelector('.item-name').value.trim();
+    const v = r.querySelector('.item-price').value.trim();
+    return n ? `${n}: $${v||'?'}` : null;
+  }).filter(Boolean);
+
+  const payload = {
+    type: 'local_price_edit',
+    business_name: name,
+    business_type: document.getElementById('editLPCategory').value,
+    city: document.getElementById('editLPCity').value.trim(),
+    country: document.getElementById('editLPCountry').value.trim(),
+    details: [
+      'EDIT OF: ' + document.getElementById('editLocalPriceKey').value,
+      'ITEMS:\n' + (itemLines.join('\n') || '—'),
+      'NOTES: ' + (document.getElementById('editLPNotes').value.trim() || '—'),
+    ].join('\n'),
+    latitude: null, longitude: null,
+    admin_decision: 'pending'
+  };
+
+  try {
+    await supaInsert('submissions', payload);
+    document.getElementById('editLocalPriceModal').classList.remove('open');
+    setTimeout(() => showToast('Edit submitted — thanks! 🐝'), 300);
+  } catch(e) {
+    showToast('Error sending — please try again');
+  }
+}
+
 function openDealDetail(id) {
   const d = allDeals.find(x => x.id == id);
   if (!d) return;
@@ -1882,6 +2038,65 @@ function openDealDetail(id) {
     }, 100);
   }
 }
+// ── LOCAL PRICE DETAIL ──
+let priceGroupsCache = {};
+
+function openLocalPriceDetail(key) {
+  const group = priceGroupsCache[key];
+  if (!group) return;
+  currentLocalPriceKey = key;
+  const { p, cat, items } = group;
+
+  document.querySelectorAll('.page').forEach(pg => pg.classList.remove('active'));
+  document.getElementById('page-local-price-detail').classList.add('active');
+  document.getElementById('toggleFab').classList.remove('visible');
+  document.getElementById('mainFab').style.display = 'none';
+
+  const emoji = dealEmoji[cat] || '💰';
+  const color = dealColor[cat] || '#5C5750';
+  const catLabel = {'coffee shop':'Café','hostel':'Hostel','bar':'Bar','activity':'Activities','groceries':'Supermarket','transport':'Transport'}[cat] || cat;
+  const loc = [p.city, p.country].filter(Boolean).join(', ');
+
+  const rows = items.map(i => `
+    <div class="detail-row">
+      <div class="detail-row-icon"><i class="ti ti-currency-dollar"></i></div>
+      <div class="detail-row-content">
+        <div class="detail-row-label">${i.item_name}</div>
+        <div class="detail-row-value" style="font-family:'Fraunces',serif;font-size:18px;font-weight:700;color:var(--amber-dark);">$${parseFloat(i.price_normal||0).toFixed(2)}</div>
+      </div>
+    </div>`).join('');
+
+  const el = document.getElementById('localPriceDetailContent');
+  el.innerHTML = `
+    <div class="detail-hero">
+      <div class="detail-hero-emoji">${emoji}</div>
+      <div class="detail-hero-name">${p.business_name}</div>
+      <div class="detail-hero-sub"><i class="ti ti-map-pin"></i>${loc || 'Location not specified'}</div>
+      <div class="detail-badges"><span class="badge">${catLabel}</span></div>
+    </div>
+
+    <div class="detail-section">
+      <div class="detail-section-title">Price list</div>
+      ${rows}
+    </div>
+
+    ${p.availability ? `<div class="detail-section"><div class="detail-section-title">Availability</div><div class="detail-row"><div class="detail-row-icon"><i class="ti ti-clock"></i></div><div class="detail-row-content"><div class="detail-row-value">${p.availability}</div></div></div></div>` : ''}
+
+    ${p.latitude && p.longitude ? `<div class="detail-section"><div class="detail-section-title">Location</div><div class="detail-map-mini" id="localPriceMiniMap"></div></div>` : ''}
+    <div style="height:30px;"></div>
+  `;
+
+  if (p.latitude && p.longitude) {
+    setTimeout(() => {
+      const lat = parseFloat(p.latitude), lng = parseFloat(p.longitude);
+      const miniMap = L.map('localPriceMiniMap', {zoomControl:false, dragging:false, scrollWheelZoom:false, attributionControl:false});
+      L.tileLayer(TILE_URL, {maxZoom:19}).addTo(miniMap);
+      miniMap.setView([lat, lng], 15);
+      L.marker([lat, lng], {icon: makePin(emoji, color)}).addTo(miniMap);
+    }, 100);
+  }
+}
+
 const dealEmoji = {'coffee shop':'☕','hostel':'🛏️','bar':'🍺','restaurant':'🍽️','activity':'🏄','default':'🏪'};
 const dealColor = {'coffee shop':'#795548','hostel':'#1565C0','bar':'#D84315','restaurant':'#2E7D32','activity':'#6A1B9A','default':'#D4851A'};
 
@@ -1905,8 +2120,20 @@ async function loadDeals() {
   initSlider(allPrices);
 }
 
-function renderDealMarkers(deals) {
+// Normalize local_prices category to app filter keys
+function normalizePriceCat(cat) {
+  const c = (cat||'').toLowerCase();
+  if (c === 'cafe' || c === 'coffee shop') return 'coffee shop';
+  if (c === 'accommodation' || c === 'hostel') return 'hostel';
+  if (c === 'bar' || c === 'bars') return 'bar';
+  if (c === 'activity' || c === 'activities') return 'activity';
+  return c;
+}
+
+function renderDealMarkers(deals, priceFilter) {
   dealMarkers.forEach(m => dealMap.removeLayer(m)); dealMarkers = [];
+
+  // Render deals (from deals table)
   deals.forEach(d => {
     const lat = parseFloat(d.latitude), lng = parseFloat(d.longitude);
     if (isNaN(lat)||isNaN(lng)) return;
@@ -1919,15 +2146,112 @@ function renderDealMarkers(deals) {
     const popup = L.popup({className:'hive-popup',closeButton:true}).setContent(`<div class="popup-inner"><div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;"><span style="font-size:22px;">${dealEmoji[t]||dealEmoji.default}</span><div><div class="popup-name" style="margin-bottom:1px;">${d.business_name}</div><div class="popup-detail" style="margin:0;">${d.city||''}</div></div>${pct>0?`<div style="margin-left:auto;font-family:'Fraunces',serif;font-size:20px;font-weight:700;color:var(--amber-dark);">-${pct}%</div>`:''}</div><p style="font-size:13px;color:var(--text-mid);margin-bottom:10px;">${d.discount_description||''}</p><div style="display:flex;gap:8px;margin-bottom:10px;">${sb}${d.notes?`<span style="font-size:11px;color:var(--text-light);">${d.notes}</span>`:''}</div><button class="popup-btn" onclick="openDealDetail('${d.id}')">View details</button></div>`);
     dealMarkers.push(L.marker([lat,lng],{icon}).addTo(dealMap).bindPopup(popup));
   });
+
+  // Render local_prices pins (grouped by business to avoid stacking)
+  const priceGroups = {};
+  allPrices.forEach(p => {
+    const cat = normalizePriceCat(p.item_category_first);
+    if (priceFilter && priceFilter !== 'all' && cat !== priceFilter) return;
+    const key = `${p.business_name}|${p.latitude}|${p.longitude}`;
+    if (!priceGroups[key]) priceGroups[key] = { p, cat, items: [] };
+    priceGroups[key].items.push(p);
+  });
+
+  // Store in cache for detail page
+  priceGroupsCache = priceGroups;
+
+  Object.entries(priceGroups).forEach(([key, { p, cat, items }]) => {
+    const lat = parseFloat(p.latitude), lng = parseFloat(p.longitude);
+    if (isNaN(lat)||isNaN(lng)) return;
+
+    // For bars: find cheapest item and show price on pin
+    let icon;
+    if (cat === 'bar') {
+      const minPrice = Math.min(...items.map(i => parseFloat(i.price_normal||0)||Infinity).filter(v => v !== Infinity));
+      const priceLabel = isFinite(minPrice) ? `$${minPrice.toFixed(2)}` : '';
+      icon = makePricePin('🍺', dealColor['bar'], priceLabel);
+    } else {
+      icon = makePin(dealEmoji[cat]||'💰', dealColor[cat]||'#5C5750');
+    }
+
+    const rows = items.map(i => `<tr><td style="font-size:13px;padding:3px 0;">${i.item_name}</td><td style="font-size:13px;font-weight:700;color:var(--amber-dark);padding:3px 0 3px 12px;">$${parseFloat(i.price_normal||0).toFixed(2)}</td></tr>`).join('');
+    const loc = [p.city, p.country].filter(Boolean).join(', ');
+    const safeKey = key.replace(/'/g, "\\'");
+    const popup = L.popup({className:'hive-popup',closeButton:true}).setContent(
+      `<div class="popup-inner"><div class="popup-name">${p.business_name}</div><div class="popup-detail">${loc}</div><table style="width:100%;margin:10px 0;">${rows}</table><button class="popup-btn" onclick="openLocalPriceDetail('${safeKey}')">View details</button></div>`
+    );
+    dealMarkers.push(L.marker([lat,lng],{icon}).addTo(dealMap).bindPopup(popup));
+  });
 }
+
+let currentDealsType = 'all';
+let currentSubFilter = null;
 
 function filterDeals(btn, type) {
   document.querySelectorAll('#page-deals .map-filters .filter-pill').forEach(p => p.classList.remove('active'));
   btn.classList.add('active');
-  const f = type==='all' ? allDeals : allDeals.filter(d => (d.business_type||'').toLowerCase().includes(type));
+  currentDealsType = type;
+  currentSubFilter = null;
+
+  // Build sub-filters for bar and coffee shop
+  const subBar = document.getElementById('dealsSubFilters');
+  if (type === 'bar' || type === 'coffee shop') {
+    buildSubFilters(type);
+    subBar.style.display = 'flex';
+  } else {
+    subBar.style.display = 'none';
+    subBar.innerHTML = '';
+  }
+
+  const f = type === 'all' ? allDeals : allDeals.filter(d => (d.business_type||'').toLowerCase().includes(type));
   currentFilteredDeals = f;
-  renderDealMarkers(f);
+  renderDealMarkers(f, type);
   renderDealsList(f);
+}
+
+function buildSubFilters(type) {
+  const container = document.getElementById('dealsSubFilters');
+
+  // Collect unique item names from allPrices matching the category
+  const cat = type === 'bar' ? 'bar' : 'coffee shop';
+  const itemSet = new Set();
+  allPrices.forEach(p => {
+    if (normalizePriceCat(p.item_category_first) === cat && p.item_name) {
+      itemSet.add(p.item_name.trim());
+    }
+  });
+
+  if (!itemSet.size) { container.style.display = 'none'; return; }
+
+  const label = type === 'bar' ? '🍺 Beer brand' : '☕ Coffee type';
+  let html = `<span style="font-size:11px;font-weight:700;color:var(--amber-dark);white-space:nowrap;align-self:center;">${label}:</span>`;
+  html += `<button class="subfilter-pill active" onclick="applySubFilter(this, null, '${type}')">All</button>`;
+  [...itemSet].sort().forEach(name => {
+    html += `<button class="subfilter-pill" onclick="applySubFilter(this,'${name.replace(/'/g,"\'")}','${type}')">${name}</button>`;
+  });
+  container.innerHTML = html;
+}
+
+function applySubFilter(btn, itemName, type) {
+  document.querySelectorAll('.subfilter-pill').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  currentSubFilter = itemName;
+
+  // Get slider max
+  const sliderVal = parseInt(document.getElementById('priceRangeInput').value);
+
+  // Filter prices: category + item name + slider
+  const _allPrices = allPrices;
+  const filteredPrices = allPrices.filter(p => {
+    const matchCat = normalizePriceCat(p.item_category_first) === (type === 'bar' ? 'bar' : 'coffee shop');
+    const matchItem = !itemName || (p.item_name||'').trim() === itemName;
+    const matchPrice = parseFloat(p.price_normal||0) <= sliderVal;
+    return matchCat && matchItem && matchPrice;
+  });
+
+  allPrices = filteredPrices;
+  renderDealMarkers(currentFilteredDeals, type);
+  allPrices = _allPrices;
 }
 
 function renderDealsList(deals) {
@@ -1950,8 +2274,8 @@ function renderDealsList(deals) {
 function renderPricesFiltered(prices, maxVal) {
   const bc = {};
   prices.forEach(p => { const k=p.item_category_first||'other'; if(!bc[k])bc[k]=[]; bc[k].push(p); });
-  const ci = {groceries:'ti-building-store',cafe:'ti-coffee',bar:'ti-beer',transport:'ti-bus',accommodation:'ti-bed',activity:'ti-activity',other:'ti-coin'};
-  const cl = {groceries:'Supermarket',cafe:'Café',bar:'Bar',transport:'Transport',accommodation:'Accommodation',activity:'Activities',other:'Other'};
+  const ci = {'coffee shop':'ti-coffee','cafe':'ti-coffee','hostel':'ti-bed','accommodation':'ti-bed','bar':'ti-beer','bars':'ti-beer','activity':'ti-activity','groceries':'ti-building-store','transport':'ti-bus','other':'ti-coin'};
+  const cl = {'coffee shop':'Café','cafe':'Café','hostel':'Hostel','accommodation':'Hostel','bar':'Bar','bars':'Bar','activity':'Activities','groceries':'Supermarket','transport':'Transport','other':'Other'};
   let html = '';
   for (const [cat, items] of Object.entries(bc)) {
     const city = items[0].city&&items[0].country ? `(${items[0].city}, ${items[0].country})` : '';
