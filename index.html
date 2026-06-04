@@ -341,6 +341,25 @@ input#priceRangeInput::-moz-range-thumb{
 .submit-btn:active{background:var(--amber-dark);transform:scale(0.98)}
 .submit-note{font-size:12px;color:var(--text-light);text-align:center;margin-top:10px;display:flex;align-items:center;justify-content:center;gap:5px}
 
+/* HAPPY HOUR & LOCAL DISCOUNT */
+.hh-block{background:var(--amber-pale);border:1.5px solid var(--amber-light);border-radius:var(--radius-md);padding:12px;margin-top:8px;}
+.hh-block-title{font-size:12px;font-weight:700;color:var(--amber-dark);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+.hh-time-row{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:6px;align-items:center;margin-bottom:6px;}
+.hh-day-row{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;}
+.hh-day-btn{padding:4px 8px;border-radius:20px;border:1.5px solid var(--border-mid);background:var(--white);font-size:11px;font-weight:600;cursor:pointer;color:var(--text-mid);}
+.hh-day-btn.on{background:var(--amber);border-color:var(--amber);color:#fff;}
+.add-hh-btn{font-size:12px;color:var(--amber-dark);background:none;border:none;cursor:pointer;font-weight:600;padding:4px 0;}
+.remove-hh-btn{width:28px;height:28px;border-radius:50%;border:none;background:rgba(0,0,0,0.06);color:var(--text-mid);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;}
+.ld-block{background:var(--off-white);border:1.5px solid var(--border-mid);border-radius:var(--radius-md);padding:12px;margin-top:8px;}
+.ld-type-row{display:flex;gap:8px;margin-bottom:8px;}
+.ld-type-btn{flex:1;padding:6px;border-radius:var(--radius-sm);border:1.5px solid var(--border-mid);background:var(--white);font-size:12px;font-weight:600;cursor:pointer;color:var(--text-mid);}
+.ld-type-btn.active{background:var(--text-dark);border-color:var(--text-dark);color:#fff;}
+/* Price display with strikethrough */
+.price-normal-val{color:var(--text-light);text-decoration:line-through;font-size:14px;}
+.price-active-val{color:var(--amber-dark);font-family:'Fraunces',serif;font-size:18px;font-weight:700;}
+.price-badge{display:inline-flex;align-items:center;gap:4px;background:var(--amber);color:#1A1714;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;margin-left:6px;vertical-align:middle;}
+.price-badge.ld{background:var(--text-dark);color:#fff;}
+
 /* DYNAMIC PRICE FIELDS */
 .price-row {
   display: grid;
@@ -854,42 +873,58 @@ html.dark .profile-card{background:#1E1E1E}
     </div>
 
     <!-- EDIT LOCAL PRICE MODAL -->
-    <div class="modal-backdrop" id="editLocalPriceModal" onclick="if(event.target===this)document.getElementById('editLocalPriceModal').classList.remove('open')">
-      <div class="modal-sheet" style="max-height:96vh;">
+    <div class="modal-backdrop" id="editLocalPriceModal" onclick="if(event.target===this)closeEditLocalPrice()">
+      <div class="modal-sheet" style="max-height:96vh;overflow-y:auto;">
         <div class="modal-handle"></div>
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
           <div class="modal-title" style="margin-bottom:0;">Suggest an edit</div>
-          <button class="icon-btn" onclick="document.getElementById('editLocalPriceModal').classList.remove('open')"><i class="ti ti-x"></i></button>
+          <button class="icon-btn" onclick="closeEditLocalPrice()"><i class="ti ti-x"></i></button>
         </div>
         <p class="modal-sub">Your changes will be reviewed before going live.</p>
         <input type="hidden" id="editLocalPriceKey">
+
         <div class="form-group">
           <label class="form-label">Business name</label>
           <input type="text" class="form-input" id="editLPName" placeholder="e.g. Central Bar">
         </div>
+
         <div class="form-group">
           <label class="form-label">Category</label>
-          <select class="form-input" id="editLPCategory" style="height:44px;">
-            <option value="coffee shop">Café</option>
-            <option value="bar">Bar</option>
-            <option value="hostel">Hostel</option>
-            <option value="activity">Activities</option>
-          </select>
+          <div class="type-grid">
+            <button class="type-option" data-lpcat="coffee shop" onclick="selectEditLPCat(this)"><i class="ti ti-coffee"></i><span>Café</span></button>
+            <button class="type-option" data-lpcat="bar" onclick="selectEditLPCat(this)"><i class="ti ti-beer"></i><span>Bar</span></button>
+            <button class="type-option" data-lpcat="hostel" onclick="selectEditLPCat(this)"><i class="ti ti-bed"></i><span>Hostel</span></button>
+            <button class="type-option" data-lpcat="activity" onclick="selectEditLPCat(this)"><i class="ti ti-run"></i><span>Activities</span></button>
+          </div>
         </div>
+
         <div class="form-group">
-          <label class="form-label">City</label>
-          <input type="text" class="form-input" id="editLPCity" placeholder="e.g. Sydney">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Country</label>
-          <input type="text" class="form-input" id="editLPCountry" placeholder="e.g. Australia">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Updated prices / corrections</label>
+          <label class="form-label">Items &amp; Prices</label>
           <div id="editLPRows"></div>
           <button type="button" class="add-price-btn" onclick="addEditLPRow()"><i class="ti ti-plus"></i> Add item</button>
         </div>
-        <div class="form-group">
+
+        <!-- Happy Hour -->
+        <div class="hh-block" style="margin-top:4px;">
+          <div class="hh-block-title"><i class="ti ti-clock-hour-4"></i> Happy Hour (optional)</div>
+          <div id="editLPHHSlots"></div>
+          <button type="button" class="add-hh-btn" onclick="addEditLPHHSlot()"><i class="ti ti-plus"></i> Add time slot</button>
+        </div>
+
+        <!-- Local Discount -->
+        <div class="ld-block" style="margin-top:12px;">
+          <div class="hh-block-title" style="color:var(--text-dark);"><i class="ti ti-id-badge"></i> Local Discount (optional)</div>
+          <div class="ld-type-row">
+            <button type="button" class="ld-type-btn" id="editLDTypePercent" onclick="setEditLDType('percent')">% Percent</button>
+            <button type="button" class="ld-type-btn" id="editLDTypeFixed" onclick="setEditLDType('fixed')">$ Fixed price</button>
+            <button type="button" class="ld-type-btn active" id="editLDTypeNone" onclick="setEditLDType('none')" style="flex:0.5;">None</button>
+          </div>
+          <div id="editLDValueRow" style="display:none;">
+            <input type="number" class="form-input" id="editLDValue" placeholder="e.g. 20 (for 20% off)" step="0.01" min="0">
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top:12px;">
           <label class="form-label">Notes (optional)</label>
           <textarea class="form-textarea" id="editLPNotes" placeholder="Any other info to add or correct…"></textarea>
         </div>
@@ -1251,38 +1286,39 @@ html.dark .profile-card{background:#1E1E1E}
       </div>
 
       <div class="form-group" id="priceItemsGroup" style="display:none">
-        <label class="form-label">Items & Prices</label>
+        <label class="form-label">Items &amp; Prices</label>
         <div id="priceRowsContainer">
           <div class="price-row">
-            <input type="text" class="form-input item-name" placeholder="e.g. Capuccino">
-            <input type="number" class="form-input item-price" placeholder="Price ($)" step="0.01">
+            <input type="text" class="form-input item-name" placeholder="e.g. Heineken">
+            <input type="number" class="form-input item-price" placeholder="Normal price ($)" step="0.01">
           </div>
         </div>
         <button type="button" class="add-price-btn" onclick="addPriceRow()">
           <i class="ti ti-plus"></i> Add another item
         </button>
-      </div>
 
-      <div class="form-group" id="availGroup" style="display:none">
-        <label class="form-label">Available</label>
-        <div class="avail-grid">
-          <button class="day-btn on" data-day="Mon" onclick="toggleDay(this)">Mon</button>
-          <button class="day-btn on" data-day="Tue" onclick="toggleDay(this)">Tue</button>
-          <button class="day-btn on" data-day="Wed" onclick="toggleDay(this)">Wed</button>
-          <button class="day-btn on" data-day="Thu" onclick="toggleDay(this)">Thu</button>
-          <button class="day-btn on" data-day="Fri" onclick="toggleDay(this)">Fri</button>
-          <button class="day-btn" data-day="Sat" onclick="toggleDay(this)">Sat</button>
-          <button class="day-btn" data-day="Sun" onclick="toggleDay(this)">Sun</button>
-          <button class="day-btn" style="font-size:10px;" onclick="toggleAllDays()">All</button>
+        <!-- Happy Hour -->
+        <div class="hh-block" style="margin-top:16px;">
+          <div class="hh-block-title"><i class="ti ti-clock-hour-4"></i> Happy Hour (optional)</div>
+          <div id="hhSlots"></div>
+          <button type="button" class="add-hh-btn" onclick="addHHSlot()"><i class="ti ti-plus"></i> Add time slot</button>
         </div>
-        <div class="time-row">
-          <div><label class="form-label" style="font-size:11px;">From</label><input type="time" class="form-input" id="timeFrom" value="08:00"></div>
-          <div><label class="form-label" style="font-size:11px;">Until</label><input type="time" class="form-input" id="timeTo" value="22:00"></div>
-          <div style="display:flex;align-items:flex-end;padding-bottom:2px;">
-            <button type="button" class="day-btn" id="allDayBtn" onclick="toggleAllDay()" style="font-size:11px;white-space:nowrap;height:44px;padding:0 12px;">All day</button>
+
+        <!-- Local Discount -->
+        <div class="ld-block" style="margin-top:12px;">
+          <div class="hh-block-title" style="color:var(--text-dark);"><i class="ti ti-id-badge"></i> Local Discount (optional)</div>
+          <div class="ld-type-row">
+            <button type="button" class="ld-type-btn active" id="ldTypePercent" onclick="setLDType('percent')">% Percent</button>
+            <button type="button" class="ld-type-btn" id="ldTypeFixed" onclick="setLDType('fixed')">$ Fixed price</button>
+            <button type="button" class="ld-type-btn" id="ldTypeNone" onclick="setLDType('none')" style="flex:0.5;">None</button>
+          </div>
+          <div id="ldValueRow" style="display:none;">
+            <input type="number" class="form-input" id="ldValue" placeholder="e.g. 20 (for 20% off)" step="0.01" min="0">
           </div>
         </div>
       </div>
+
+
       <button class="submit-btn" onclick="submitForm()">Send for review</button>
       <p class="submit-note"><i class="ti ti-shield-check"></i> Only approved submissions appear on the app</p>
     </div>
@@ -1468,6 +1504,11 @@ setInterval(() => {
 }, 60000);
 
 document.addEventListener('DOMContentLoaded', initTheme);
+
+// Refresh price pins every minute (happy hour windows)
+setInterval(() => {
+  if (typeof renderDealMarkers === 'function' && window.dealMap) renderDealMarkers();
+}, 60000);
 
 // ── STATE ──
 let currentPage   = 'home';
@@ -2066,10 +2107,15 @@ async function submitFarmEdit() {
   const name = document.getElementById('editFarmName').value.trim();
   if (!name) { showToast('Please enter a farm name'); return; }
 
+  // Retrieve location from cached farm data
+  const farmId = document.getElementById('editFarmId').value;
+  const cachedFarm = allFarms ? allFarms.find(f => f.id === farmId) : null;
+
   const payload = {
-    type: 'farm_edit',
+    type: 'farm',
     business_name: name,
     details: [
+      'EDIT OF: ' + farmId,
       'PAY: '    + (document.getElementById('editFarmPay').value     || '—'),
       'ACCOM: '  + (document.getElementById('editFarmAccom').value   || '—'),
       'SEASON: ' + (document.getElementById('editFarmSeason').value  || '—'),
@@ -2079,11 +2125,12 @@ async function submitFarmEdit() {
       'NOTES: '  + (document.getElementById('editFarmNotes').value   || '—'),
       '88DAYS: ' + (document.getElementById('edit88Yes').classList.contains('on') ? 'Yes' : 'No'),
     ].join('\n'),
-    latitude:        null,
-    longitude:       null,
-    item_name:       'edit_of:' + document.getElementById('editFarmId').value,
-    item_price:      null,
-    availability:    null,
+    latitude:        cachedFarm ? cachedFarm.latitude  : null,
+    longitude:       cachedFarm ? cachedFarm.longitude : null,
+    country:         cachedFarm ? cachedFarm.country   : null,
+    state_region:    cachedFarm ? cachedFarm.state_region : null,
+    city:            cachedFarm ? cachedFarm.city      : null,
+    address:         cachedFarm ? cachedFarm.address   : null,
     admin_decision:  'pending'
   };
 
@@ -2097,6 +2144,74 @@ async function submitFarmEdit() {
 }
 let currentLocalPriceKey = null;
 
+let editLDType = 'none';
+
+function selectEditLPCat(el) {
+  document.querySelectorAll('[data-lpcat]').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function setEditLDType(type) {
+  editLDType = type;
+  ['Percent','Fixed','None'].forEach(t => {
+    const btn = document.getElementById('editLDType'+t);
+    if (btn) btn.classList.toggle('active', t.toLowerCase()===type);
+  });
+  document.getElementById('editLDValueRow').style.display = (type === 'none') ? 'none' : '';
+  document.getElementById('editLDValue').placeholder = type === 'percent' ? 'e.g. 20 (for 20% off)' : 'e.g. 9.50 (fixed price)';
+}
+
+function addEditLPHHSlot() {
+  const container = document.getElementById('editLPHHSlots');
+  const div = document.createElement('div');
+  div.className = 'hh-slot';
+  div.innerHTML = `
+    <div class="hh-day-row">${HH_DAYS.map(d=>`<button type="button" class="hh-day-btn on" data-day="${d}" onclick="toggleHHDay(this)">${d}</button>`).join('')}</div>
+    <div class="hh-time-row">
+      <input type="time" class="form-input hh-from" value="17:00">
+      <span style="text-align:center;color:var(--text-light);font-size:12px;">to</span>
+      <input type="time" class="form-input hh-to" value="19:00">
+      <button type="button" class="remove-hh-btn" onclick="this.closest('.hh-slot').remove()"><i class="ti ti-x"></i></button>
+    </div>
+    <div style="margin-bottom:10px;">
+      <input type="number" class="form-input hh-price" placeholder="Happy hour price ($)" step="0.01" min="0">
+    </div>`;
+  container.appendChild(div);
+}
+
+function getEditHHData() {
+  const slots = [];
+  document.querySelectorAll('#editLPHHSlots .hh-slot').forEach(slot => {
+    const days = [...slot.querySelectorAll('.hh-day-btn.on')].map(b => b.dataset.day.toLowerCase());
+    const from  = slot.querySelector('.hh-from').value;
+    const to    = slot.querySelector('.hh-to').value;
+    const price = parseFloat(slot.querySelector('.hh-price').value);
+    if (days.length && from && to && !isNaN(price) && price > 0) slots.push({ price, days, from, to });
+  });
+  return slots.length ? slots : null;
+}
+
+function getEditLDData() {
+  if (editLDType === 'none') return null;
+  const val = parseFloat(document.getElementById('editLDValue').value);
+  if (isNaN(val) || val <= 0) return null;
+  return { type: editLDType, value: val };
+}
+
+function closeEditLocalPrice() {
+  document.getElementById('editLocalPriceModal').classList.remove('open');
+  document.getElementById('editLPHHSlots').innerHTML = '';
+  editLDType = 'none';
+  ['Percent','Fixed','None'].forEach(t => {
+    const btn = document.getElementById('editLDType'+t);
+    if (btn) btn.classList.toggle('active', t==='None');
+  });
+  const ldValRow = document.getElementById('editLDValueRow');
+  if (ldValRow) ldValRow.style.display = 'none';
+  const ldVal = document.getElementById('editLDValue');
+  if (ldVal) ldVal.value = '';
+}
+
 function openEditLocalPrice() {
   const group = priceGroupsCache[currentLocalPriceKey];
   if (!group) return;
@@ -2104,18 +2219,47 @@ function openEditLocalPrice() {
 
   document.getElementById('editLocalPriceKey').value = currentLocalPriceKey;
   document.getElementById('editLPName').value = p.business_name || '';
-  document.getElementById('editLPCategory').value = cat || 'coffee shop';
-  document.getElementById('editLPCity').value = p.city || '';
-  document.getElementById('editLPCountry').value = p.country || '';
   document.getElementById('editLPNotes').value = '';
 
-  // Pre-fill existing items
+  // Select category
+  document.querySelectorAll('[data-lpcat]').forEach(b => {
+    b.classList.toggle('selected', b.dataset.lpcat === cat);
+  });
+
+  // Pre-fill items
   const container = document.getElementById('editLPRows');
   container.innerHTML = items.map(i => `
     <div class="price-row">
       <input type="text" class="form-input item-name" placeholder="Item" value="${i.item_name||''}">
-      <input type="number" class="form-input item-price" placeholder="Price ($)" step="0.01" value="${i.price_normal||''}">
+      <input type="number" class="form-input item-price" placeholder="Normal price ($)" step="0.01" value="${i.price_normal||''}">
     </div>`).join('');
+
+  // Pre-fill happy hour from first item that has it
+  const hhItem = items.find(i => i.happy_hour_prices);
+  const hhSlots = document.getElementById('editLPHHSlots');
+  hhSlots.innerHTML = '';
+  if (hhItem && hhItem.happy_hour_prices) {
+    hhItem.happy_hour_prices.forEach(slot => {
+      addEditLPHHSlot();
+      const last = hhSlots.lastElementChild;
+      last.querySelectorAll('.hh-day-btn').forEach(b => {
+        b.classList.toggle('on', slot.days.includes(b.dataset.day.toLowerCase()));
+      });
+      last.querySelector('.hh-from').value = slot.from || '17:00';
+      last.querySelector('.hh-to').value   = slot.to   || '19:00';
+      last.querySelector('.hh-price').value = slot.price || '';
+    });
+  }
+
+  // Pre-fill local discount from first item that has it
+  const ldItem = items.find(i => i.local_discount);
+  if (ldItem && ldItem.local_discount) {
+    const ld = ldItem.local_discount;
+    setEditLDType(ld.type || 'none');
+    document.getElementById('editLDValue').value = ld.value || '';
+  } else {
+    setEditLDType('none');
+  }
 
   document.getElementById('editLocalPriceModal').classList.add('open');
 }
@@ -2126,7 +2270,7 @@ function addEditLPRow() {
   row.className = 'price-row';
   row.innerHTML = `
     <input type="text" class="form-input item-name" placeholder="e.g. Pint of beer">
-    <input type="number" class="form-input item-price" placeholder="Price ($)" step="0.01">`;
+    <input type="number" class="form-input item-price" placeholder="Normal price ($)" step="0.01">`;
   container.appendChild(row);
 }
 
@@ -2134,31 +2278,54 @@ async function submitLocalPriceEdit() {
   const name = document.getElementById('editLPName').value.trim();
   if (!name) { showToast('Please enter a business name'); return; }
 
-  const rows = document.querySelectorAll('#editLPRows .price-row');
-  const itemLines = [...rows].map(r => {
-    const n = r.querySelector('.item-name').value.trim();
-    const v = r.querySelector('.item-price').value.trim();
-    return n ? `${n}: $${v||'?'}` : null;
-  }).filter(Boolean);
+  const catEl = document.querySelector('[data-lpcat].selected');
+  if (!catEl) { showToast('Please select a category'); return; }
 
-  const payload = {
-    type: 'local_price_edit',
-    business_name: name,
-    business_type: document.getElementById('editLPCategory').value,
-    city: document.getElementById('editLPCity').value.trim(),
-    country: document.getElementById('editLPCountry').value.trim(),
-    details: [
-      'EDIT OF: ' + document.getElementById('editLocalPriceKey').value,
-      'ITEMS:\n' + (itemLines.join('\n') || '—'),
-      'NOTES: ' + (document.getElementById('editLPNotes').value.trim() || '—'),
-    ].join('\n'),
-    latitude: null, longitude: null,
-    admin_decision: 'pending'
-  };
+  const rows = document.querySelectorAll('#editLPRows .price-row');
+  const hhData = getEditHHData();
+  const ldData = getEditLDData();
+  const notes  = document.getElementById('editLPNotes').value.trim();
+  const editRef = document.getElementById('editLocalPriceKey').value;
+
+  // Retrieve location from cached group
+  const group = priceGroupsCache[editRef];
+  const lat = group ? parseFloat(group.p.latitude)  : null;
+  const lng = group ? parseFloat(group.p.longitude) : null;
+  const country      = group ? group.p.country      : null;
+  const state_region = group ? group.p.state_region : null;
+  const city         = group ? group.p.city         : null;
+  const address      = group ? group.p.address      : null;
+
+  // One submission per item — same as main form
+  const validRows = [...rows].map(r => ({
+    itemName:  r.querySelector('.item-name').value.trim(),
+    itemPrice: parseFloat(r.querySelector('.item-price').value)
+  })).filter(r => r.itemName && !isNaN(r.itemPrice) && r.itemPrice > 0);
+
+  if (!validRows.length) { showToast('Please add at least one valid item and price'); return; }
 
   try {
-    await supaInsert('submissions', payload);
-    document.getElementById('editLocalPriceModal').classList.remove('open');
+    for (const row of validRows) {
+      const payload = {
+        type:              'price',
+        business_name:     name,
+        item_category:     catEl.dataset.lpcat,
+        item_name:         row.itemName,
+        item_price:        row.itemPrice,
+        happy_hour_prices: hhData || null,
+        local_discount:    ldData || null,
+        details:           ['EDIT OF: ' + editRef, notes ? 'NOTES: ' + notes : ''].filter(Boolean).join('\n'),
+        latitude:          lat,
+        longitude:         lng,
+        country,
+        state_region,
+        city,
+        address,
+        admin_decision:    'pending'
+      };
+      await supaInsert('submissions', payload);
+    }
+    closeEditLocalPrice();
     setTimeout(() => showToast('Edit submitted — thanks! 🐝'), 300);
   } catch(e) {
     showToast('Error sending — please try again');
@@ -2242,14 +2409,29 @@ function openLocalPriceDetail(key) {
   const catLabel = {'coffee shop':'Café','hostel':'Hostel','bar':'Bar','activity':'Activities','groceries':'Supermarket','transport':'Transport'}[cat] || cat;
   const loc = [p.city, p.country].filter(Boolean).join(', ');
 
-  const rows = items.map(i => `
+  const rows = items.map(i => {
+    const normal  = parseFloat(i.price_normal||0)||null;
+    const hhPrice = getActiveHH(i);
+    const ldPrice = getLDPrice(i);
+    const best    = getLowestPrice(i);
+    const showStrike = best !== null && normal !== null && best < normal;
+    const normalStr = normal ? `$${normal.toFixed(2)}` : '';
+    const bestStr   = best   ? `$${best.toFixed(2)}`   : '';
+    const badge = hhPrice && hhPrice === best
+      ? '<span class="price-badge">⚡ Happy Hour</span>'
+      : (ldPrice && ldPrice === best ? '<span class="price-badge ld">🏠 Local Discount</span>' : '');
+    const priceHtml = showStrike
+      ? `<span class="price-normal-val">${normalStr}</span>&nbsp;<span class="price-active-val">${bestStr}</span>${badge}`
+      : `<span style="font-family:'Fraunces',serif;font-size:18px;font-weight:700;color:var(--amber-dark);">${bestStr||normalStr}</span>`;
+    return `
     <div class="detail-row">
       <div class="detail-row-icon"><i class="ti ti-currency-dollar"></i></div>
       <div class="detail-row-content">
         <div class="detail-row-label">${i.item_name}</div>
-        <div class="detail-row-value" style="font-family:'Fraunces',serif;font-size:18px;font-weight:700;color:var(--amber-dark);">$${parseFloat(i.price_normal||0).toFixed(2)}</div>
+        <div class="detail-row-value">${priceHtml}</div>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 
   const el = document.getElementById('localPriceDetailContent');
   el.innerHTML = `
@@ -2352,12 +2534,32 @@ function renderDealMarkers(deals, priceFilter) {
     const lat = parseFloat(p.latitude), lng = parseFloat(p.longitude);
     if (isNaN(lat)||isNaN(lng)) return;
 
-    // Show emoji + cheapest price on pin for all categories
-    const minPrice = Math.min(...items.map(i => parseFloat(i.price_normal||0)||Infinity).filter(v => v !== Infinity));
-    const priceLabel = isFinite(minPrice) ? `$${minPrice.toFixed(2)}` : '';
+    // Filter items not visible right now (HH-only items outside their window)
+    const visibleItems = items.filter(isItemVisible);
+    if (!visibleItems.length) return;
+
+    // Pin shows lowest active price across all visible items
+    const lowestPrices = visibleItems.map(i => getLowestPrice(i)).filter(v => v !== null);
+    const minPrice = lowestPrices.length ? Math.min(...lowestPrices) : null;
+    const priceLabel = minPrice !== null ? `$${minPrice.toFixed(2)}` : '';
     const icon = makePricePin(dealEmoji[cat]||'💰', dealColor[cat]||'#5C5750', priceLabel);
 
-    const rows = items.map(i => `<tr><td style="font-size:13px;padding:3px 0;">${i.item_name}</td><td style="font-size:13px;font-weight:700;color:var(--amber-dark);padding:3px 0 3px 12px;">$${parseFloat(i.price_normal||0).toFixed(2)}</td></tr>`).join('');
+    const rows = visibleItems.map(i => {
+      const normal  = parseFloat(i.price_normal||0)||null;
+      const hhPrice = getActiveHH(i);
+      const ldPrice = getLDPrice(i);
+      const best    = getLowestPrice(i);
+      const showStrike = best !== null && normal !== null && best < normal;
+      const normalStr = normal ? `$${normal.toFixed(2)}` : '';
+      const bestStr   = best   ? `$${best.toFixed(2)}`   : '';
+      const badge = hhPrice && hhPrice === best
+        ? '<span class="price-badge">⚡ HH</span>'
+        : (ldPrice && ldPrice === best ? '<span class="price-badge ld">🏠 Local</span>' : '');
+      const priceCell = showStrike
+        ? `<span class="price-normal-val">${normalStr}</span> <span class="price-active-val">${bestStr}</span>${badge}`
+        : `<span style="font-weight:700;color:var(--amber-dark);">${bestStr||normalStr}</span>`;
+      return `<tr><td style="font-size:13px;padding:3px 0;">${i.item_name}</td><td style="font-size:13px;padding:3px 0 3px 12px;white-space:nowrap;">${priceCell}</td></tr>`;
+    }).join('');
     const loc = [p.city, p.country].filter(Boolean).join(', ');
     const safeKey = key.replace(/'/g, "\\'");
     const popup = L.popup({className:'hive-popup',closeButton:true}).setContent(
@@ -2721,10 +2923,31 @@ function openSubmit(fromPage) {
   }
 
   updateFormForType(lockedType || 'farm');
+  // Reset price items, HH and LD for fresh submission
+  const prc = document.getElementById('priceRowsContainer');
+  if (prc) prc.innerHTML = `<div class="price-row"><input type="text" class="form-input item-name" placeholder="e.g. Heineken"><input type="number" class="form-input item-price" placeholder="Normal price ($)" step="0.01"></div>`;
+  const hhs = document.getElementById('hhSlots');
+  if (hhs) hhs.innerHTML = '';
+  ldType = 'none';
   setTimeout(initPickerMap, 350);
 }
 
-function closeSubmit() { document.getElementById('submitModal').classList.remove('open'); }
+function closeSubmit() {
+  document.getElementById('submitModal').classList.remove('open');
+  // Reset HH slots
+  const hhSlots = document.getElementById('hhSlots');
+  if (hhSlots) hhSlots.innerHTML = '';
+  // Reset LD
+  ldType = 'none';
+  const ldVal = document.getElementById('ldValue');
+  if (ldVal) ldVal.value = '';
+  const ldValueRow = document.getElementById('ldValueRow');
+  if (ldValueRow) ldValueRow.style.display = 'none';
+  ['Percent','Fixed','None'].forEach(t => {
+    const btn = document.getElementById('ldType'+t);
+    if (btn) btn.classList.toggle('active', t === 'None');
+  });
+}
 function handleBackdropClick(e) { if (e.target === document.getElementById('submitModal')) closeSubmit(); }
 
 function selectType(el) {
@@ -2743,7 +2966,7 @@ function updateFormForType(type) {
   const dl = document.getElementById('detailsLabel');
   const fd = document.getElementById('fieldDetails');
 
-  ag.style.display = (type==='deal'||type==='price') ? '' : 'none';
+  if (ag) ag.style.display = 'none'; // availability section removed
   farmFields.style.display = (type === 'farm') ? '' : 'none';
 
   if (type === 'price') {
@@ -2772,10 +2995,101 @@ function addPriceRow() {
   const row = document.createElement('div');
   row.className = 'price-row';
   row.innerHTML = `
-    <input type="text" class="form-input item-name" placeholder="e.g. Croissant">
-    <input type="number" class="form-input item-price" placeholder="Price ($)" step="0.01">
+    <input type="text" class="form-input item-name" placeholder="e.g. Pint of beer">
+    <input type="number" class="form-input item-price" placeholder="Normal price ($)" step="0.01">
   `;
   container.appendChild(row);
+}
+
+// ── HAPPY HOUR SLOTS ──
+const HH_DAYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+let ldType = 'none';
+
+function addHHSlot() {
+  const container = document.getElementById('hhSlots');
+  const div = document.createElement('div');
+  div.className = 'hh-slot';
+  div.innerHTML = `
+    <div class="hh-day-row">${HH_DAYS.map(d=>`<button type="button" class="hh-day-btn on" data-day="${d}" onclick="toggleHHDay(this)">${d}</button>`).join('')}</div>
+    <div class="hh-time-row">
+      <input type="time" class="form-input hh-from" value="17:00">
+      <span style="text-align:center;color:var(--text-light);font-size:12px;">to</span>
+      <input type="time" class="form-input hh-to" value="19:00">
+      <button type="button" class="remove-hh-btn" onclick="this.closest('.hh-slot').remove()"><i class="ti ti-x"></i></button>
+    </div>
+    <div style="margin-bottom:10px;">
+      <input type="number" class="form-input hh-price" placeholder="Happy hour price ($)" step="0.01" min="0">
+    </div>`;
+  container.appendChild(div);
+}
+
+function toggleHHDay(btn) { btn.classList.toggle('on'); }
+
+function setLDType(type) {
+  ldType = type;
+  ['Percent','Fixed','None'].forEach(t => {
+    document.getElementById('ldType'+t).classList.toggle('active', t.toLowerCase()===type);
+  });
+  document.getElementById('ldValueRow').style.display = (type === 'none') ? 'none' : '';
+  document.getElementById('ldValue').placeholder = type === 'percent' ? 'e.g. 20 (for 20% off)' : 'e.g. 9.50 (fixed price)';
+}
+
+function getHHData() {
+  const slots = [];
+  document.querySelectorAll('.hh-slot').forEach(slot => {
+    const days = [...slot.querySelectorAll('.hh-day-btn.on')].map(b => b.dataset.day.toLowerCase());
+    const from  = slot.querySelector('.hh-from').value;
+    const to    = slot.querySelector('.hh-to').value;
+    const price = parseFloat(slot.querySelector('.hh-price').value);
+    if (days.length && from && to && !isNaN(price) && price > 0) slots.push({ price, days, from, to });
+  });
+  return slots.length ? slots : null;
+}
+
+function getLDData() {
+  if (ldType === 'none') return null;
+  const val = parseFloat(document.getElementById('ldValue').value);
+  if (isNaN(val) || val <= 0) return null;
+  return { type: ldType, value: val };
+}
+
+// ── ACTIVE PRICE LOGIC ──
+function getActiveHH(item) {
+  if (!item.happy_hour_prices) return null;
+  const now = new Date();
+  const dayKey = ['sun','mon','tue','wed','thu','fri','sat'][now.getDay()];
+  const nowMins = now.getHours() * 60 + now.getMinutes();
+  for (const slot of item.happy_hour_prices) {
+    if (!slot.days.includes(dayKey)) continue;
+    const [fh,fm] = slot.from.split(':').map(Number);
+    const [th,tm] = slot.to.split(':').map(Number);
+    if (nowMins >= fh*60+fm && nowMins <= th*60+tm) return slot.price;
+  }
+  return null;
+}
+
+function getLDPrice(item) {
+  if (!item.local_discount || !item.price_normal) return null;
+  const ld = item.local_discount;
+  return ld.type === 'percent'
+    ? parseFloat(item.price_normal) * (1 - ld.value / 100)
+    : ld.value;
+}
+
+function getLowestPrice(item) {
+  const normal = parseFloat(item.price_normal) || null;
+  const hh     = getActiveHH(item);
+  const ld     = getLDPrice(item);
+  const candidates = [normal, hh, ld].filter(v => v !== null && v > 0);
+  return candidates.length ? Math.min(...candidates) : null;
+}
+
+function isItemVisible(item) {
+  // Has normal price → always visible
+  if (item.price_normal && parseFloat(item.price_normal) > 0) return true;
+  // Only HH prices → visible only during active HH
+  if (item.happy_hour_prices) return getActiveHH(item) !== null;
+  return false;
 }
 
 function initPickerMap() {
@@ -2869,9 +3183,22 @@ function locateOnPicker() {
   });
 }
 
-function updatePickerCoords() {
+async function updatePickerCoords() {
   const ll = pickerMarker.getLatLng();
   pickerLat = ll.lat.toFixed(5); pickerLng = ll.lng.toFixed(5);
+
+  // Auto-fill Name/Title if empty
+  const nameField = document.getElementById('fieldName');
+  if (nameField && !nameField.value.trim()) {
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${pickerLat}&lon=${pickerLng}&format=json`, { headers: { 'Accept-Language': 'en' } });
+      const data = await res.json();
+      const a = data.address || {};
+      // Use business name, amenity, road, or display_name fallback
+      const suggested = a.amenity || a.shop || a.tourism || a.leisure || a.road || a.suburb || a.city || data.display_name || '';
+      if (suggested) nameField.value = suggested;
+    } catch(e) {}
+  }
 }
 
 function toggleDay(btn) { btn.classList.toggle('on'); }
@@ -2934,8 +3261,7 @@ async function submitForm() {
   if (!name)  { showToast('Please enter a name or title'); return; }
   if (!pickerLat) { showToast('Please move the pin to set a location'); return; }
 
-  const days = getSelectedDays();
-  const availability = days ? `${days} · ${document.getElementById('timeFrom').value}–${document.getElementById('timeTo').value}` : 'All week';
+
 
   // Reverse geocode the pin location
   showToast('Locating…');
@@ -2955,19 +3281,22 @@ async function submitForm() {
         const itemPrice = parseFloat(row.querySelector('.item-price').value);
 
         if (itemName && !isNaN(itemPrice)) {
+          const hhData = getHHData();
+          const ldData = getLDData();
           const payload = {
             type,
-            business_name:  name,
-            item_category:  priceCategory,
-            latitude:       parseFloat(pickerLat),
-            longitude:      parseFloat(pickerLng),
-            country:        geo.country,
-            state_region:   geo.state_region,
-            city:           geo.city,
-            address:        geo.address,
-            item_name:      itemName,
-            item_price:     itemPrice,
-            availability
+            business_name:        name,
+            item_category:        priceCategory,
+            latitude:             parseFloat(pickerLat),
+            longitude:            parseFloat(pickerLng),
+            country:              geo.country,
+            state_region:         geo.state_region,
+            city:                 geo.city,
+            address:              geo.address,
+            item_name:            itemName,
+            item_price:           itemPrice,
+            happy_hour_prices:    hhData || null,
+            local_discount:       ldData || null,
           };
           await supaInsert('submissions', payload);
           addedCount++;
@@ -2990,7 +3319,6 @@ async function submitForm() {
         state_region:  geo.state_region,
         city:          geo.city,
         address:       geo.address,
-        availability
       };
       // Farm-specific fields stored in details
       if (type === 'farm') {
