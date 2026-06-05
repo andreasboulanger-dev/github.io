@@ -353,6 +353,17 @@ input#priceRangeInput::-moz-range-thumb{
 .hh-day-btn.on{background:var(--amber);border-color:var(--amber);color:#fff;}
 .add-hh-btn{font-size:12px;color:var(--amber-dark);background:none;border:none;cursor:pointer;font-weight:600;padding:4px 0;}
 .remove-hh-btn{width:28px;height:28px;border-radius:50%;border:none;background:rgba(0,0,0,0.06);color:var(--text-mid);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;}
+.btn-delete-item{width:100%;padding:13px;background:transparent;color:var(--red);border:0.5px solid rgba(185,28,28,0.25);border-radius:var(--radius-lg);font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:8px;transition:all 0.15s;}
+.btn-delete-item:hover{background:var(--red-light);}
+.delete-confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:300;display:flex;align-items:flex-end;justify-content:center;padding:0;opacity:0;pointer-events:none;transition:opacity 0.2s;}
+.delete-confirm-overlay.open{opacity:1;pointer-events:all;}
+.delete-confirm-sheet{background:var(--white);border-radius:20px 20px 0 0;padding:24px 20px 40px;width:100%;max-width:480px;transform:translateY(100%);transition:transform 0.3s cubic-bezier(0.32,0.72,0,1);}
+.delete-confirm-overlay.open .delete-confirm-sheet{transform:translateY(0);}
+.delete-confirm-title{font-family:'Fraunces',serif;font-size:18px;font-weight:700;margin-bottom:8px;color:var(--red);}
+.delete-confirm-sub{font-size:14px;color:var(--text-mid);margin-bottom:24px;line-height:1.5;}
+.delete-confirm-btns{display:flex;flex-direction:column;gap:10px;}
+.btn-confirm-delete{padding:14px;background:var(--red);color:white;border:none;border-radius:var(--radius-lg);font-family:'Fraunces',serif;font-size:16px;font-weight:700;cursor:pointer;}
+.btn-cancel-delete{padding:14px;background:var(--off-white);color:var(--text-mid);border:none;border-radius:var(--radius-lg);font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;cursor:pointer;}
 .ld-block{background:var(--off-white);border:1.5px solid var(--border-mid);border-radius:var(--radius-md);padding:12px;margin-top:8px;}
 .scope-pill-wrap{display:flex;flex-wrap:wrap;gap:4px;margin-top:2px;}
 .ld-type-row{display:flex;gap:8px;margin-bottom:8px;}
@@ -953,6 +964,7 @@ html.dark .profile-card{background:#1E1E1E}
           <textarea class="form-textarea" id="editLPNotes" placeholder="Any other info to add or correct…"></textarea>
         </div>
         <button class="submit-btn" onclick="submitLocalPriceEdit()">Submit for review</button>
+        <button class="btn-delete-item" onclick="openDeleteConfirm('localprice')"><i class="ti ti-trash"></i> Delete this listing</button>
         <p class="submit-note"><i class="ti ti-shield-check"></i> Only approved edits will update the listing</p>
       </div>
     </div>
@@ -1023,6 +1035,7 @@ html.dark .profile-card{background:#1E1E1E}
           </div>
         </div>
         <button class="submit-btn" onclick="submitFarmEdit()">Submit for review</button>
+        <button class="btn-delete-item" onclick="openDeleteConfirm('farm')"><i class="ti ti-trash"></i> Delete this listing</button>
         <p class="submit-note"><i class="ti ti-shield-check"></i> Only approved edits will update the listing</p>
       </div>
     </div>
@@ -4185,6 +4198,56 @@ async function submitForm() {
 
 // ── TOAST ──
 let toastTimer;
+// ── DELETE LISTING ──
+let _deleteContext = null;
+
+function openDeleteConfirm(type) {
+  _deleteContext = type;
+  const sub = document.getElementById('deleteConfirmSub');
+  if (type === 'localprice') {
+    sub.textContent = 'This will submit a deletion request for this local price listing. An admin will review it before it is removed.';
+  } else if (type === 'farm') {
+    sub.textContent = 'This will submit a deletion request for this farm. An admin will review it before it is removed.';
+  }
+  document.getElementById('deleteConfirmOverlay').classList.add('open');
+}
+
+function closeDeleteConfirm() {
+  document.getElementById('deleteConfirmOverlay').classList.remove('open');
+  _deleteContext = null;
+}
+
+async function confirmDelete() {
+  if (!_deleteContext) return;
+  const type = _deleteContext;
+  closeDeleteConfirm();
+
+  let refId = null;
+  let itemName = '';
+
+  if (type === 'localprice') {
+    refId = document.getElementById('editLocalPriceKey')?.value;
+    itemName = 'local price listing';
+    document.getElementById('editLocalPriceModal')?.classList.remove('open');
+  } else if (type === 'farm') {
+    refId = window.currentFarmId || null;
+    itemName = 'farm';
+    document.getElementById('editFarmModal')?.classList.remove('open');
+  }
+
+  try {
+    await supaInsert('submissions', {
+      type: type === 'localprice' ? 'delete_price' : 'delete_farm',
+      business_name: refId ? `DELETE REQUEST — ID: ${refId}` : `DELETE REQUEST`,
+      details: `User requested deletion of ${itemName}${refId ? ' (ref: ' + refId + ')' : ''}`,
+      submitted_by_email: currentUser?.email || null,
+    });
+    showToast('Deletion request sent — an admin will review it ✓');
+  } catch(e) {
+    showToast('Error sending request, please try again');
+  }
+}
+
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.innerHTML = '<i class="ti ti-check"></i> ' + msg;
@@ -5073,5 +5136,16 @@ handleOAuthRedirect();
 updateHeaderAuth();
 loadHomeStats();
 </script>
+<!-- DELETE CONFIRM OVERLAY -->
+<div class="delete-confirm-overlay" id="deleteConfirmOverlay">
+  <div class="delete-confirm-sheet">
+    <div class="delete-confirm-title"><i class="ti ti-alert-triangle"></i> Delete this listing?</div>
+    <div class="delete-confirm-sub" id="deleteConfirmSub">This will submit a deletion request. An admin will review it before the listing is removed.</div>
+    <div class="delete-confirm-btns">
+      <button class="btn-confirm-delete" onclick="confirmDelete()">Yes, request deletion</button>
+      <button class="btn-cancel-delete" onclick="closeDeleteConfirm()">Cancel</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
