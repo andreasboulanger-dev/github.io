@@ -1457,11 +1457,12 @@ async function supaInsert(table, data) {
     const ip = await getClientIP();
     payload = { ...data, ip_address: ip };
   }
+  const authToken = (currentUser && currentUser.access_token) ? currentUser.access_token : SUPA_KEY;
   const res = await fetch(`${SUPA_URL}/rest/v1/${table}`, {
     method: 'POST',
     headers: {
       'apikey': SUPA_KEY,
-      'Authorization': `Bearer ${SUPA_KEY}`,
+      'Authorization': `Bearer ${authToken}`,
       'Content-Type': 'application/json',
       'Prefer': 'return=representation'
     },
