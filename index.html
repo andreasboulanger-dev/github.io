@@ -4196,6 +4196,13 @@ function showToast(msg) {
 
 // ── AUTH STATE ──
 let currentUser = null; // {id, email, name, access_token}
+// Restore session from localStorage
+(function() {
+  try {
+    const saved = localStorage.getItem('hive_session');
+    if (saved) currentUser = JSON.parse(saved);
+  } catch(e) {}
+})();
 
 function updateHeaderAuth() {
   const btn = document.getElementById('headerAuthBtn');
@@ -4315,6 +4322,7 @@ function handleOAuthRedirect() {
         name: data.user_metadata?.full_name || data.user_metadata?.name || data.email.split('@')[0],
         access_token: token
       };
+      localStorage.setItem('hive_session', JSON.stringify(currentUser));
       updateHeaderAuth();
       history.replaceState(null, '', window.location.pathname);
       showToast('Welcome, ' + currentUser.name + '! 🐝');
@@ -4324,6 +4332,7 @@ function handleOAuthRedirect() {
 
 function doLogout() {
   currentUser = null;
+  localStorage.removeItem('hive_session');
   updateHeaderAuth();
   goTo('home');
   showToast('Signed out');
