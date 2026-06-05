@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Hive — Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Fraunces:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --amber:#F5A623;--amber-dark:#D4851A;--amber-light:#FEF3DC;--amber-pale:#FFFAF2;
+  --white:#FFFFFF;--off-white:#F8F6F2;--text-dark:#1A1714;--text-mid:#5C5750;--text-light:#9C958E;
+  --border:rgba(0,0,0,0.08);--border-mid:rgba(0,0,0,0.14);
+  --green:#3B6D11;--green-light:#EAF3DE;
+  --red:#B91C1C;--red-light:#FEEAEA;
+  --blue:#185FA5;--blue-light:#E6F1FB;
+  --radius-sm:8px;--radius-md:12px;--radius-lg:18px;
+  --shadow-sm:0 1px 4px rgba(0,0,0,0.06),0 0 0 0.5px rgba(0,0,0,0.06);
+  --shadow-md:0 4px 16px rgba(0,0,0,0.12);
+}
+body{font-family:'DM Sans',sans-serif;background:var(--off-white);color:var(--text-dark);-webkit-font-smoothing:antialiased;min-height:100vh}
+
+/* HEADER */
+.header{background:var(--white);border-bottom:0.5px solid var(--border-mid);padding:0 32px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.logo{font-family:'Fraunces',serif;font-size:20px;font-weight:700}.logo span{color:var(--amber)}
+.header-right{display:flex;align-items:center;gap:16px}
+.admin-badge{font-size:11px;font-weight:600;background:var(--amber-light);color:var(--amber-dark);padding:4px 10px;border-radius:20px;border:0.5px solid rgba(245,166,35,0.3)}
+.logout-btn{font-size:13px;color:var(--text-light);background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:5px}
+.logout-btn:hover{color:var(--text-dark)}
+
+/* LOGIN */
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.login-card{background:var(--white);border-radius:var(--radius-lg);padding:40px;width:100%;max-width:380px;box-shadow:var(--shadow-md);border:0.5px solid var(--border)}
+.login-logo{font-family:'Fraunces',serif;font-size:32px;font-weight:700;text-align:center;margin-bottom:6px}.login-logo span{color:var(--amber)}
+.login-sub{text-align:center;font-size:13px;color:var(--text-light);margin-bottom:28px}
+.login-form{display:flex;flex-direction:column;gap:12px}
+.form-input{width:100%;padding:11px 14px;border:0.5px solid var(--border-mid);border-radius:var(--radius-md);font-family:'DM Sans',sans-serif;font-size:15px;background:var(--white);outline:none;transition:border-color 0.15s}
+.form-input:focus{border-color:var(--amber);box-shadow:0 0 0 3px rgba(245,166,35,0.12)}
+.login-btn{width:100%;padding:13px;background:var(--amber);color:white;border:none;border-radius:var(--radius-lg);font-family:'Fraunces',serif;font-size:16px;font-weight:700;cursor:pointer;transition:background 0.15s}
+.login-btn:hover{background:var(--amber-dark)}
+.login-error{background:var(--red-light);border:0.5px solid #F5BCBC;border-radius:var(--radius-md);padding:10px 14px;font-size:13px;color:var(--red);display:none}
+.login-error.show{display:block}
+
+/* LAYOUT */
+.layout{display:flex;min-height:calc(100vh - 60px)}
+.sidebar{width:220px;flex-shrink:0;background:var(--white);border-right:0.5px solid var(--border);padding:20px 0;position:sticky;top:60px;height:calc(100vh - 60px);overflow-y:auto}
+.sidebar-section{font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-light);padding:16px 20px 6px}
+.nav-link{display:flex;align-items:center;gap:10px;padding:9px 20px;font-size:13.5px;font-weight:500;color:var(--text-mid);cursor:pointer;border:none;background:none;width:100%;font-family:'DM Sans',sans-serif;transition:all 0.15s;text-align:left;border-radius:0}
+.nav-link:hover{background:var(--off-white);color:var(--text-dark)}
+.nav-link.active{background:var(--amber-pale);color:var(--amber-dark);font-weight:600}
+.nav-link i{font-size:17px}
+.nav-badge{margin-left:auto;background:var(--amber);color:white;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;min-width:20px;text-align:center}
+.nav-badge.red{background:var(--red)}
+.main{flex:1;padding:28px 32px;max-width:1100px}
+
+/* STATS ROW */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:28px}
+.stat-card{background:var(--white);border:0.5px solid var(--border);border-radius:var(--radius-md);padding:16px 18px;box-shadow:var(--shadow-sm)}
+.stat-num{font-family:'Fraunces',serif;font-size:28px;font-weight:700;line-height:1}
+.stat-label{font-size:12px;color:var(--text-light);margin-top:4px;font-weight:500}
+.stat-card.pending .stat-num{color:var(--amber-dark)}
+.stat-card.approved .stat-num{color:var(--green)}
+.stat-card.rejected .stat-num{color:var(--red)}
+
+/* PAGE TITLE */
+.page-title{font-family:'Fraunces',serif;font-size:22px;font-weight:700;margin-bottom:6px}
+.page-sub{font-size:13px;color:var(--text-light);margin-bottom:20px}
+
+/* FILTERS */
+.filters-row{display:flex;align-items:center;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.filter-pill{padding:6px 14px;border-radius:20px;background:var(--white);border:0.5px solid var(--border-mid);font-size:13px;font-weight:500;color:var(--text-mid);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.15s}
+.filter-pill:hover{border-color:var(--amber);color:var(--amber-dark)}
+.filter-pill.active{background:var(--amber);border-color:var(--amber);color:white}
+.search-input{padding:7px 14px;border:0.5px solid var(--border-mid);border-radius:20px;font-family:'DM Sans',sans-serif;font-size:13px;background:var(--white);outline:none;width:200px;margin-left:auto}
+.search-input:focus{border-color:var(--amber)}
+
+/* TABLE */
+.table-wrap{background:var(--white);border:0.5px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-sm)}
+table{width:100%;border-collapse:collapse}
+th{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-light);padding:10px 16px;text-align:left;background:var(--off-white);border-bottom:0.5px solid var(--border)}
+td{padding:12px 16px;border-bottom:0.5px solid var(--border);font-size:13.5px;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--amber-pale)}
+.type-badge{font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px;display:inline-flex;align-items:center;gap:4px}
+.type-price{background:var(--blue-light);color:var(--blue)}
+.type-farm{background:var(--green-light);color:var(--green)}
+.type-deal{background:var(--amber-light);color:var(--amber-dark)}
+.type-farm_edit{background:#F3E8FF;color:#6B21A8}
+.status-badge{font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px}
+.status-pending{background:#FEF3DC;color:var(--amber-dark)}
+.status-approved{background:var(--green-light);color:var(--green)}
+.status-rejected{background:var(--red-light);color:var(--red)}
+.action-btns{display:flex;gap:6px}
+.btn-approve{padding:5px 12px;background:var(--green-light);color:var(--green);border:0.5px solid rgba(59,109,17,0.2);border-radius:var(--radius-sm);font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:4px;transition:all 0.15s;white-space:nowrap}
+.btn-approve:hover{background:var(--green);color:white}
+.btn-reject{padding:5px 12px;background:var(--red-light);color:var(--red);border:0.5px solid rgba(185,28,28,0.2);border-radius:var(--radius-sm);font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:4px;transition:all 0.15s;white-space:nowrap}
+.btn-reject:hover{background:var(--red);color:white}
+.btn-view{padding:5px 10px;background:var(--off-white);color:var(--text-mid);border:0.5px solid var(--border-mid);border-radius:var(--radius-sm);font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.15s}
+.btn-view:hover{background:var(--white);color:var(--text-dark)}
+.empty-state{text-align:center;padding:60px 20px;color:var(--text-light)}
+.empty-state i{font-size:40px;display:block;margin-bottom:12px;color:var(--border-mid)}
+.loading-state{text-align:center;padding:40px;color:var(--text-light);display:flex;align-items:center;justify-content:center;gap:10px}
+.spinner{width:20px;height:20px;border:2px solid var(--amber-light);border-top-color:var(--amber);border-radius:50%;animation:spin 0.7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* DETAIL MODAL */
+.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity 0.2s}
+.modal-backdrop.open{opacity:1;pointer-events:all}
+.modal{background:var(--white);border-radius:var(--radius-lg);width:100%;max-width:580px;max-height:85vh;overflow-y:auto;transform:translateY(12px);transition:transform 0.2s;box-shadow:var(--shadow-md)}
+.modal-backdrop.open .modal{transform:translateY(0)}
+.modal-header{padding:20px 24px 16px;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--white);z-index:10}
+.modal-title{font-family:'Fraunces',serif;font-size:18px;font-weight:700}
+.modal-close{width:32px;height:32px;border-radius:50%;border:none;background:var(--off-white);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-mid);font-size:16px}
+.modal-body{padding:20px 24px}
+.detail-row{display:flex;gap:12px;margin-bottom:12px;font-size:14px}
+.detail-label{font-weight:600;color:var(--text-mid);width:130px;flex-shrink:0;font-size:13px}
+.detail-val{color:var(--text-dark);flex:1;word-break:break-word}
+.detail-section{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-light);margin:16px 0 8px;padding-bottom:6px;border-bottom:0.5px solid var(--border)}
+.modal-actions{padding:16px 24px;border-top:0.5px solid var(--border);display:flex;gap:8px;justify-content:flex-end;position:sticky;bottom:0;background:var(--white)}
+.btn-lg-approve{padding:10px 20px;background:var(--green);color:white;border:none;border-radius:var(--radius-md);font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:6px}
+.btn-lg-reject{padding:10px 20px;background:var(--red-light);color:var(--red);border:0.5px solid rgba(185,28,28,0.2);border-radius:var(--radius-md);font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:6px}
+.btn-lg-reject:hover{background:var(--red);color:white}
+.admin-note-input{width:100%;padding:8px 12px;border:0.5px solid var(--border-mid);border-radius:var(--radius-sm);font-family:'DM Sans',sans-serif;font-size:13px;margin-top:8px;resize:none;min-height:60px;outline:none}
+.admin-note-input:focus{border-color:var(--amber)}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--text-dark);color:white;padding:10px 20px;border-radius:var(--radius-lg);font-size:14px;font-weight:500;z-index:999;opacity:0;transition:all 0.3s;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.success{background:#1A5C2A}
+.toast.error{background:var(--red)}
+
+/* USERS TABLE */
+.user-avatar{width:32px;height:32px;border-radius:50%;background:var(--amber-light);display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--amber-dark);flex-shrink:0}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginWrap" class="login-wrap">
+  <div class="login-card">
+    <div class="login-logo">the <span>hive</span></div>
+    <div class="login-sub">Admin Panel — restricted access</div>
+    <div class="login-form">
+      <div class="login-error" id="loginError"></div>
+      <input type="email" class="form-input" id="loginEmail" placeholder="Admin email" autocomplete="email">
+      <input type="password" class="form-input" id="loginPassword" placeholder="Password" autocomplete="current-password">
+      <button class="login-btn" onclick="doLogin()">Sign in</button>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="appWrap" style="display:none">
+  <div class="header">
+    <div class="logo">the <span>hive</span></div>
+    <div class="header-right">
+      <span class="admin-badge"><i class="ti ti-shield-check"></i> Admin</span>
+      <button class="logout-btn" onclick="doLogout()"><i class="ti ti-logout"></i> Sign out</button>
+    </div>
+  </div>
+
+  <div class="layout">
+    <div class="sidebar">
+      <div class="sidebar-section">Moderation</div>
+      <button class="nav-link active" id="nav-pending" onclick="setPage('pending')">
+        <i class="ti ti-clock"></i> Pending
+        <span class="nav-badge" id="pendingBadge">0</span>
+      </button>
+      <button class="nav-link" id="nav-all" onclick="setPage('all')">
+        <i class="ti ti-list"></i> All submissions
+      </button>
+      <div class="sidebar-section">Data</div>
+      <button class="nav-link" id="nav-users" onclick="setPage('users')">
+        <i class="ti ti-users"></i> Users
+      </button>
+      <button class="nav-link" id="nav-farms" onclick="setPage('farms')">
+        <i class="ti ti-plant-2"></i> Farms
+      </button>
+      <button class="nav-link" id="nav-deals" onclick="setPage('deals')">
+        <i class="ti ti-tag"></i> Deals
+      </button>
+      <button class="nav-link" id="nav-prices" onclick="setPage('prices')">
+        <i class="ti ti-coin"></i> Local Prices
+      </button>
+    </div>
+
+    <div class="main" id="mainContent">
+      <div class="loading-state"><div class="spinner"></div> Loading…</div>
+    </div>
+  </div>
+</div>
+
+<!-- DETAIL MODAL -->
+<div class="modal-backdrop" id="modalBackdrop" onclick="closeModal(event)">
+  <div class="modal" id="modalContent"></div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPA_URL = 'https://xcazqvhxwjkqemumxvbu.supabase.co';
+const SUPA_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjYXpxdmh4d2prcWVtdW14dmJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzOTUyNzQsImV4cCI6MjA5NTk3MTI3NH0.AaUIUoCGyyde8yPcEGDwtANamxLRPpeTaaI7zntkcYM';
+
+// ADMIN EMAILS — seuls ces emails ont accès
+const ADMIN_EMAILS = ['andreasboulanger.dev@gmail.com'];
+
+let currentUser = null;
+let currentPage = 'pending';
+let allSubmissions = [];
+
+// ── AUTH ──
+async function doLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const pw = document.getElementById('loginPassword').value;
+  const err = document.getElementById('loginError');
+  err.className = 'login-error';
+
+  if (!ADMIN_EMAILS.includes(email)) {
+    err.textContent = 'Access denied — not an admin account.';
+    err.className = 'login-error show';
+    return;
+  }
+
+  try {
+    const res = await fetch(`${SUPA_URL}/auth/v1/token?grant_type=password`, {
+      method: 'POST',
+      headers: {'apikey': SUPA_ANON, 'Content-Type': 'application/json'},
+      body: JSON.stringify({email, password: pw})
+    });
+    const data = await res.json();
+    if (data.error || !data.access_token) {
+      err.textContent = data.error_description || 'Invalid credentials';
+      err.className = 'login-error show';
+      return;
+    }
+    currentUser = {email, token: data.access_token};
+    document.getElementById('loginWrap').style.display = 'none';
+    document.getElementById('appWrap').style.display = 'block';
+    loadPage('pending');
+  } catch(e) {
+    err.textContent = 'Connection error';
+    err.className = 'login-error show';
+  }
+}
+
+function doLogout() {
+  currentUser = null;
+  document.getElementById('appWrap').style.display = 'none';
+  document.getElementById('loginWrap').style.display = 'flex';
+  document.getElementById('loginPassword').value = '';
+}
+
+document.getElementById('loginPassword').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doLogin();
+});
+
+// ── API ──
+async function supaFetch(table, params = '', method = 'GET', body = null) {
+  const url = `${SUPA_URL}/rest/v1/${table}${params ? '?' + params : ''}`;
+  const opts = {
+    method,
+    headers: {
+      'apikey': SUPA_ANON,
+      'Authorization': `Bearer ${currentUser.token}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation'
+    }
+  };
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(url, opts);
+  if (!res.ok) throw new Error(await res.text());
+  const text = await res.text();
+  return text ? JSON.parse(text) : [];
+}
+
+// ── NAVIGATION ──
+function setPage(page) {
+  currentPage = page;
+  document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+  document.getElementById('nav-' + page)?.classList.add('active');
+  loadPage(page);
+}
+
+async function loadPage(page) {
+  const main = document.getElementById('mainContent');
+  main.innerHTML = '<div class="loading-state"><div class="spinner"></div> Loading…</div>';
+
+  try {
+    if (page === 'pending') await renderSubmissions('pending');
+    else if (page === 'all') await renderSubmissions('all');
+    else if (page === 'users') await renderUsers();
+    else if (page === 'farms') await renderTable('businesses', 'Farms', ['id','business_name','city','country','status']);
+    else if (page === 'deals') await renderTable('deals', 'Deals', ['id','business_name','city','country','status']);
+    else if (page === 'prices') await renderTable('local_prices', 'Local Prices', ['id','business_name','item_name','price_normal','city','status']);
+  } catch(e) {
+    main.innerHTML = `<div class="empty-state"><i class="ti ti-alert-circle"></i>${e.message}</div>`;
+  }
+}
+
+// ── SUBMISSIONS ──
+async function renderSubmissions(filter) {
+  const params = filter === 'pending'
+    ? 'admin_decision=eq.pending&order=submission_date.asc'
+    : 'order=submission_date.desc&limit=200';
+
+  allSubmissions = await supaFetch('submissions', params);
+  await updatePendingBadge();
+
+  const isPending = filter === 'pending';
+  const main = document.getElementById('mainContent');
+
+  let html = `
+    <div class="page-title">${isPending ? 'Pending Review' : 'All Submissions'}</div>
+    <div class="page-sub">${allSubmissions.length} submission${allSubmissions.length !== 1 ? 's' : ''}</div>
+    <div class="filters-row">
+      <button class="filter-pill active" onclick="filterType(this,'all')">All</button>
+      <button class="filter-pill" onclick="filterType(this,'price')"><i class="ti ti-coin"></i> Prices</button>
+      <button class="filter-pill" onclick="filterType(this,'farm')"><i class="ti ti-plant-2"></i> Farms</button>
+      <button class="filter-pill" onclick="filterType(this,'deal')"><i class="ti ti-tag"></i> Deals</button>
+      <button class="filter-pill" onclick="filterType(this,'farm_edit')"><i class="ti ti-edit"></i> Edits</button>
+      <input type="text" class="search-input" placeholder="Search…" oninput="filterSearch(this.value)" id="searchInput">
+    </div>
+    <div class="table-wrap">
+      <table id="subTable">
+        <thead><tr>
+          <th>ID</th><th>Type</th><th>Business</th><th>Location</th><th>Item / Details</th><th>Date</th><th>Status</th><th>Actions</th>
+        </tr></thead>
+        <tbody id="subBody">${renderSubRows(allSubmissions, isPending)}</tbody>
+      </table>
+    </div>`;
+
+  main.innerHTML = html;
+}
+
+function renderSubRows(rows, showActions = true) {
+  if (!rows.length) return '<tr><td colspan="8"><div class="empty-state"><i class="ti ti-inbox"></i>Nothing here</div></td></tr>';
+
+  return rows.map(s => {
+    const date = new Date(s.submission_date).toLocaleDateString('en', {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    const loc = [s.city, s.country].filter(Boolean).join(', ') || '—';
+    const detail = s.item_name ? `${s.item_name}${s.item_price ? ' — $'+s.item_price : ''}` : (s.details || '').substring(0,50) || '—';
+
+    return `<tr>
+      <td style="font-size:12px;color:var(--text-light);font-family:monospace">#${s.id}</td>
+      <td><span class="type-badge type-${s.type}">${typeLabel(s.type)}</span></td>
+      <td style="font-weight:600;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHTML(s.business_name||'—')}</td>
+      <td style="color:var(--text-mid)">${escHTML(loc)}</td>
+      <td style="color:var(--text-mid);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px">${escHTML(detail)}</td>
+      <td style="color:var(--text-light);font-size:12px;white-space:nowrap">${date}</td>
+      <td><span class="status-badge status-${s.admin_decision}">${s.admin_decision}</span></td>
+      <td>
+        <div class="action-btns">
+          <button class="btn-view" onclick="openDetail(${s.id})"><i class="ti ti-eye"></i></button>
+          ${s.admin_decision === 'pending' ? `
+          <button class="btn-approve" onclick="decide(${s.id},'approved')"><i class="ti ti-check"></i> Approve</button>
+          <button class="btn-reject" onclick="decide(${s.id},'rejected')"><i class="ti ti-x"></i></button>` : ''}
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+let currentTypeFilter = 'all';
+let currentSearch = '';
+
+function filterType(btn, type) {
+  currentTypeFilter = type;
+  document.querySelectorAll('.filters-row .filter-pill').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  applyFilters();
+}
+
+function filterSearch(val) {
+  currentSearch = val.toLowerCase();
+  applyFilters();
+}
+
+function applyFilters() {
+  let filtered = allSubmissions;
+  if (currentTypeFilter !== 'all') filtered = filtered.filter(s => s.type === currentTypeFilter);
+  if (currentSearch) filtered = filtered.filter(s =>
+    (s.business_name||'').toLowerCase().includes(currentSearch) ||
+    (s.city||'').toLowerCase().includes(currentSearch) ||
+    (s.item_name||'').toLowerCase().includes(currentSearch)
+  );
+  document.getElementById('subBody').innerHTML = renderSubRows(filtered, currentPage === 'pending');
+}
+
+// ── DECIDE ──
+async function decide(id, decision) {
+  try {
+    await supaFetch('submissions', `id=eq.${id}`, 'PATCH', {admin_decision: decision});
+    showToast(decision === 'approved' ? '✅ Approved!' : '❌ Rejected', decision === 'approved' ? 'success' : 'error');
+    closeModal();
+    await loadPage(currentPage);
+  } catch(e) {
+    showToast('Error: ' + e.message, 'error');
+  }
+}
+
+// ── DETAIL MODAL ──
+function openDetail(id) {
+  const s = allSubmissions.find(x => x.id === id);
+  if (!s) return;
+
+  const date = new Date(s.submission_date).toLocaleString('en');
+  const loc = [s.address, s.city, s.state_region, s.country].filter(Boolean).join(', ');
+  const coords = s.latitude && s.longitude ? `${s.latitude}, ${s.longitude}` : '—';
+  const mapsUrl = s.latitude && s.longitude
+    ? `https://maps.google.com/?q=${s.latitude},${s.longitude}` : null;
+
+  let hhHtml = '';
+  if (s.happy_hour_prices?.length) {
+    hhHtml = s.happy_hour_prices.map(h =>
+      `<div style="font-size:13px;background:var(--amber-pale);border-radius:var(--radius-sm);padding:8px 10px;margin-bottom:6px;">
+        <strong>$${h.price}</strong> · ${h.from}–${h.to} · ${(h.days||[]).join(', ')}
+        ${h.item_scopes?.length ? ` · <em>${h.item_scopes.join(', ')}</em>` : ''}
+      </div>`
+    ).join('');
+  }
+
+  let ldHtml = '';
+  if (s.local_discount) {
+    ldHtml = `<div style="font-size:13px;background:var(--blue-light);border-radius:var(--radius-sm);padding:8px 10px;">
+      ${s.local_discount.type === 'percent' ? s.local_discount.value + '%' : '$' + s.local_discount.value} off
+      ${s.local_discount.scope ? ` · ${s.local_discount.scope}` : ''}
+    </div>`;
+  }
+
+  const html = `
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">${escHTML(s.business_name||'Submission #'+s.id)}</div>
+        <div style="margin-top:4px;display:flex;gap:8px;align-items:center">
+          <span class="type-badge type-${s.type}">${typeLabel(s.type)}</span>
+          <span class="status-badge status-${s.admin_decision}">${s.admin_decision}</span>
+        </div>
+      </div>
+      <button class="modal-close" onclick="closeModal()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-section">Submission info</div>
+      <div class="detail-row"><span class="detail-label">ID</span><span class="detail-val">#${s.id}</span></div>
+      <div class="detail-row"><span class="detail-label">Submitted</span><span class="detail-val">${date}</span></div>
+      <div class="detail-row"><span class="detail-label">Email</span><span class="detail-val">${escHTML(s.submitted_by_email||'Anonymous')}</span></div>
+
+      <div class="detail-section">Location</div>
+      <div class="detail-row"><span class="detail-label">Address</span><span class="detail-val">${escHTML(loc||'—')}</span></div>
+      <div class="detail-row"><span class="detail-label">Coordinates</span><span class="detail-val">
+        ${coords}
+        ${mapsUrl ? `<a href="${mapsUrl}" target="_blank" style="margin-left:8px;color:var(--blue);font-size:12px;"><i class="ti ti-map-pin"></i> View on map</a>` : ''}
+      </span></div>
+
+      ${s.item_name ? `
+      <div class="detail-section">Item</div>
+      <div class="detail-row"><span class="detail-label">Item name</span><span class="detail-val">${escHTML(s.item_name)}</span></div>
+      <div class="detail-row"><span class="detail-label">Price</span><span class="detail-val">${s.item_price ? '$'+s.item_price : '—'}</span></div>
+      <div class="detail-row"><span class="detail-label">Category</span><span class="detail-val">${escHTML(s.item_category||'—')}</span></div>
+      ` : ''}
+
+      ${hhHtml ? `<div class="detail-section">Happy Hour</div>${hhHtml}` : ''}
+      ${ldHtml ? `<div class="detail-section">Local Discount</div>${ldHtml}` : ''}
+
+      ${s.details ? `
+      <div class="detail-section">Details / Notes</div>
+      <div style="font-size:13px;background:var(--off-white);border-radius:var(--radius-sm);padding:10px 12px;white-space:pre-wrap;color:var(--text-mid)">${escHTML(s.details)}</div>
+      ` : ''}
+
+      ${s.admin_notes ? `
+      <div class="detail-section">Admin notes</div>
+      <div style="font-size:13px;color:var(--text-mid)">${escHTML(s.admin_notes)}</div>
+      ` : ''}
+    </div>
+    ${s.admin_decision === 'pending' ? `
+    <div class="modal-actions">
+      <button class="btn-lg-reject" onclick="decide(${s.id},'rejected')"><i class="ti ti-x"></i> Reject</button>
+      <button class="btn-lg-approve" onclick="decide(${s.id},'approved')"><i class="ti ti-check"></i> Approve</button>
+    </div>` : ''}`;
+
+  document.getElementById('modalContent').innerHTML = html;
+  document.getElementById('modalBackdrop').classList.add('open');
+}
+
+function closeModal(e) {
+  if (e && e.target !== document.getElementById('modalBackdrop')) return;
+  document.getElementById('modalBackdrop').classList.remove('open');
+}
+
+// ── USERS ──
+async function renderUsers() {
+  const main = document.getElementById('mainContent');
+  const users = await supaFetch('auth_users_view', '') .catch(() => null);
+
+  // fallback: fetch via submissions emails
+  const subs = await supaFetch('submissions', 'select=submitted_by_email&submitted_by_email=not.is.null');
+  const emails = [...new Set(subs.map(s => s.submitted_by_email).filter(Boolean))];
+
+  main.innerHTML = `
+    <div class="page-title">Users</div>
+    <div class="page-sub">${emails.length} unique submitters</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Email</th><th>Submissions</th></tr></thead>
+        <tbody>
+          ${emails.length ? emails.map(email => {
+            const count = subs.filter(s => s.submitted_by_email === email).length;
+            const initials = email.substring(0,2).toUpperCase();
+            return `<tr>
+              <td style="display:flex;align-items:center;gap:10px">
+                <div class="user-avatar">${initials}</div>
+                ${escHTML(email)}
+              </td>
+              <td>${count} submission${count !== 1 ? 's' : ''}</td>
+            </tr>`;
+          }).join('') : '<tr><td colspan="2"><div class="empty-state"><i class="ti ti-users"></i>No users yet</div></td></tr>'}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+// ── GENERIC TABLE ──
+async function renderTable(table, title, cols) {
+  const main = document.getElementById('mainContent');
+  const rows = await supaFetch(table, 'order=id.asc&limit=200');
+
+  const colLabels = {
+    id:'ID', business_name:'Name', city:'City', country:'Country', status:'Status',
+    item_name:'Item', price_normal:'Price', item_category_first:'Category'
+  };
+
+  main.innerHTML = `
+    <div class="page-title">${title}</div>
+    <div class="page-sub">${rows.length} records</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>${cols.map(c => `<th>${colLabels[c]||c}</th>`).join('')}</tr></thead>
+        <tbody>
+          ${rows.length ? rows.map(r => `<tr>${cols.map(c => {
+            if (c === 'status') return `<td><span class="status-badge status-${r[c]}">${r[c]||'—'}</span></td>`;
+            if (c === 'price_normal') return `<td>$${r[c]||0}</td>`;
+            return `<td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHTML(String(r[c]||'—'))}</td>`;
+          }).join('')}</tr>`).join('') :
+          `<tr><td colspan="${cols.length}"><div class="empty-state"><i class="ti ti-database"></i>No records</div></td></tr>`}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+// ── BADGE ──
+async function updatePendingBadge() {
+  try {
+    const rows = await supaFetch('submissions', 'admin_decision=eq.pending&select=id');
+    const badge = document.getElementById('pendingBadge');
+    if (badge) badge.textContent = rows.length;
+  } catch(e) {}
+}
+
+// ── UTILS ──
+function typeLabel(type) {
+  return {price:'Price',farm:'Farm',deal:'Deal',farm_edit:'Farm Edit',deal_edit:'Deal Edit'}[type] || type;
+}
+
+const _div = document.createElement('div');
+function escHTML(str) {
+  _div.textContent = String(str);
+  return _div.innerHTML;
+}
+
+function showToast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (type ? ' ' + type : '');
+  setTimeout(() => t.className = 'toast', 2800);
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeModal();
+});
+</script>
+</body>
+</html>
