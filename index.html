@@ -1438,7 +1438,25 @@ async function supaFetch(table, params='') {
   return allRows;
 }
 
+// Cache IP to avoid fetching multiple times per session
+let _cachedIP = null;
+async function getClientIP() {
+  if (_cachedIP) return _cachedIP;
+  try {
+    const r = await fetch('https://api.ipify.org?format=json');
+    const d = await r.json();
+    _cachedIP = d.ip || null;
+  } catch(e) { _cachedIP = null; }
+  return _cachedIP;
+}
+
 async function supaInsert(table, data) {
+  // Attach IP for rate limiting on submissions
+  let payload = data;
+  if (table === 'submissions') {
+    const ip = await getClientIP();
+    payload = { ...data, ip_address: ip };
+  }
   const res = await fetch(`${SUPA_URL}/rest/v1/${table}`, {
     method: 'POST',
     headers: {
@@ -1447,10 +1465,14 @@ async function supaInsert(table, data) {
       'Content-Type': 'application/json',
       'Prefer': 'return=representation'
     },
-    body: JSON.stringify(data)
+    body: JSON.stringify(payload)
   });
   if (!res.ok) {
     const errText = await res.text();
+    // Show user-friendly message for rate limit
+    if (errText.includes('Rate limit exceeded')) {
+      throw new Error('You have submitted too many times. Please wait an hour before trying again.');
+    }
     console.error('Supabase insert error:', res.status, errText);
     throw new Error(errText);
   }
