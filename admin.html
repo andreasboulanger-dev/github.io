@@ -302,7 +302,7 @@ document.getElementById('loginPassword').addEventListener('keydown', e => {
     const email = user.email || user.user_metadata?.email || user.identities?.[0]?.identity_data?.email || '';
     if (!ADMIN_EMAILS.includes(email)) {
       const err = document.getElementById('loginError');
-      err.textContent = 'Access denied — not an admin account.';
+      err.textContent = `Access denied — email détecté: "${email}" (attendu: ${ADMIN_EMAILS[0]})`;
       err.className = 'login-error show';
       // Clear hash
       history.replaceState(null, '', window.location.pathname);
