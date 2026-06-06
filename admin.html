@@ -92,6 +92,9 @@ tr:hover td{background:var(--amber-pale)}
 .type-farm{background:var(--green-light);color:var(--green)}
 .type-deal{background:var(--amber-light);color:var(--amber-dark)}
 .type-farm_edit{background:#F3E8FF;color:#6B21A8}
+.type-delete_farm{background:var(--red-light);color:var(--red)}
+.type-delete_price{background:var(--red-light);color:var(--red)}
+.type-delete_deal{background:var(--red-light);color:var(--red)}
 .status-badge{font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px}
 .status-pending{background:#FEF3DC;color:var(--amber-dark)}
 .status-approved{background:var(--green-light);color:var(--green)}
@@ -447,6 +450,47 @@ function applyFilters() {
 // ── DECIDE ──
 async function decide(id, decision) {
   try {
+    const sub = allSubmissions.find(x => x.id === id);
+
+    // If approving a deletion request, actually delete the target row first
+    if (decision === 'approved' && sub && (sub.type === 'delete_farm' || sub.type === 'delete_price' || sub.type === 'delete_deal')) {
+
+      // Prefer target_id (clean field added after migration).
+      // Fall back to parsing business_name / details for older submissions.
+      // For prices, refId = "BusinessName|lat|lng" (composite key)
+      // For farms,  refId = actual row id (e.g. "B012")
+      const nameMatch = (sub.business_name || '').match(/ID:\s*(.+)$/i);
+      const detailMatch = (sub.details || '').match(/\(ref:\s*(.+?)\)$/i);
+      const refId = sub.target_id ||
+                    (nameMatch && nameMatch[1].trim()) ||
+                    (detailMatch && detailMatch[1].trim());
+
+      if (!refId) {
+        showToast('Could not find target ID to delete', 'error');
+        return;
+      }
+
+      if (sub.type === 'delete_price') {
+        // refId is "business_name|latitude|longitude" — match all three fields
+        const parts = refId.split('|');
+        if (parts.length < 3) {
+          showToast('Invalid price key format', 'error');
+          return;
+        }
+        const [bizName, lat, lng] = parts;
+        await supaFetch(
+          'local_prices',
+          `business_name=eq.${encodeURIComponent(bizName)}&latitude=eq.${encodeURIComponent(lat)}&longitude=eq.${encodeURIComponent(lng)}`,
+          'DELETE'
+        );
+      } else {
+        // For delete_farm / delete_deal: refId is the actual row id
+        const targetTable = sub.type === 'delete_deal' ? 'deals' : 'businesses';
+        await supaFetch(targetTable, `id=eq.${encodeURIComponent(refId)}`, 'DELETE');
+      }
+    }
+
+    // Mark submission as approved/rejected
     await supaFetch('submissions', `id=eq.${id}`, 'PATCH', {admin_decision: decision});
     showToast(decision === 'approved' ? '✅ Approved!' : '❌ Rejected', decision === 'approved' ? 'success' : 'error');
     closeModal();
@@ -615,7 +659,7 @@ async function updatePendingBadge() {
 
 // ── UTILS ──
 function typeLabel(type) {
-  return {price:'Price',farm:'Farm',deal:'Deal',farm_edit:'Farm Edit',deal_edit:'Deal Edit'}[type] || type;
+  return {price:'Price',farm:'Farm',deal:'Deal',farm_edit:'Farm Edit',deal_edit:'Deal Edit',delete_farm:'Delete Farm',delete_price:'Delete Price',delete_deal:'Delete Deal'}[type] || type;
 }
 
 const _div = document.createElement('div');
