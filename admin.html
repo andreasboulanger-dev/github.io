@@ -216,8 +216,14 @@ tr:hover td{background:var(--amber-pale)}
 const SUPA_URL = 'https://xcazqvhxwjkqemumxvbu.supabase.co';
 const SUPA_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjYXpxdmh4d2prcWVtdW14dmJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzOTUyNzQsImV4cCI6MjA5NTk3MTI3NH0.AaUIUoCGyyde8yPcEGDwtANamxLRPpeTaaI7zntkcYM';
 
-// ADMIN EMAILS — seuls ces emails ont accès
+// Admin access control — applied server-side check should be added via Edge Function (issue #2).
+// This client-side list is a defence-in-depth measure only; it is NOT a security boundary on its own.
+// IMPORTANT: keep this in sync with your Supabase profiles table is_admin column.
 const ADMIN_EMAILS = ['andreasboulanger.dev@gmail.com'];
+
+function isAdminEmail(email) {
+  return ADMIN_EMAILS.includes((email || '').toLowerCase().trim());
+}
 
 let currentUser = null;
 let currentPage = 'pending';
@@ -230,7 +236,8 @@ async function doLogin() {
   const err = document.getElementById('loginError');
   err.className = 'login-error';
 
-  if (!ADMIN_EMAILS.includes(email)) {
+  // Client-side pre-flight — the real guard must be server-side (issue #2)
+  if (!isAdminEmail(email)) {
     err.textContent = 'Access denied — not an admin account.';
     err.className = 'login-error show';
     return;
@@ -295,7 +302,6 @@ document.getElementById('loginPassword').addEventListener('keydown', e => {
   const token = params.get('access_token');
   if (!token) return;
 
-  // Fetch user info — trust Supabase auth, no client-side email whitelist
   try {
     const res = await fetch(`${SUPA_URL}/auth/v1/user`, {
       headers: { 'apikey': SUPA_ANON, 'Authorization': `Bearer ${token}` }
@@ -303,6 +309,17 @@ document.getElementById('loginPassword').addEventListener('keydown', e => {
     const user = await res.json();
     if (!user || user.error) throw new Error('Invalid session');
     const email = user.email || user.user_metadata?.email || '';
+
+    // Apply the same admin check as email/password login — previously missing, leaving
+    // the OAuth path completely open to any Google account.
+    if (!isAdminEmail(email)) {
+      history.replaceState(null, '', window.location.pathname);
+      const err = document.getElementById('loginError');
+      err.textContent = 'Access denied — this Google account is not an admin.';
+      err.className = 'login-error show';
+      return;
+    }
+
     currentUser = { email, token };
     history.replaceState(null, '', window.location.pathname);
     document.getElementById('loginWrap').style.display = 'none';
@@ -471,18 +488,28 @@ async function decide(id, decision) {
       }
 
       if (sub.type === 'delete_price') {
-        // refId is "business_name|latitude|longitude" — match all three fields
+        // Fix #13: refId is now pipe-separated actual local_prices.id values
+        // (e.g. "P001|P002"). Fall back to old composite key "bizName|lat|lng" for legacy.
         const parts = refId.split('|');
-        if (parts.length < 3) {
+        // Heuristic: if first part looks like a price ID (starts with P or is a uuid), use id-based delete
+        const looksLikeId = /^P\d+$/i.test(parts[0]) || /^[0-9a-f-]{36}$/.test(parts[0]);
+        if (looksLikeId) {
+          // New format: delete each row by its actual id
+          for (const priceId of parts.filter(Boolean)) {
+            await supaFetch('local_prices', `id=eq.${encodeURIComponent(priceId)}`, 'DELETE');
+          }
+        } else if (parts.length >= 3) {
+          // Legacy composite key: business_name|lat|lng
+          const [bizName, lat, lng] = parts;
+          await supaFetch(
+            'local_prices',
+            `business_name=eq.${encodeURIComponent(bizName)}&latitude=eq.${encodeURIComponent(lat)}&longitude=eq.${encodeURIComponent(lng)}`,
+            'DELETE'
+          );
+        } else {
           showToast('Invalid price key format', 'error');
           return;
         }
-        const [bizName, lat, lng] = parts;
-        await supaFetch(
-          'local_prices',
-          `business_name=eq.${encodeURIComponent(bizName)}&latitude=eq.${encodeURIComponent(lat)}&longitude=eq.${encodeURIComponent(lng)}`,
-          'DELETE'
-        );
       } else {
         // For delete_farm / delete_deal: refId is the actual row id
         const targetTable = sub.type === 'delete_deal' ? 'deals' : 'businesses';
