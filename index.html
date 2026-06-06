@@ -1480,7 +1480,7 @@ async function supaInsert(table, data) {
       'apikey': SUPA_KEY,
       'Authorization': `Bearer ${tok}`,
       'Content-Type': 'application/json',
-      'Prefer': 'return=representation'
+      'Prefer': 'return=minimal'
     },
     body: JSON.stringify(payload)
   });
