@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#F5A623">
 <title>The Hive</title>
@@ -19,7 +19,7 @@
   --off-white:#F8F6F2;--white:#FFFFFF;--text-dark:#1A1714;--text-mid:#5C5750;--text-light:#9C958E;
   --border:rgba(0,0,0,0.08);--border-mid:rgba(0,0,0,0.14);
   --radius-sm:8px;--radius-md:12px;--radius-lg:18px;
-  --nav-h:68px;--header-h:60px;
+  --nav-h:68px;--header-h:60px;--safe-bottom:env(safe-area-inset-bottom, 0px);--safe-top:env(safe-area-inset-top, 0px);
   --shadow-sm:0 1px 4px rgba(0,0,0,0.06),0 0 0 0.5px rgba(0,0,0,0.06);
   --shadow-md:0 4px 16px rgba(0,0,0,0.12);
   --shadow-fab:0 4px 20px rgba(245,166,35,0.38),0 2px 8px rgba(0,0,0,0.12);
@@ -36,7 +36,7 @@ html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;backgroun
 #app{display:flex;flex-direction:column;height:100dvh;max-width:480px;margin:0 auto;position:relative;background:var(--white);overflow:hidden}
 
 /* HEADER */
-.app-header{height:var(--header-h);background:var(--white);border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 18px;flex-shrink:0;z-index:10}
+.app-header{height:calc(var(--header-h) + env(safe-area-inset-top, 0px));background:var(--white);border-bottom:0.5px solid var(--border);display:flex;align-items:flex-end;justify-content:space-between;padding:0 18px calc(10px) 18px;padding-top:env(safe-area-inset-top, 0px);flex-shrink:0;z-index:10}
 .logo{font-family:'Fraunces',serif;font-size:22px;font-weight:700;color:var(--text-dark)}
 .logo span{color:var(--amber)}
 .header-actions{display:flex;gap:10px}
@@ -48,7 +48,7 @@ html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;backgroun
 .page.active{opacity:1;pointer-events:all;transform:translateY(0)}
 
 /* NAV */
-.bottom-nav{height:var(--nav-h);background:var(--white);border-top:0.5px solid var(--border);display:flex;align-items:stretch;flex-shrink:0;z-index:20;padding-bottom:env(safe-area-inset-bottom)}
+.bottom-nav{height:calc(var(--nav-h) + env(safe-area-inset-bottom, 0px));background:var(--white);border-top:0.5px solid var(--border);display:flex;align-items:stretch;flex-shrink:0;z-index:20;padding-bottom:env(safe-area-inset-bottom, 0px)}
 .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;background:none;border:none;color:var(--text-light);font-family:'DM Sans',sans-serif;font-size:10.5px;font-weight:500;transition:color 0.15s;-webkit-tap-highlight-color:transparent;padding:8px 4px 4px}
 .nav-item i{font-size:22px}
 .nav-item.active{color:var(--amber-dark)}
@@ -56,11 +56,11 @@ html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;backgroun
 .nav-item.active .nav-dot{opacity:1}
 
 /* FAB — remonté pour éviter le slider (calc(var(--nav-h) + 50px)) */
-.fab{position:absolute;bottom:calc(var(--nav-h) + 50px);right:20px;width:52px;height:52px;border-radius:50%;background:var(--amber);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-fab);z-index:30;color:white;font-size:24px;-webkit-tap-highlight-color:transparent}
+.fab{position:absolute;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom, 0px) + 50px);right:20px;width:52px;height:52px;border-radius:50%;background:var(--amber);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-fab);z-index:30;color:white;font-size:24px;-webkit-tap-highlight-color:transparent}
 .fab:active{transform:scale(0.93);background:var(--amber-dark)}
 
 /* Toggle FAB centré — même position que le FAB */
-.toggle-fab{position:absolute;bottom:calc(var(--nav-h) + 50px);left:50%;transform:translateX(-50%);height:40px;padding:0 20px;border-radius:20px;background:rgba(255,255,255,0.92);border:0.5px solid rgba(0,0,0,0.12);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);cursor:pointer;display:none;align-items:center;gap:8px;box-shadow:0 2px 12px rgba(0,0,0,0.14);z-index:30;color:var(--text-dark);font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif;white-space:nowrap;-webkit-tap-highlight-color:transparent}
+.toggle-fab{position:absolute;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom, 0px) + 50px);left:50%;transform:translateX(-50%);height:40px;padding:0 20px;border-radius:20px;background:rgba(255,255,255,0.92);border:0.5px solid rgba(0,0,0,0.12);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);cursor:pointer;display:none;align-items:center;gap:8px;box-shadow:0 2px 12px rgba(0,0,0,0.14);z-index:30;color:var(--text-dark);font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif;white-space:nowrap;-webkit-tap-highlight-color:transparent}
 .toggle-fab i{font-size:16px}
 .toggle-fab.visible{display:flex}
 
@@ -159,7 +159,8 @@ html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;backgroun
   padding:14px 20px 12px;
   display:none;
   align-items:center;
-  z-index:15;
+  z-index:35;
+  position:relative;
 }
 .price-slider-bar.visible{display:flex;}
 .price-slider-input-wrap{
@@ -201,7 +202,6 @@ input#priceRangeInput::-moz-range-thumb{
 /* Bubble above thumb */
 .slider-bubble{
   position:absolute;
-  top:-36px;
   transform:translateX(-50%);
   background:var(--text-dark);
   color:white;
@@ -215,6 +215,7 @@ input#priceRangeInput::-moz-range-thumb{
   pointer-events:none;
   transition:opacity 0.15s;
   opacity:0;
+  z-index:40;
 }
 .slider-bubble::after{
   content:'';
@@ -779,7 +780,6 @@ html.dark .profile-card{background:#1E1E1E}
           <span style="font-size:13px; font-weight:600; color:var(--text-mid); margin-right:12px;">Price</span>
           <div class="price-slider-input-wrap">
             <input type="range" id="priceRangeInput" min="0" max="100" value="100" step="1">
-            <div class="slider-bubble" id="sliderBubble">$100</div>
           </div>
         </div>
         <div class="deals-list-view" id="dealsListView">
@@ -1230,6 +1230,7 @@ html.dark .profile-card{background:#1E1E1E}
 
   <button class="fab" id="mainFab" onclick="openSubmit(currentPage)" aria-label="Add" style="display:none;"><i class="ti ti-plus"></i></button>
 
+  <div class="slider-bubble" id="sliderBubble" style="position:absolute;pointer-events:none;z-index:200;"></div>
   <button class="toggle-fab" id="toggleFab" onclick="toggleDealsView()">
     <i class="ti ti-list" id="toggleIcon"></i>
     <span id="toggleLabel">List</span>
@@ -1274,7 +1275,6 @@ html.dark .profile-card{background:#1E1E1E}
           <button class="type-option" data-type="tip" onclick="selectType(this)"><i class="ti ti-message-circle"></i><span>Community tip</span></button>
         </div>
       </div>
-      <div class="form-group"><label class="form-label">Name of the establishment</label><input type="text" class="form-input" id="fieldName" placeholder="e.g. Blue Hills Orchard, The Exchange…"></div>
       <div class="form-group">
         <label class="form-label">Location</label>
         <div class="picker-search-wrap">
@@ -1294,6 +1294,7 @@ html.dark .profile-card{background:#1E1E1E}
         </div>
         <p class="picker-hint"><i class="ti ti-hand-finger"></i> Drag the pin or tap the crosshair to refine</p>
       </div>
+      <div class="form-group"><label class="form-label">Name of the establishment</label><input type="text" class="form-input" id="fieldName" placeholder="e.g. Blue Hills Orchard, The Exchange…"></div>
 
       <!-- Farm-specific fields (shown when type = farm) -->
       <div id="farmFieldsGroup" style="display:none;">
@@ -1790,12 +1791,18 @@ function showBubble(input) {
   const val    = parseInt(input.value);
   bubble.textContent = val >= sliderMax ? 'Max' : '$' + val;
 
-  // Position bubble above thumb
+  // Position bubble above thumb, anchored to #app
   const pct    = (val - input.min) / (input.max - input.min);
   const trackW = input.clientWidth;
   const thumbW = 28;
-  const offset = thumbW / 2 + pct * (trackW - thumbW);
-  bubble.style.left = offset + 'px';
+  const thumbOffset = thumbW / 2 + pct * (trackW - thumbW);
+  const inputRect = input.getBoundingClientRect();
+  const appRect   = document.getElementById('app').getBoundingClientRect();
+  const thumbX = inputRect.left - appRect.left + thumbOffset;
+  const thumbY = inputRect.top  - appRect.top;
+  bubble.style.left = thumbX + 'px';
+  bubble.style.top  = (thumbY - 46) + 'px';
+  bubble.style.transform = 'translateX(-50%)';
   bubble.classList.add('show');
 }
 
@@ -1804,10 +1811,13 @@ function hideBubble() {
 }
 
 function filterPrices(maxVal) {
+  const activeCat = currentDealsType;
   const filtered = (window._allPricesMaster || allPrices).filter(p => {
+    const matchCat = activeCat === 'all' || normalizePriceCat(p.item_category_first) === activeCat;
     const price = parseFloat(p.price_normal || 0) || 0;
     const matchItem = !currentSubFilter || (p.item_name||'').trim() === currentSubFilter;
-    return price <= maxVal && matchItem;
+    // include if within price AND category AND item filter
+    return price <= maxVal && matchCat && matchItem;
   });
   renderPricesFiltered(filtered, maxVal);
 
@@ -2115,7 +2125,7 @@ function _locateOnMap(map, onSuccess) {
       // Remove previous locate marker if any
       const prev = _locateMarkers.get(map);
       if (prev) map.removeLayer(prev);
-      map.flyTo([lat, lng], 12, {animate:true, duration:1.2});
+      map.flyTo([lat, lng], 16, {animate:true, duration:1.2});
       const marker = L.circleMarker([lat, lng], {radius:8, color:'#D4851A', fillColor:'#F5A623', fillOpacity:0.9, weight:2})
         .addTo(map).bindPopup('You are here').openPopup();
       _locateMarkers.set(map, marker);
@@ -2954,7 +2964,7 @@ function renderDealMarkers(deals, priceFilter, overridePrices) {
           const scopes = getScopes(slot);
           const scopeLabel = scopes.length ? ` <span style="font-size:10px;opacity:0.75;">(${scopes.join(', ')} only)</span>` : '';
           const activeBadge = isActive ? ' <span style="font-size:10px;background:#EAF3DE;color:#3B6D11;padding:1px 5px;border-radius:8px;font-weight:700;">NOW ACTIVE</span>' : '';
-          extraInfo += `<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;font-size:12px;color:var(--text-mid);"><span class="price-badge" style="font-size:10px;">\u26A1 Happy Hour</span><span>${slot.from}\u2013${slot.to}${scopeLabel}${activeBadge}</span></div>`;
+          extraInfo += `<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;font-size:12px;color:var(--text-mid);"><span class="price-badge" style="font-size:10px;">\u26A1 Happy Hour</span><span>${to12h(slot.from)}\u2013${to12h(slot.to)}${activeBadge}</span></div>`;
         });
       }
       if (ldItem) {
@@ -2962,7 +2972,7 @@ function renderDealMarkers(deals, priceFilter, overridePrices) {
         const ldStr = ld.type === 'percent' ? `-${ld.value}%` : `$${ld.value}`;
         const scopes = getScopes(ld);
         const scopeLabel = scopes.length ? ` <span style="font-size:10px;opacity:0.75;">(${scopes.join(', ')} only)</span>` : '';
-        extraInfo += `<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;font-size:12px;color:var(--text-mid);"><span class="price-badge ld" style="font-size:10px;">\uD83C\uDFE0 Local Discount</span><span>${ldStr} off${scopeLabel}</span></div>`;
+        extraInfo += `<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;font-size:12px;color:var(--text-mid);"><span class="price-badge ld" style="font-size:10px;">\uD83C\uDFE0 Local Discount</span><span>${ldStr} off</span></div>`;
       }
       return `<div class="popup-inner"><div class="popup-name">${escHTML(p.business_name)}</div><div class="popup-detail">${escHTML(loc)}</div><table style="width:100%;margin:8px 0;">${rowsHtml}</table>${extraInfo}<button class="popup-btn" onclick="openLocalPriceDetail('${safeKey}')">View details</button></div>`;
     }
@@ -3002,6 +3012,15 @@ function filterDeals(btn, type) {
   currentFilteredDeals = f;
   renderDealMarkers(f, type);
   renderDealsList(f);
+
+  // Re-initialise the slider range to match the selected category's prices
+  const srcPrices = window._allPricesMaster || allPrices;
+  const catPrices = type === 'all' ? srcPrices : srcPrices.filter(p => normalizePriceCat(p.item_category_first) === type);
+  initSlider(catPrices.length ? catPrices : srcPrices);
+
+  // Update slider label to reflect the category context
+  const catLabels = { bar:'Bar prices', 'coffee shop':'Café prices', hostel:'Hostel prices', activity:'Activity prices', deal:'Deal prices', all:'Price' };
+  document.querySelector('#priceSliderBar > span').textContent = catLabels[type] || 'Price';
 }
 
 function buildSubFilters(type) {
@@ -3844,6 +3863,14 @@ function getScopes(obj) {
   return obj.item_scopes || (obj.item_scope ? [obj.item_scope] : []);
 }
 
+function to12h(time24) {
+  if (!time24) return '';
+  const [h, m] = time24.split(':').map(Number);
+  const period = h >= 12 ? 'PM' : 'AM';
+  const h12 = h % 12 || 12;
+  return `${h12}:${String(m).padStart(2,'0')} ${period}`;
+}
+
 function getActiveHH(item) {
   const slots = parseJSONSafe(item.happy_hour_prices);
   if (!slots || !Array.isArray(slots)) return null;
@@ -4240,6 +4267,7 @@ async function confirmDelete() {
       type: type === 'localprice' ? 'delete_price' : 'delete_farm',
       business_name: refId ? `DELETE REQUEST — ID: ${refId}` : `DELETE REQUEST`,
       details: `User requested deletion of ${itemName}${refId ? ' (ref: ' + refId + ')' : ''}`,
+      target_id: refId || null,
       submitted_by_email: currentUser?.email || null,
     });
     showToast('Deletion request sent — an admin will review it ✓');
