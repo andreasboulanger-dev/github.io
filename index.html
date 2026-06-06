@@ -1465,22 +1465,31 @@ async function getClientIP() {
 }
 
 async function supaInsert(table, data) {
+  // Use the logged-in user's JWT so auth.uid() resolves in DB triggers/policies.
+  // Falls back to anon key for unauthenticated actions.
+  const token = currentUser?.access_token || SUPA_KEY;
   // Attach IP for rate limiting on submissions
   let payload = data;
   if (table === 'submissions') {
     const ip = await getClientIP();
     payload = { ...data, ip_address: ip };
   }
-  const res = await fetch(`${SUPA_URL}/rest/v1/${table}`, {
+  const doFetch = (tok) => fetch(`${SUPA_URL}/rest/v1/${table}`, {
     method: 'POST',
     headers: {
       'apikey': SUPA_KEY,
-      'Authorization': `Bearer ${SUPA_KEY}`,
+      'Authorization': `Bearer ${tok}`,
       'Content-Type': 'application/json',
       'Prefer': 'return=representation'
     },
     body: JSON.stringify(payload)
   });
+  let res = await doFetch(token);
+  // If the access token expired mid-session, try to refresh once and retry
+  if (res.status === 401 && currentUser?.refresh_token) {
+    const refreshed = await refreshSession();
+    if (refreshed) res = await doFetch(currentUser.access_token);
+  }
   if (!res.ok) {
     const errText = await res.text();
     // Show user-friendly message for rate limit
@@ -1557,20 +1566,34 @@ navigator.geolocation && navigator.geolocation.getCurrentPosition(pos => {
 // ── THEME ──
 let _themeManual = false;
 
+// Per-map tile layer cache: _tileLayers[mapId][url] = L.tileLayer instance
+const _tileLayers = {};
+
+function _getOrCreateTile(map, url) {
+  const id = map._leaflet_id;
+  if (!_tileLayers[id]) _tileLayers[id] = {};
+  if (!_tileLayers[id][url]) {
+    _tileLayers[id][url] = L.tileLayer(url, {attribution: TILE_ATTR, maxZoom: 19});
+  }
+  return _tileLayers[id][url];
+}
+
 function applyTheme(dark) {
   document.documentElement.classList.toggle('dark', dark);
   const btn = document.getElementById('themeToggleBtn');
   if (btn) btn.innerHTML = dark ? '<i class="ti ti-sun"></i>' : '<i class="ti ti-moon"></i>';
   document.querySelector('meta[name="theme-color"]').setAttribute('content', dark ? '#121212' : '#F5A623');
-  // Swap tile layers on all active maps
-  const newUrl = dark
-    ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
-    : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
+  // Swap tile layers on all active maps — reuse cached instances to avoid re-fetching tiles
+  const lightUrl = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
+  const darkUrl  = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+  const newUrl   = dark ? darkUrl : lightUrl;
+  const oldUrl   = dark ? lightUrl : darkUrl;
   [window.farmMap, window.dealMap, window.pickerMap, window.communityMap, window.activityPickerMap]
     .filter(Boolean)
     .forEach(map => {
-      map.eachLayer(layer => { if (layer._url) map.removeLayer(layer); });
-      L.tileLayer(newUrl, {attribution: TILE_ATTR, maxZoom:19}).addTo(map);
+      const oldLayer = _tileLayers[map._leaflet_id]?.[oldUrl];
+      if (oldLayer) map.removeLayer(oldLayer);
+      _getOrCreateTile(map, newUrl).addTo(map);
     });
 }
 
@@ -2163,28 +2186,37 @@ function openFarmDetail(id) {
   const is88  = (f.eighty_eight_days||'').toLowerCase().startsWith('y') ? `<span class="badge" style="background:#E6F1FB;color:#185FA5;">88 days eligible</span>` : '';
 
   const el = document.getElementById('farmDetailContent');
+  // Sanitise URL schemes to prevent javascript: injection in href attributes
+  const safeUrl  = (u) => (u && /^https?:\/\//i.test(u.trim())) ? u.trim() : null;
+  const safePhone = (p) => (p && /^[\d\s+\-().]+$/.test(p.trim())) ? p.trim() : null;
+  const safeEmail = (e) => (e && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.trim())) ? e.trim() : null;
+
+  const fPhone   = safePhone(f.phone);
+  const fEmail   = safeEmail(f.email);
+  const fWebsite = safeUrl(f.website);
+
   el.innerHTML = `
     <div class="detail-hero">
       <div class="detail-hero-emoji">${emoji}</div>
-      <div class="detail-hero-name">${f.business_name}</div>
+      <div class="detail-hero-name">${escHTML(f.business_name)}</div>
       <div class="detail-hero-sub">
-        <i class="ti ti-map-pin"></i>${f.city||''}${f.state_region?', '+f.state_region:''} · ${f.country||''}
+        <i class="ti ti-map-pin"></i>${escHTML(f.city||'')}${f.state_region?', '+escHTML(f.state_region):''} · ${escHTML(f.country||'')}
         <span id="detail-hero-stars" style="display:inline-flex;align-items:center;gap:3px;margin-left:6px;"></span>
       </div>
       <div class="detail-badges">
-        <span class="badge">${f.farm_category_first||'Farm'}</span>${pay}${acc}${is88}
+        <span class="badge">${escHTML(f.farm_category_first||'Farm')}</span>${pay}${acc}${is88}
       </div>
     </div>
 
     <div class="detail-section">
       <div class="detail-section-title">Details</div>
-      ${f.pay_per_hour_aud ? `<div class="detail-row"><div class="detail-row-icon"><i class="ti ti-currency-dollar"></i></div><div class="detail-row-content"><div class="detail-row-label">Pay rate</div><div class="detail-row-value">$${f.pay_per_hour_aud} AUD / hour</div></div></div>` : ''}
-      ${f.accommodation ? `<div class="detail-row"><div class="detail-row-icon"><i class="ti ti-home"></i></div><div class="detail-row-content"><div class="detail-row-label">Accommodation</div><div class="detail-row-value">${f.accommodation}</div></div></div>` : ''}
-      ${f.season ? `<div class="detail-row"><div class="detail-row-icon"><i class="ti ti-calendar"></i></div><div class="detail-row-content"><div class="detail-row-label">Season</div><div class="detail-row-value">${f.season}</div></div></div>` : '<div class="detail-row"><div class="detail-row-icon"><i class="ti ti-calendar"></i></div><div class="detail-row-content"><div class="detail-row-label">Season</div><div class="detail-row-value" style="color:var(--text-light);">Not specified</div></div></div>'}
-      ${f.phone ? `<div class="detail-row"><div class="detail-row-icon"><i class="ti ti-phone"></i></div><div class="detail-row-content"><div class="detail-row-label">Phone</div><div class="detail-row-value"><a href="tel:${f.phone}" style="color:var(--amber-dark);">${f.phone}</a></div></div></div>` : '<div class="detail-row"><div class="detail-row-icon"><i class="ti ti-phone"></i></div><div class="detail-row-content"><div class="detail-row-label">Phone</div><div class="detail-row-value" style="color:var(--text-light);">Not listed</div></div></div>'}
-      ${f.email ? `<div class="detail-row"><div class="detail-row-icon"><i class="ti ti-mail"></i></div><div class="detail-row-content"><div class="detail-row-label">Email</div><div class="detail-row-value"><a href="mailto:${f.email}" style="color:var(--amber-dark);">${f.email}</a></div></div></div>` : '<div class="detail-row"><div class="detail-row-icon"><i class="ti ti-mail"></i></div><div class="detail-row-content"><div class="detail-row-label">Email</div><div class="detail-row-value" style="color:var(--text-light);">Not listed</div></div></div>'}
-      ${f.website ? `<div class="detail-row"><div class="detail-row-icon"><i class="ti ti-world"></i></div><div class="detail-row-content"><div class="detail-row-label">Website</div><div class="detail-row-value"><a href="${f.website}" target="_blank" style="color:var(--amber-dark);">${f.website}</a></div></div></div>` : '<div class="detail-row"><div class="detail-row-icon"><i class="ti ti-world"></i></div><div class="detail-row-content"><div class="detail-row-label">Website</div><div class="detail-row-value" style="color:var(--text-light);">Not listed</div></div></div>'}
-      ${f.notes ? `<div class="detail-row"><div class="detail-row-icon"><i class="ti ti-notes"></i></div><div class="detail-row-content"><div class="detail-row-label">Notes</div><div class="detail-row-value">${f.notes}</div></div></div>` : ''}
+      ${f.pay_per_hour_aud ? `<div class="detail-row"><div class="detail-row-icon"><i class="ti ti-currency-dollar"></i></div><div class="detail-row-content"><div class="detail-row-label">Pay rate</div><div class="detail-row-value">$${escHTML(String(f.pay_per_hour_aud))} AUD / hour</div></div></div>` : ''}
+      ${f.accommodation ? `<div class="detail-row"><div class="detail-row-icon"><i class="ti ti-home"></i></div><div class="detail-row-content"><div class="detail-row-label">Accommodation</div><div class="detail-row-value">${escHTML(f.accommodation)}</div></div></div>` : ''}
+      ${f.season ? `<div class="detail-row"><div class="detail-row-icon"><i class="ti ti-calendar"></i></div><div class="detail-row-content"><div class="detail-row-label">Season</div><div class="detail-row-value">${escHTML(f.season)}</div></div></div>` : '<div class="detail-row"><div class="detail-row-icon"><i class="ti ti-calendar"></i></div><div class="detail-row-content"><div class="detail-row-label">Season</div><div class="detail-row-value" style="color:var(--text-light);">Not specified</div></div></div>'}
+      ${fPhone ? `<div class="detail-row"><div class="detail-row-icon"><i class="ti ti-phone"></i></div><div class="detail-row-content"><div class="detail-row-label">Phone</div><div class="detail-row-value"><a href="tel:${escHTML(fPhone)}" style="color:var(--amber-dark);">${escHTML(fPhone)}</a></div></div></div>` : '<div class="detail-row"><div class="detail-row-icon"><i class="ti ti-phone"></i></div><div class="detail-row-content"><div class="detail-row-label">Phone</div><div class="detail-row-value" style="color:var(--text-light);">Not listed</div></div></div>'}
+      ${fEmail ? `<div class="detail-row"><div class="detail-row-icon"><i class="ti ti-mail"></i></div><div class="detail-row-content"><div class="detail-row-label">Email</div><div class="detail-row-value"><a href="mailto:${escHTML(fEmail)}" style="color:var(--amber-dark);">${escHTML(fEmail)}</a></div></div></div>` : '<div class="detail-row"><div class="detail-row-icon"><i class="ti ti-mail"></i></div><div class="detail-row-content"><div class="detail-row-label">Email</div><div class="detail-row-value" style="color:var(--text-light);">Not listed</div></div></div>'}
+      ${fWebsite ? `<div class="detail-row"><div class="detail-row-icon"><i class="ti ti-world"></i></div><div class="detail-row-content"><div class="detail-row-label">Website</div><div class="detail-row-value"><a href="${escHTML(fWebsite)}" target="_blank" rel="noopener noreferrer" style="color:var(--amber-dark);">${escHTML(fWebsite)}</a></div></div></div>` : '<div class="detail-row"><div class="detail-row-icon"><i class="ti ti-world"></i></div><div class="detail-row-content"><div class="detail-row-label">Website</div><div class="detail-row-value" style="color:var(--text-light);">Not listed</div></div></div>'}
+      ${f.notes ? `<div class="detail-row"><div class="detail-row-icon"><i class="ti ti-notes"></i></div><div class="detail-row-content"><div class="detail-row-label">Notes</div><div class="detail-row-value">${escHTML(f.notes)}</div></div></div>` : ''}
     </div>
 
     ${f.latitude && f.longitude ? `<div class="detail-section"><div class="detail-section-title">Location</div><div class="detail-map-mini" id="farmMiniMap"></div></div>` : ''}
@@ -2259,27 +2291,36 @@ async function submitFarmEdit() {
   const farmId = document.getElementById('editFarmId').value;
   const cachedFarm = allFarms ? allFarms.find(f => f.id === farmId) : null;
 
+  const _pay     = document.getElementById('editFarmPay').value.trim();
+  const _accom   = document.getElementById('editFarmAccom').value.trim();
+  const _season  = document.getElementById('editFarmSeason').value.trim();
+  const _phone   = document.getElementById('editFarmPhone').value.trim();
+  const _email   = document.getElementById('editFarmEmail').value.trim();
+  const _website = document.getElementById('editFarmWebsite').value.trim();
+  const _notes   = document.getElementById('editFarmNotes').value.trim();
+  const _88days  = document.getElementById('edit88Yes').classList.contains('on') ? 'Yes' : 'No';
+
   const payload = {
-    type: 'farm',
-    business_name: name,
-    details: [
-      'EDIT OF: ' + farmId,
-      'PAY: '    + (document.getElementById('editFarmPay').value     || '—'),
-      'ACCOM: '  + (document.getElementById('editFarmAccom').value   || '—'),
-      'SEASON: ' + (document.getElementById('editFarmSeason').value  || '—'),
-      'PHONE: '  + (document.getElementById('editFarmPhone').value   || '—'),
-      'EMAIL: '  + (document.getElementById('editFarmEmail').value   || '—'),
-      'WEB: '    + (document.getElementById('editFarmWebsite').value || '—'),
-      'NOTES: '  + (document.getElementById('editFarmNotes').value   || '—'),
-      '88DAYS: ' + (document.getElementById('edit88Yes').classList.contains('on') ? 'Yes' : 'No'),
-    ].join('\n'),
-    latitude:        parseFloat(document.getElementById('editFarmLat').value) || (cachedFarm ? cachedFarm.latitude  : null),
-    longitude:       parseFloat(document.getElementById('editFarmLng').value) || (cachedFarm ? cachedFarm.longitude : null),
-    country:         cachedFarm ? cachedFarm.country      : null,
-    state_region:    cachedFarm ? cachedFarm.state_region : null,
-    city:            cachedFarm ? cachedFarm.city         : null,
-    address:         cachedFarm ? cachedFarm.address      : null,
-    admin_decision:  'pending'
+    type:                'farm',
+    business_name:       name,
+    // 'details' carries only the edit reference + freetext notes so the
+    // approval trigger knows this is an edit and which row to update.
+    details:             ['EDIT OF: ' + farmId, _notes ? 'NOTES: ' + _notes : ''].filter(Boolean).join('\n'),
+    // Structured columns — read directly by the approval trigger
+    farm_pay_per_hour:   parseFloat(_pay)  || null,
+    farm_accommodation:  _accom   || null,
+    farm_season:         _season  || null,
+    farm_phone:          _phone   || null,
+    farm_email:          _email   || null,
+    farm_website:        _website || null,
+    farm_eighty_eight:   _88days,
+    latitude:            parseFloat(document.getElementById('editFarmLat').value) || (cachedFarm ? cachedFarm.latitude  : null),
+    longitude:           parseFloat(document.getElementById('editFarmLng').value) || (cachedFarm ? cachedFarm.longitude : null),
+    country:             cachedFarm ? cachedFarm.country      : null,
+    state_region:        cachedFarm ? cachedFarm.state_region : null,
+    city:                cachedFarm ? cachedFarm.city         : null,
+    address:             cachedFarm ? cachedFarm.address      : null,
+    admin_decision:      'pending'
   };
 
   try {
@@ -2472,15 +2513,25 @@ async function runEditSearch(query, resultsId, onSelect) {
     const r = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=5`, { headers: {'Accept-Language':'en'} });
     const data = await r.json();
     if (!data.length) { results.innerHTML = '<div class="picker-search-result"><span>No results found</span></div>'; return; }
-    results.innerHTML = data.map(item => {
+    // Store results + callback so onclick can reference by index (avoids toString() serialisation
+    // which breaks on apostrophes in place names and minified variable names)
+    window._editSearchResults = data;
+    window._editSearchCallback = onSelect;
+    results.innerHTML = data.map((item, i) => {
       const parts = item.display_name.split(',');
-      const name = parts[0].trim();
-      const rest = parts.slice(1,3).join(',').trim();
-      return `<div class="picker-search-result" onclick='(${onSelect.toString()})(${item.lat},${item.lon},"${item.display_name.replace(/"/g,"'")}")'><strong>${name}</strong><br><span>${rest}</span></div>`;
+      const name = escHTML(parts[0].trim());
+      const rest = escHTML(parts.slice(1,3).join(',').trim());
+      return `<div class="picker-search-result" onclick="pickEditResult(${i})"><strong>${name}</strong><br><span>${rest}</span></div>`;
     }).join('');
   } catch(e) {
     results.innerHTML = '<div class="picker-search-result"><span>Search unavailable</span></div>';
   }
+}
+
+function pickEditResult(i) {
+  const item = window._editSearchResults && window._editSearchResults[i];
+  if (!item || typeof window._editSearchCallback !== 'function') return;
+  window._editSearchCallback(item.lat, item.lon, item.display_name);
 }
 
 function closeEditLocalPrice() {
@@ -2710,13 +2761,17 @@ function openDealDetail(id) {
     : `<span class="badge" style="background:#FEF3DC;color:#854F0B;">Negotiating</span>`;
 
   const el = document.getElementById('dealDetailContent');
+  // Sanitise URL/contact schemes to prevent javascript: injection
+  const dWebsite = (d.website && /^https?:\/\//i.test(d.website.trim())) ? d.website.trim() : null;
+  const dPhone   = (d.contact_phone && /^[\d\s+\-().]+$/.test(d.contact_phone.trim())) ? d.contact_phone.trim() : null;
+
   el.innerHTML = `
     <div class="detail-hero">
       <div class="detail-hero-emoji">${emoji}</div>
-      <div class="detail-hero-name">${d.business_name}</div>
-      <div class="detail-hero-sub"><i class="ti ti-map-pin"></i>${d.city||''}${d.country?', '+d.country:''}</div>
+      <div class="detail-hero-name">${escHTML(d.business_name)}</div>
+      <div class="detail-hero-sub"><i class="ti ti-map-pin"></i>${escHTML(d.city||'')}${d.country?', '+escHTML(d.country):''}</div>
       <div class="detail-badges">
-        <span class="badge">${d.business_type||'Business'}</span>${statusBadge}
+        <span class="badge">${escHTML(d.business_type||'Business')}</span>${statusBadge}
       </div>
     </div>
 
@@ -2725,17 +2780,17 @@ function openDealDetail(id) {
       <div class="detail-discount-pct">-${pct}%</div>
       <div class="detail-discount-text">
         <div class="detail-discount-label">Discount for Hive members</div>
-        ${d.discount_description||'Show the app to redeem'}
+        ${escHTML(d.discount_description||'Show the app to redeem')}
       </div>
     </div>` : ''}
 
     <div class="detail-section">
       <div class="detail-section-title">How to redeem</div>
-      ${d.discount_description ? `<div class="detail-row"><div class="detail-row-icon"><i class="ti ti-tag"></i></div><div class="detail-row-content"><div class="detail-row-label">Offer</div><div class="detail-row-value">${d.discount_description}</div></div></div>` : ''}
-      ${d.availability ? `<div class="detail-row"><div class="detail-row-icon"><i class="ti ti-clock"></i></div><div class="detail-row-content"><div class="detail-row-label">Available</div><div class="detail-row-value">${d.availability}</div></div></div>` : ''}
-      ${d.notes ? `<div class="detail-row"><div class="detail-row-icon"><i class="ti ti-info-circle"></i></div><div class="detail-row-content"><div class="detail-row-label">Notes</div><div class="detail-row-value">${d.notes}</div></div></div>` : ''}
-      ${d.phone ? `<div class="detail-row"><div class="detail-row-icon"><i class="ti ti-phone"></i></div><div class="detail-row-content"><div class="detail-row-label">Phone</div><div class="detail-row-value">${d.phone}</div></div></div>` : ''}
-      ${d.website ? `<div class="detail-row"><div class="detail-row-icon"><i class="ti ti-world"></i></div><div class="detail-row-content"><div class="detail-row-label">Website</div><div class="detail-row-value"><a href="${d.website}" target="_blank" style="color:var(--amber-dark);">${d.website}</a></div></div></div>` : ''}
+      ${d.discount_description ? `<div class="detail-row"><div class="detail-row-icon"><i class="ti ti-tag"></i></div><div class="detail-row-content"><div class="detail-row-label">Offer</div><div class="detail-row-value">${escHTML(d.discount_description)}</div></div></div>` : ''}
+      ${d.availability ? `<div class="detail-row"><div class="detail-row-icon"><i class="ti ti-clock"></i></div><div class="detail-row-content"><div class="detail-row-label">Available</div><div class="detail-row-value">${escHTML(d.availability)}</div></div></div>` : ''}
+      ${d.notes ? `<div class="detail-row"><div class="detail-row-icon"><i class="ti ti-info-circle"></i></div><div class="detail-row-content"><div class="detail-row-label">Notes</div><div class="detail-row-value">${escHTML(d.notes)}</div></div></div>` : ''}
+      ${dPhone ? `<div class="detail-row"><div class="detail-row-icon"><i class="ti ti-phone"></i></div><div class="detail-row-content"><div class="detail-row-label">Phone</div><div class="detail-row-value"><a href="tel:${escHTML(dPhone)}" style="color:var(--amber-dark);">${escHTML(dPhone)}</a></div></div></div>` : ''}
+      ${dWebsite ? `<div class="detail-row"><div class="detail-row-icon"><i class="ti ti-world"></i></div><div class="detail-row-content"><div class="detail-row-label">Website</div><div class="detail-row-value"><a href="${escHTML(dWebsite)}" target="_blank" rel="noopener noreferrer" style="color:var(--amber-dark);">${escHTML(dWebsite)}</a></div></div></div>` : ''}
     </div>
 
     ${d.latitude && d.longitude ? `<div class="detail-section"><div class="detail-section-title">Location</div><div class="detail-map-mini" id="dealMiniMap"></div></div>` : ''}
@@ -3138,6 +3193,14 @@ async function loadHomeStats() {
     const count = await supaCount('submissions');
     const total = 1200 + count;
     document.getElementById('stat-members').textContent = total >= 1000 ? (total/1000).toFixed(1).replace('.0','')+'k' : total;
+    // Sync the community bar (previously hardcoded to "1,200 members" / 60%)
+    const pct = Math.min(Math.round(total / 2000 * 100), 100);
+    const communityCountEl = document.querySelector('.home-community-count');
+    const communityFillEl  = document.querySelector('.home-community-progress-fill');
+    const communityGoalEl  = document.querySelector('.community-goal');
+    if (communityCountEl) communityCountEl.textContent = total.toLocaleString() + ' members';
+    if (communityFillEl)  communityFillEl.style.width  = pct + '%';
+    if (communityGoalEl)  communityGoalEl.textContent  = pct + '%';
   } catch(e) { document.getElementById('stat-members').textContent = '1.2k'; }
 }
 
@@ -3164,7 +3227,12 @@ async function loadForumPosts() {
   const el = document.getElementById('forumContent');
   el.innerHTML = '<div class="map-loading"><div class="spinner"></div>Loading posts…</div>';
   try {
-    allPosts = await supaFetch('forum_posts', 'order=created_at.desc&limit=50');
+    // Use raw fetch so the limit=50 query param is actually respected.
+    // supaFetch auto-paginates with Range headers and ignores limit entirely.
+    const _fpRes = await fetch(`${SUPA_URL}/rest/v1/forum_posts?order=created_at.desc&limit=50`, {
+      headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` }
+    });
+    allPosts = await _fpRes.json();
   } catch(e) { allPosts = []; }
   renderForumPosts();
 }
@@ -3267,40 +3335,78 @@ async function openPost(id) {
       <div class="replies-title">Replies (${replies.length})</div>
       ${repliesHTML}
       <div style="height:20px;"></div>`;
+    restoreLikeState();
   } catch(e) {
     el.innerHTML = '<div class="no-posts">Could not load post.</div>';
   }
 }
 
+// ── Like helpers with localStorage dedup (fix #6) ──
+function getLikedSet(key) {
+  try { return new Set(JSON.parse(localStorage.getItem(key) || '[]')); } catch(e) { return new Set(); }
+}
+function saveLikedSet(key, set) {
+  try { localStorage.setItem(key, JSON.stringify([...set])); } catch(e) {}
+}
+
 async function likePost(id, btn) {
-  if (btn.classList.contains('liked')) return;
+  const liked = getLikedSet('hive_liked_posts');
+  if (liked.has(id) || btn.classList.contains('liked')) {
+    btn.classList.add('liked');
+    return;
+  }
+  liked.add(id);
+  saveLikedSet('hive_liked_posts', liked);
   btn.classList.add('liked');
+  // Optimistic UI update
+  const countEl = document.getElementById('postLikeCount');
+  if (countEl) countEl.textContent = (parseInt(countEl.textContent)||0) + 1;
   try {
-    const post = allPosts.find(p => p.id === id);
-    const newLikes = (post ? post.likes||0 : 0) + 1;
-    await fetch(`${SUPA_URL}/rest/v1/forum_posts?id=eq.${id}`, {
-      method:'PATCH',
-      headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${SUPA_KEY}`,'Content-Type':'application/json','Prefer':'return=minimal'},
-      body: JSON.stringify({likes: newLikes})
+    // Atomic server-side increment via RPC — no read-then-write race
+    await fetch(`${SUPA_URL}/rest/v1/rpc/increment_post_likes`, {
+      method: 'POST',
+      headers: {'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}`, 'Content-Type': 'application/json'},
+      body: JSON.stringify({ post_id: id })
     });
-    document.getElementById('postLikeCount').textContent = newLikes;
-    if (post) post.likes = newLikes;
   } catch(e) {}
 }
 
 async function likeReply(id, btn) {
-  if (btn.classList.contains('liked')) return;
+  const liked = getLikedSet('hive_liked_replies');
+  if (liked.has(id) || btn.classList.contains('liked')) {
+    btn.classList.add('liked');
+    return;
+  }
+  liked.add(id);
+  saveLikedSet('hive_liked_replies', liked);
   btn.classList.add('liked');
+  // Optimistic UI update
+  const current = parseInt((btn.textContent||'').replace(/\D/g,''))||0;
+  btn.innerHTML = `<i class="ti ti-heart"></i> ${current + 1}`;
   try {
-    const res = await supaFetch('forum_replies', `id=eq.${id}&select=likes`);
-    const newLikes = ((res[0]&&res[0].likes)||0) + 1;
-    await fetch(`${SUPA_URL}/rest/v1/forum_replies?id=eq.${id}`, {
-      method:'PATCH',
-      headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${SUPA_KEY}`,'Content-Type':'application/json','Prefer':'return=minimal'},
-      body: JSON.stringify({likes: newLikes})
+    // Atomic server-side increment via RPC — no read-then-write race
+    await fetch(`${SUPA_URL}/rest/v1/rpc/increment_reply_likes`, {
+      method: 'POST',
+      headers: {'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}`, 'Content-Type': 'application/json'},
+      body: JSON.stringify({ reply_id: id })
     });
-    btn.innerHTML = `<i class="ti ti-heart"></i> ${newLikes}`;
   } catch(e) {}
+}
+
+// Restore liked state from localStorage when opening a post
+function restoreLikeState() {
+  const likedPosts = getLikedSet('hive_liked_posts');
+  const likedReplies = getLikedSet('hive_liked_replies');
+  document.querySelectorAll('[id^="postLikeBtn"]').forEach(btn => {
+    const onclick = btn.getAttribute('onclick') || '';
+    const m = onclick.match(/likePost\('([^']+)'/);
+    if (m && likedPosts.has(m[1])) btn.classList.add('liked');
+  });
+  document.querySelectorAll('.reply-like-btn').forEach(btn => {
+    const onclick = btn.getAttribute('onclick') || '';
+    const m = onclick.match(/likeReply\(decodeURIComponent\('([^']+)'/);
+    if (m && likedReplies.has(decodeURIComponent(m[1]))) btn.classList.add('liked');
+  });
 }
 
 async function submitReply() {
@@ -3312,7 +3418,8 @@ async function submitReply() {
     await supaInsert('forum_replies', {
       post_id: currentPostId,
       content,
-      author_name: 'Anonymous',
+      author_name: currentUser?.name || 'Anonymous',
+      user_id: currentUser?.id || null,
       likes: 0
     });
     openPost(currentPostId);
@@ -3324,6 +3431,9 @@ async function submitReply() {
 
 function openNewPost() {
   document.getElementById('newPostModal').classList.add('open');
+  // Pre-fill author name if the user is logged in
+  const authorEl = document.getElementById('postAuthor');
+  if (authorEl && currentUser?.name) authorEl.value = currentUser.name;
   setTimeout(() => document.getElementById('postTitle').focus(), 400);
 }
 function handleNewPostBackdrop(e) { if (e.target === document.getElementById('newPostModal')) document.getElementById('newPostModal').classList.remove('open'); }
@@ -3341,7 +3451,7 @@ async function submitNewPost() {
   if (!title)   { showToast('Please enter a title'); return; }
   if (!content) { showToast('Please enter some content'); return; }
   try {
-    await supaInsert('forum_posts', { title, content, author_name: author, category: selectedPostCat, likes: 0 });
+    await supaInsert('forum_posts', { title, content, author_name: author, user_id: currentUser?.id || null, category: selectedPostCat, likes: 0 });
     document.getElementById('newPostModal').classList.remove('open');
     document.getElementById('postTitle').value = '';
     document.getElementById('postContent').value = '';
@@ -3824,7 +3934,8 @@ function showValidationError(msg) {
     'gap:10px',
     'align-items:flex-start',
   ].join(';');
-  banner.innerHTML = `<i class="ti ti-alert-triangle" style="font-size:18px;flex-shrink:0;margin-top:1px;"></i><span>${msg.replace(/\n/g,'<br>')}</span>`;
+  // escHTML the message before injecting — msg may contain user-typed item names (XSS fix)
+  banner.innerHTML = `<i class="ti ti-alert-triangle" style="font-size:18px;flex-shrink:0;margin-top:1px;"></i><span>${escHTML(msg).replace(/\n/g,'<br>')}</span>`;
 
   // Insert before the submit button inside the active sheet
   const submitBtn = document.querySelector('.modal-backdrop.open .submit-btn')
@@ -3956,11 +4067,14 @@ async function runPickerSearch(q) {
       results.innerHTML = '<div class="picker-search-result"><span>No results found</span></div>';
       return;
     }
+    // Store results so onclick can reference by index — avoids serialising display_name
+    // (which may contain apostrophes / HTML characters) into an attribute string.
+    window._pickerSearchResults = data;
     results.innerHTML = data.map((r, i) => {
       const parts = r.display_name.split(', ');
-      const name = parts.slice(0, 2).join(', ');
-      const rest = parts.slice(2).join(', ');
-      return `<div class="picker-search-result" onclick="pickSearchResult(${r.lat},${r.lon},'${r.display_name.replace(/'/g,"\'")}')">
+      const name = escHTML(parts.slice(0, 2).join(', '));
+      const rest = escHTML(parts.slice(2).join(', '));
+      return `<div class="picker-search-result" onclick="pickSearchResultByIndex(${i})">
         <strong>${name}</strong><br><span>${rest}</span>
       </div>`;
     }).join('');
@@ -3988,6 +4102,14 @@ async function pickSearchResult(lat, lon, label) {
       if (suggested) nameField.value = suggested;
     } catch(e) {}
   }
+}
+
+// Index-based wrapper — avoids embedding display_name (third-party, may contain HTML chars)
+// directly into an onclick attribute string.
+function pickSearchResultByIndex(i) {
+  const r = window._pickerSearchResults && window._pickerSearchResults[i];
+  if (!r) return;
+  pickSearchResult(r.lat, r.lon, r.display_name);
 }
 
 // ── SHARED UTILITIES ──
@@ -4192,7 +4314,7 @@ async function submitForm() {
         city:          geo.city,
         address:       geo.address,
       };
-      // Farm-specific fields stored in details
+      // Farm-specific fields stored in dedicated columns (read by approval trigger)
       if (type === 'farm') {
         const phone   = document.getElementById('farmFieldPhone').value.trim();
         const email   = document.getElementById('farmFieldEmail').value.trim();
@@ -4200,15 +4322,12 @@ async function submitForm() {
         const pay     = document.getElementById('farmFieldPay').value.trim();
         const accom   = document.getElementById('farmFieldAccom').value.trim();
         const season  = document.getElementById('farmFieldSeason').value.trim();
-        const extra = [
-          phone   ? 'Phone: ' + phone     : '',
-          email   ? 'Email: ' + email     : '',
-          website ? 'Website: ' + website : '',
-          pay     ? 'Pay: ' + pay + ' AUD/h' : '',
-          accom   ? 'Accom: ' + accom     : '',
-          season  ? 'Season: ' + season   : ''
-        ].filter(Boolean).join(' | ');
-        if (extra) payload.details = (payload.details ? payload.details + ' | ' : '') + extra;
+        payload.farm_phone         = phone   || null;
+        payload.farm_email         = email   || null;
+        payload.farm_website       = website || null;
+        payload.farm_pay_per_hour  = parseFloat(pay) || null;
+        payload.farm_accommodation = accom   || null;
+        payload.farm_season        = season  || null;
       }
       await supaInsert('submissions', payload);
     }
@@ -4253,7 +4372,15 @@ async function confirmDelete() {
   let itemName = '';
 
   if (type === 'localprice') {
-    refId = document.getElementById('editLocalPriceKey')?.value;
+    // Fix #13: use actual DB ids instead of fragile composite key
+    const lpKey = document.getElementById('editLocalPriceKey')?.value;
+    const lpGroup = priceGroupsCache[lpKey];
+    if (lpGroup && lpGroup.items && lpGroup.items.length) {
+      // Store all item ids as pipe-separated list so admin can delete each by id
+      refId = lpGroup.items.map(i => i.id).filter(Boolean).join('|');
+    } else {
+      refId = lpKey; // fallback to composite key for older submissions
+    }
     itemName = 'local price listing';
     document.getElementById('editLocalPriceModal')?.classList.remove('open');
   } else if (type === 'farm') {
@@ -4285,12 +4412,60 @@ function showToast(msg) {
 }
 
 // ── AUTH STATE ──
-let currentUser = null; // {id, email, name, access_token}
-// Restore session from localStorage
+let currentUser = null; // {id, email, name, access_token, refresh_token}
+
+// Silently refresh an expired access_token using the stored refresh_token.
+// Returns true if successful, false if the session is unrecoverable.
+async function refreshSession() {
+  const saved = (() => { try { return JSON.parse(localStorage.getItem('hive_session')); } catch(e) { return null; } })();
+  if (!saved?.refresh_token) return false;
+  try {
+    const res = await fetch(`${SUPA_URL}/auth/v1/token?grant_type=refresh_token`, {
+      method: 'POST',
+      headers: { 'apikey': SUPA_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh_token: saved.refresh_token })
+    });
+    if (!res.ok) return false;
+    const data = await res.json();
+    if (!data.access_token) return false;
+    currentUser = {
+      ...saved,
+      access_token: data.access_token,
+      refresh_token: data.refresh_token || saved.refresh_token
+    };
+    localStorage.setItem('hive_session', JSON.stringify(currentUser));
+    return true;
+  } catch(e) { return false; }
+}
+
+// Restore session from localStorage + validate JWT against Supabase
 (function() {
   try {
     const saved = localStorage.getItem('hive_session');
-    if (saved) currentUser = JSON.parse(saved);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      // Optimistically restore so UI isn't blank while we verify
+      currentUser = parsed;
+      updateHeaderAuth();
+      // Validate token server-side; attempt refresh before logging out
+      if (parsed && parsed.access_token) {
+        fetch(`${SUPA_URL}/auth/v1/user`, {
+          headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${parsed.access_token}` }
+        }).then(async r => {
+          if (!r.ok) {
+            // Token rejected — try to refresh before giving up
+            const refreshed = await refreshSession();
+            if (!refreshed) {
+              currentUser = null;
+              localStorage.removeItem('hive_session');
+              updateHeaderAuth();
+            }
+          }
+        }).catch(() => {
+          // Network error — keep session optimistically (offline-friendly)
+        });
+      }
+    }
   } catch(e) {}
 })();
 
@@ -4347,8 +4522,10 @@ async function doLogin() {
       id: data.user.id,
       email: data.user.email,
       name: data.user.user_metadata?.name || data.user.email.split('@')[0],
-      access_token: data.access_token
+      access_token: data.access_token,
+      refresh_token: data.refresh_token || null
     };
+    localStorage.setItem('hive_session', JSON.stringify(currentUser));
     updateHeaderAuth();
     goTo('home');
     showToast('Welcome back, ' + currentUser.name + '! 🐝');
@@ -4379,8 +4556,10 @@ async function doRegister() {
       id: data.user?.id || data.id,
       email,
       name: name || email.split('@')[0],
-      access_token: data.access_token
+      access_token: data.access_token,
+      refresh_token: data.refresh_token || null
     };
+    localStorage.setItem('hive_session', JSON.stringify(currentUser));
     updateHeaderAuth();
     goTo('home');
     showToast('Welcome to the hive, ' + (currentUser.name) + '! 🐝');
@@ -4401,6 +4580,7 @@ function handleOAuthRedirect() {
   if (!hash.includes('access_token')) return;
   const params = new URLSearchParams(hash.substring(1));
   const token = params.get('access_token');
+  const refreshToken = params.get('refresh_token') || null;
   if (!token) return;
   fetch(`${SUPA_URL}/auth/v1/user`, {
     headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${token}` }
@@ -4410,7 +4590,8 @@ function handleOAuthRedirect() {
         id: data.id,
         email: data.email,
         name: data.user_metadata?.full_name || data.user_metadata?.name || data.email.split('@')[0],
-        access_token: token
+        access_token: token,
+        refresh_token: refreshToken
       };
       localStorage.setItem('hive_session', JSON.stringify(currentUser));
       updateHeaderAuth();
@@ -4434,9 +4615,9 @@ function renderProfilePage() {
   const el = document.getElementById('profileContent');
   el.innerHTML = `
     <div class="profile-header">
-      <div class="profile-avatar-big">${initials}</div>
-      <div class="profile-name">${currentUser.name}</div>
-      <div class="profile-email">${currentUser.email}</div>
+      <div class="profile-avatar-big">${escHTML(initials)}</div>
+      <div class="profile-name">${escHTML(currentUser.name)}</div>
+      <div class="profile-email">${escHTML(currentUser.email)}</div>
       <div class="profile-member-since"><i class="ti ti-calendar"></i> Member since ${new Date().toLocaleDateString('en',{month:'long',year:'numeric'})}</div>
     </div>
     <div class="profile-stats">
