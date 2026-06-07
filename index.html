@@ -1452,28 +1452,34 @@ async function supaFetch(table, params='') {
   return allRows;
 }
 
-// Cache IP to avoid fetching multiple times per session
-let _cachedIP = null;
-async function getClientIP() {
-  if (_cachedIP) return _cachedIP;
-  try {
-    const r = await fetch('https://api.ipify.org?format=json');
-    const d = await r.json();
-    _cachedIP = d.ip || null;
-  } catch(e) { _cachedIP = null; }
-  return _cachedIP;
-}
-
 async function supaInsert(table, data) {
-  // Use the logged-in user's JWT so auth.uid() resolves in DB triggers/policies.
-  // Falls back to anon key for unauthenticated actions.
-  const token = currentUser?.access_token || SUPA_KEY;
-  // Attach IP for rate limiting on submissions
-  let payload = data;
+  // Submissions go through the Edge Function so the server captures the real IP
+  // and validates/sanitizes all fields. Other tables use the REST API directly.
   if (table === 'submissions') {
-    const ip = await getClientIP();
-    payload = { ...data, ip_address: ip };
+    const token = currentUser?.access_token || SUPA_KEY;
+    const res = await fetch(`${SUPA_URL}/functions/v1/submit`, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPA_KEY,
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) {
+      let errText = '';
+      try { errText = (await res.json()).error || ''; } catch(e) { errText = await res.text(); }
+      if (res.status === 429 || errText.includes('Rate limit')) {
+        throw new Error('You have submitted too many times. Please wait an hour before trying again.');
+      }
+      console.error('Submit edge function error:', res.status, errText);
+      throw new Error(errText || 'Submission failed, please try again');
+    }
+    return res.json();
   }
+
+  // Non-submission inserts (forum posts, reviews, activities, etc.)
+  const token = currentUser?.access_token || SUPA_KEY;
   const doFetch = (tok) => fetch(`${SUPA_URL}/rest/v1/${table}`, {
     method: 'POST',
     headers: {
@@ -1482,7 +1488,7 @@ async function supaInsert(table, data) {
       'Content-Type': 'application/json',
       'Prefer': 'return=minimal'
     },
-    body: JSON.stringify(payload)
+    body: JSON.stringify(data)
   });
   let res = await doFetch(token);
   // If the access token expired mid-session, try to refresh once and retry
@@ -1492,10 +1498,6 @@ async function supaInsert(table, data) {
   }
   if (!res.ok) {
     const errText = await res.text();
-    // Show user-friendly message for rate limit
-    if (errText.includes('Rate limit exceeded')) {
-      throw new Error('You have submitted too many times. Please wait an hour before trying again.');
-    }
     console.error('Supabase insert error:', res.status, errText);
     throw new Error(errText);
   }
@@ -3190,10 +3192,14 @@ async function loadHomeStats() {
     document.getElementById('stat-deals').textContent = count;
   } catch(e) {}
   try {
-    const count = await supaCount('submissions');
-    const total = 1200 + count;
+    // Real member count via SECURITY DEFINER RPC — no more fabricated 1,200 + submissions
+    const res = await fetch(`${SUPA_URL}/rest/v1/rpc/get_member_count`, {
+      method: 'POST',
+      headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}`, 'Content-Type': 'application/json' },
+      body: '{}'
+    });
+    const total = await res.json();
     document.getElementById('stat-members').textContent = total >= 1000 ? (total/1000).toFixed(1).replace('.0','')+'k' : total;
-    // Sync the community bar (previously hardcoded to "1,200 members" / 60%)
     const pct = Math.min(Math.round(total / 2000 * 100), 100);
     const communityCountEl = document.querySelector('.home-community-count');
     const communityFillEl  = document.querySelector('.home-community-progress-fill');
@@ -3201,7 +3207,7 @@ async function loadHomeStats() {
     if (communityCountEl) communityCountEl.textContent = total.toLocaleString() + ' members';
     if (communityFillEl)  communityFillEl.style.width  = pct + '%';
     if (communityGoalEl)  communityGoalEl.textContent  = pct + '%';
-  } catch(e) { document.getElementById('stat-members').textContent = '1.2k'; }
+  } catch(e) { document.getElementById('stat-members').textContent = '–'; }
 }
 
 // ── HELPERS ──
@@ -3341,7 +3347,7 @@ async function openPost(id) {
   }
 }
 
-// ── Like helpers with localStorage dedup (fix #6) ──
+// ── Like helpers with localStorage dedup (client-side fast-path) + server dedup ──
 function getLikedSet(key) {
   try { return new Set(JSON.parse(localStorage.getItem(key) || '[]')); } catch(e) { return new Set(); }
 }
@@ -3355,19 +3361,24 @@ async function likePost(id, btn) {
     btn.classList.add('liked');
     return;
   }
+  // Optimistic UI update
   liked.add(id);
   saveLikedSet('hive_liked_posts', liked);
   btn.classList.add('liked');
-  // Optimistic UI update
   const countEl = document.getElementById('postLikeCount');
   if (countEl) countEl.textContent = (parseInt(countEl.textContent)||0) + 1;
   try {
-    // Atomic server-side increment via RPC — no read-then-write race
-    await fetch(`${SUPA_URL}/rest/v1/rpc/increment_post_likes`, {
+    const token = currentUser?.access_token || SUPA_KEY;
+    const res = await fetch(`${SUPA_URL}/functions/v1/post-like`, {
       method: 'POST',
-      headers: {'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}`, 'Content-Type': 'application/json'},
-      body: JSON.stringify({ post_id: id })
+      headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ target_id: id, target_type: 'post' })
     });
+    // If server says already liked, revert the optimistic count increment
+    if (res.ok) {
+      const d = await res.json();
+      if (d.already_liked && countEl) countEl.textContent = Math.max(0, (parseInt(countEl.textContent)||0) - 1);
+    }
   } catch(e) {}
 }
 
@@ -3377,19 +3388,24 @@ async function likeReply(id, btn) {
     btn.classList.add('liked');
     return;
   }
+  // Optimistic UI update
   liked.add(id);
   saveLikedSet('hive_liked_replies', liked);
   btn.classList.add('liked');
-  // Optimistic UI update
   const current = parseInt((btn.textContent||'').replace(/\D/g,''))||0;
   btn.innerHTML = `<i class="ti ti-heart"></i> ${current + 1}`;
   try {
-    // Atomic server-side increment via RPC — no read-then-write race
-    await fetch(`${SUPA_URL}/rest/v1/rpc/increment_reply_likes`, {
+    const token = currentUser?.access_token || SUPA_KEY;
+    const res = await fetch(`${SUPA_URL}/functions/v1/post-like`, {
       method: 'POST',
-      headers: {'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}`, 'Content-Type': 'application/json'},
-      body: JSON.stringify({ reply_id: id })
+      headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ target_id: id, target_type: 'reply' })
     });
+    // If server says already liked, revert the optimistic count increment
+    if (res.ok) {
+      const d = await res.json();
+      if (d.already_liked) btn.innerHTML = `<i class="ti ti-heart"></i> ${current}`;
+    }
   } catch(e) {}
 }
 
@@ -4792,23 +4808,34 @@ const ACT_ICONS = {
   other:'📌'
 };
 
-// Sample local activities (shown before any DB integration)
-const DEMO_ACTIVITIES = [
-  {id:'a1',title:'Sunrise hike – Blue Mountains',cat:'outdoor',desc:'Meet at Echo Point carpark, bring water & snacks. 3hr loop.',date:'2026-06-07',lat:-33.7333,lng:150.3119,author:'Sophie L.',joined:3},
-  {id:'a2',title:'5-a-side footie – Centennial Park',cat:'sport',desc:'Teams of 5. Casual, all welcome. Grass pitch.',date:'2026-06-09',lat:-33.8976,lng:151.2349,author:'Tom B.',joined:5},
-  {id:'a3',title:'Thursday night out – Kings Cross',cat:'nightlife',desc:'Meeting at World Bar at 9pm. Good vibes only!',date:'2026-06-05',lat:-33.8750,lng:151.2250,author:'Marc K.',joined:9},
-  {id:'a4',title:'Brunch run – Surry Hills',cat:'food',desc:'Café crawl through the best brunch spots. Meet at Central Station.',date:'2026-06-08',lat:-33.8843,lng:151.2093,author:'Ana I.',joined:6},
-  {id:'a5',title:'Backpacker meet-up – Hyde Park',cat:'social',desc:'Bring something to share! BYO. Great way to meet people.',date:'2026-06-08',lat:-33.8730,lng:151.2108,author:'Liu W.',joined:12},
-  {id:'a6',title:'Rideshare to Melbourne – Fri 6 June',cat:'rideshare',desc:'Leaving Sydney 7am, 3 seats available. Split fuel costs ~$40pp.',date:'2026-06-06',lat:-33.8688,lng:151.2093,author:'James R.',joined:2},
-  {id:'a7',title:'Coastal walk – Coogee to Bondi',cat:'sightseeing',desc:'6km iconic coastal walk. Meeting at Coogee Beach carpark 8am.',date:'2026-06-10',lat:-33.9225,lng:151.2564,author:'Sophie L.',joined:4},
-  {id:'a8',title:'Yoga on the beach – Manly',cat:'wellness',desc:'Free community yoga session, bring your mat. Sunrise vibes.',date:'2026-06-11',lat:-33.7967,lng:151.2873,author:'Mia T.',joined:8},
-];
+// Sample local activities are now loaded from Supabase activities table (see loadActivities())
+const DEMO_ACTIVITIES = [];
 
 function initCommunityMap() {
   window.communityMap = communityMap = L.map('communityMap', {center:[-30,147], zoom:4, zoomControl:false});
   getUserLocation().then(pos => { if (pos) communityMap.setView([pos.lat, pos.lng], 11); });
   L.tileLayer(TILE_URL, {attribution:TILE_ATTR, maxZoom:19}).addTo(communityMap);
-  allActivities = [...DEMO_ACTIVITIES];
+  loadActivities();
+}
+
+async function loadActivities() {
+  try {
+    const rows = await supaFetch('activities', 'order=created_at.desc&limit=200');
+    allActivities = rows.map(r => ({
+      id: r.id,
+      title: r.title,
+      cat: r.category,
+      desc: r.description || '',
+      date: r.date || '',
+      lat: parseFloat(r.latitude),
+      lng: parseFloat(r.longitude),
+      author: r.author_name,
+      joined: r.joined_count || 0,
+      joinedByMe: false
+    }));
+  } catch(e) {
+    allActivities = [];
+  }
   renderActivityMarkers(allActivities);
 }
 
@@ -4858,15 +4885,37 @@ function filterActivities(btn, cat) {
   renderActivityMarkers(filtered);
 }
 
-function joinActivity(id, btn) {
+async function joinActivity(id, btn) {
   const act = allActivities.find(a => a.id === id);
   if (!act) return;
   if (!currentUser) { showToast('Sign in to join activities'); return; }
-  act.joinedByMe = !act.joinedByMe;
-  act.joined += act.joinedByMe ? 1 : -1;
-  btn.textContent = act.joinedByMe ? '✓ Joined' : 'Join activity';
-  btn.className = 'activity-join-btn' + (act.joinedByMe ? ' joined' : '');
-  showToast(act.joinedByMe ? 'You joined the activity! 🎉' : 'Left the activity');
+
+  const joining = !act.joinedByMe;
+  act.joinedByMe = joining;
+  act.joined += joining ? 1 : -1;
+  btn.textContent = joining ? '✓ Joined' : 'Join activity';
+  btn.className = 'activity-join-btn' + (joining ? ' joined' : '');
+  showToast(joining ? 'You joined the activity! 🎉' : 'Left the activity');
+
+  try {
+    const rpcName = joining ? 'join_activity' : 'leave_activity';
+    await fetch(`${SUPA_URL}/rest/v1/rpc/${rpcName}`, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPA_KEY,
+        'Authorization': `Bearer ${currentUser.access_token || SUPA_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ p_activity_id: id })
+    });
+  } catch(e) {
+    // Revert optimistic update on failure
+    act.joinedByMe = !joining;
+    act.joined += joining ? -1 : 1;
+    btn.textContent = act.joinedByMe ? '✓ Joined' : 'Join activity';
+    btn.className = 'activity-join-btn' + (act.joinedByMe ? ' joined' : '');
+    showToast('Could not save — please try again');
+  }
 }
 
 function toggleCommunityView() {
@@ -4942,30 +4991,37 @@ function locateOnActivityPicker() {
   }, () => showToast('Could not get location'));
 }
 
-function submitNewActivity() {
+async function submitNewActivity() {
   const title = document.getElementById('activityTitle').value.trim();
   const desc  = document.getElementById('activityDesc').value.trim();
   const date  = document.getElementById('activityDate').value;
   if (!title) { showToast('Please add a title'); return; }
   if (!date)  { showToast('Please add a date'); return; }
-  const newAct = {
-    id: 'a' + Date.now(),
-    title, cat: selectedActivityCat,
-    desc: desc || 'No description provided.',
+
+  const payload = {
+    title,
+    category:    selectedActivityCat,
+    description: desc || null,
     date,
-    lat: activityPickerLat || -33.87,
-    lng: activityPickerLng || 151.21,
-    author: currentUser ? currentUser.name : 'Anonymous',
-    joined: 0
+    latitude:    activityPickerLat || -33.87,
+    longitude:   activityPickerLng || 151.21,
+    author_name: currentUser ? currentUser.name : 'Anonymous',
+    user_id:     currentUser ? currentUser.id   : null,
+    joined_count: 0
   };
-  allActivities.unshift(newAct);
-  renderActivityMarkers(allActivities);
-  document.getElementById('newActivityModal').classList.remove('open');
-  showToast('Activity added to the map! 📍');
-  // Switch to map view if in forum
-  if (communityViewMode !== 'map') toggleCommunityView();
-  // Pan to the new marker
-  if (communityMap) communityMap.setView([newAct.lat, newAct.lng], 13);
+
+  try {
+    await supaInsert('activities', payload);
+    showToast('Activity added to the map! 📍');
+    document.getElementById('newActivityModal').classList.remove('open');
+    await loadActivities();
+    if (communityViewMode !== 'map') toggleCommunityView();
+    if (communityMap && payload.latitude && payload.longitude) {
+      communityMap.setView([payload.latitude, payload.longitude], 13);
+    }
+  } catch(e) {
+    showToast('Could not save activity — please try again');
+  }
 }
 
 // ── ADVANCED FILTERS ──
