@@ -4,209 +4,468 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>The Hive — Admin</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Fraunces:wght@600;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --amber:#F5A623;--amber-dark:#D4851A;--amber-light:#FEF3DC;--amber-pale:#FFFAF2;
-  --white:#FFFFFF;--off-white:#F8F6F2;--text-dark:#1A1714;--text-mid:#5C5750;--text-light:#9C958E;
-  --border:rgba(0,0,0,0.08);--border-mid:rgba(0,0,0,0.14);
-  --green:#3B6D11;--green-light:#EAF3DE;
-  --red:#B91C1C;--red-light:#FEEAEA;
-  --blue:#185FA5;--blue-light:#E6F1FB;
-  --radius-sm:8px;--radius-md:12px;--radius-lg:18px;
-  --shadow-sm:0 1px 4px rgba(0,0,0,0.06),0 0 0 0.5px rgba(0,0,0,0.06);
-  --shadow-md:0 4px 16px rgba(0,0,0,0.12);
+  --bg:#0D0D0F;
+  --surface:#141416;
+  --surface2:#1C1C1F;
+  --surface3:#242427;
+  --border:rgba(255,255,255,0.06);
+  --border-mid:rgba(255,255,255,0.10);
+  --amber:#F5A623;
+  --amber-dim:#2A1D00;
+  --amber-glow:rgba(245,166,35,0.15);
+  --green:#34C759;
+  --green-dim:#0D2E17;
+  --red:#FF453A;
+  --red-dim:#2E0D0B;
+  --blue:#0A84FF;
+  --blue-dim:#0D1F35;
+  --purple:#BF5AF2;
+  --text:#F0EDE8;
+  --text-mid:#9A9590;
+  --text-dim:#4A4740;
+  --radius:10px;
+  --radius-lg:16px;
+  --shadow:0 2px 20px rgba(0,0,0,0.5);
+  --shadow-lg:0 8px 40px rgba(0,0,0,0.7);
 }
-body{font-family:'DM Sans',sans-serif;background:var(--off-white);color:var(--text-dark);-webkit-font-smoothing:antialiased;min-height:100vh}
 
-/* HEADER */
-.header{background:var(--white);border-bottom:0.5px solid var(--border-mid);padding:0 32px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
-.logo{font-family:'Fraunces',serif;font-size:20px;font-weight:700}.logo span{color:var(--amber)}
-.header-right{display:flex;align-items:center;gap:16px}
-.admin-badge{font-size:11px;font-weight:600;background:var(--amber-light);color:var(--amber-dark);padding:4px 10px;border-radius:20px;border:0.5px solid rgba(245,166,35,0.3)}
-.logout-btn{font-size:13px;color:var(--text-light);background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:5px}
-.logout-btn:hover{color:var(--text-dark)}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;-webkit-font-smoothing:antialiased;overflow:hidden}
 
-/* LOGIN */
-.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
-.login-card{background:var(--white);border-radius:var(--radius-lg);padding:40px;width:100%;max-width:380px;box-shadow:var(--shadow-md);border:0.5px solid var(--border)}
-.login-logo{font-family:'Fraunces',serif;font-size:32px;font-weight:700;text-align:center;margin-bottom:6px}.login-logo span{color:var(--amber)}
-.login-sub{text-align:center;font-size:13px;color:var(--text-light);margin-bottom:28px}
-.login-form{display:flex;flex-direction:column;gap:12px}
-.form-input{width:100%;padding:11px 14px;border:0.5px solid var(--border-mid);border-radius:var(--radius-md);font-family:'DM Sans',sans-serif;font-size:15px;background:var(--white);outline:none;transition:border-color 0.15s}
-.form-input:focus{border-color:var(--amber);box-shadow:0 0 0 3px rgba(245,166,35,0.12)}
-.login-btn{width:100%;padding:13px;background:var(--amber);color:white;border:none;border-radius:var(--radius-lg);font-family:'Fraunces',serif;font-size:16px;font-weight:700;cursor:pointer;transition:background 0.15s}
-.login-btn:hover{background:var(--amber-dark)}
-.login-error{background:var(--red-light);border:0.5px solid #F5BCBC;border-radius:var(--radius-md);padding:10px 14px;font-size:13px;color:var(--red);display:none}
-.login-error.show{display:block}
-.login-divider{display:flex;align-items:center;gap:10px;margin:4px 0;color:var(--text-light);font-size:12px}
-.login-divider::before,.login-divider::after{content:'';flex:1;height:0.5px;background:var(--border-mid)}
-.btn-google{width:100%;padding:11px 14px;background:var(--white);border:0.5px solid var(--border-mid);border-radius:var(--radius-lg);font-family:'DM Sans',sans-serif;font-size:15px;font-weight:500;color:var(--text-dark);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:all 0.15s}
-.btn-google:hover{border-color:var(--text-mid);background:var(--off-white);box-shadow:var(--shadow-sm)}
-.btn-google svg{width:18px;height:18px;flex-shrink:0}
+/* ── LOGIN ── */
+#loginWrap{
+  position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+  background:var(--bg);
+  background-image:
+    radial-gradient(ellipse 600px 400px at 50% 0%, rgba(245,166,35,0.07) 0%, transparent 70%),
+    repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(255,255,255,0.02) 39px, rgba(255,255,255,0.02) 40px),
+    repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(255,255,255,0.02) 39px, rgba(255,255,255,0.02) 40px);
+  z-index:500;
+}
+.login-card{
+  width:100%;max-width:360px;
+  background:var(--surface);
+  border:0.5px solid var(--border-mid);
+  border-radius:20px;
+  padding:40px 36px;
+  box-shadow:var(--shadow-lg),0 0 0 1px rgba(245,166,35,0.05) inset;
+}
+.login-wordmark{
+  font-family:'Syne',sans-serif;font-size:28px;font-weight:800;letter-spacing:-1px;
+  text-align:center;margin-bottom:4px;
+}
+.login-wordmark span{color:var(--amber)}
+.login-sub{text-align:center;font-size:12px;color:var(--text-dim);margin-bottom:32px;letter-spacing:0.4px;text-transform:uppercase;font-weight:600}
+.field-group{display:flex;flex-direction:column;gap:10px;margin-bottom:14px}
+.field{
+  width:100%;padding:11px 14px;
+  background:var(--surface2);
+  border:0.5px solid var(--border-mid);
+  border-radius:var(--radius);
+  font-family:'DM Sans',sans-serif;font-size:14px;
+  color:var(--text);outline:none;
+  transition:border-color 0.15s,box-shadow 0.15s;
+}
+.field::placeholder{color:var(--text-dim)}
+.field:focus{border-color:rgba(245,166,35,0.5);box-shadow:0 0 0 3px rgba(245,166,35,0.08)}
+.btn-primary{
+  width:100%;padding:12px;
+  background:var(--amber);color:#0D0D0F;
+  border:none;border-radius:var(--radius);
+  font-family:'Syne',sans-serif;font-size:15px;font-weight:700;letter-spacing:-0.2px;
+  cursor:pointer;transition:all 0.15s;
+}
+.btn-primary:hover{background:#FFB830;box-shadow:0 0 20px rgba(245,166,35,0.3)}
+.btn-primary:active{transform:scale(0.98)}
+.divider{display:flex;align-items:center;gap:10px;margin:16px 0;color:var(--text-dim);font-size:12px}
+.divider::before,.divider::after{content:'';flex:1;height:0.5px;background:var(--border-mid)}
+.btn-google{
+  width:100%;padding:11px 14px;
+  background:var(--surface2);color:var(--text);
+  border:0.5px solid var(--border-mid);border-radius:var(--radius);
+  font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;
+  transition:all 0.15s;
+}
+.btn-google:hover{border-color:var(--border-mid);background:var(--surface3)}
+.btn-google svg{width:16px;height:16px;flex-shrink:0}
+.login-err{
+  background:rgba(255,69,58,0.12);border:0.5px solid rgba(255,69,58,0.25);
+  border-radius:var(--radius);padding:10px 14px;
+  font-size:13px;color:var(--red);margin-bottom:14px;display:none;
+}
+.login-err.show{display:block}
 
-/* LAYOUT */
-.layout{display:flex;min-height:calc(100vh - 60px)}
-.sidebar{width:220px;flex-shrink:0;background:var(--white);border-right:0.5px solid var(--border);padding:20px 0;position:sticky;top:60px;height:calc(100vh - 60px);overflow-y:auto}
-.sidebar-section{font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-light);padding:16px 20px 6px}
-.nav-link{display:flex;align-items:center;gap:10px;padding:9px 20px;font-size:13.5px;font-weight:500;color:var(--text-mid);cursor:pointer;border:none;background:none;width:100%;font-family:'DM Sans',sans-serif;transition:all 0.15s;text-align:left;border-radius:0}
-.nav-link:hover{background:var(--off-white);color:var(--text-dark)}
-.nav-link.active{background:var(--amber-pale);color:var(--amber-dark);font-weight:600}
-.nav-link i{font-size:17px}
-.nav-badge{margin-left:auto;background:var(--amber);color:white;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;min-width:20px;text-align:center}
-.nav-badge.red{background:var(--red)}
-.main{flex:1;padding:28px 32px;max-width:1100px}
+/* ── APP SHELL ── */
+#appWrap{display:none;height:100dvh;flex-direction:column}
+#appWrap.visible{display:flex}
 
-/* STATS ROW */
-.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:28px}
-.stat-card{background:var(--white);border:0.5px solid var(--border);border-radius:var(--radius-md);padding:16px 18px;box-shadow:var(--shadow-sm)}
-.stat-num{font-family:'Fraunces',serif;font-size:28px;font-weight:700;line-height:1}
-.stat-label{font-size:12px;color:var(--text-light);margin-top:4px;font-weight:500}
-.stat-card.pending .stat-num{color:var(--amber-dark)}
-.stat-card.approved .stat-num{color:var(--green)}
-.stat-card.rejected .stat-num{color:var(--red)}
+.topbar{
+  height:52px;flex-shrink:0;
+  background:var(--surface);
+  border-bottom:0.5px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 24px;
+  position:relative;z-index:100;
+}
+.topbar-left{display:flex;align-items:center;gap:16px}
+.wordmark{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;letter-spacing:-0.5px}
+.wordmark span{color:var(--amber)}
+.admin-chip{
+  font-size:10px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;
+  background:var(--amber-dim);color:var(--amber);
+  padding:3px 9px;border-radius:20px;
+  border:0.5px solid rgba(245,166,35,0.2);
+}
+.topbar-right{display:flex;align-items:center;gap:12px}
+.user-label{font-size:13px;color:var(--text-mid)}
+.logout-btn{
+  display:flex;align-items:center;gap:5px;
+  font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text-dim);
+  background:none;border:none;cursor:pointer;transition:color 0.15s;padding:4px 0;
+}
+.logout-btn:hover{color:var(--red)}
 
-/* PAGE TITLE */
-.page-title{font-family:'Fraunces',serif;font-size:22px;font-weight:700;margin-bottom:6px}
-.page-sub{font-size:13px;color:var(--text-light);margin-bottom:20px}
+/* ── LAYOUT ── */
+.body-wrap{flex:1;display:flex;overflow:hidden}
+.sidebar{
+  width:200px;flex-shrink:0;
+  background:var(--surface);
+  border-right:0.5px solid var(--border);
+  display:flex;flex-direction:column;
+  padding:16px 0;
+  overflow-y:auto;
+}
+.sidebar-section{
+  font-size:9.5px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;
+  color:var(--text-dim);padding:16px 18px 6px;
+}
+.sidebar-section:first-child{padding-top:6px}
+.nav-btn{
+  display:flex;align-items:center;gap:9px;
+  padding:8px 18px;width:100%;
+  font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;
+  color:var(--text-mid);background:none;border:none;cursor:pointer;
+  transition:all 0.12s;text-align:left;border-radius:0;
+  position:relative;
+}
+.nav-btn:hover{color:var(--text);background:var(--surface2)}
+.nav-btn.active{color:var(--amber);background:var(--amber-glow)}
+.nav-btn.active::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:2px;
+  background:var(--amber);border-radius:0 2px 2px 0;
+}
+.nav-btn i{font-size:16px;width:18px;flex-shrink:0;text-align:center}
+.nav-count{
+  margin-left:auto;
+  font-family:'DM Mono',monospace;font-size:10px;font-weight:500;
+  background:var(--amber);color:#0D0D0F;
+  padding:2px 7px;border-radius:10px;
+}
+.nav-count.red{background:var(--red);color:white}
 
-/* FILTERS */
-.filters-row{display:flex;align-items:center;gap:8px;margin-bottom:16px;flex-wrap:wrap}
-.filter-pill{padding:6px 14px;border-radius:20px;background:var(--white);border:0.5px solid var(--border-mid);font-size:13px;font-weight:500;color:var(--text-mid);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.15s}
-.filter-pill:hover{border-color:var(--amber);color:var(--amber-dark)}
-.filter-pill.active{background:var(--amber);border-color:var(--amber);color:white}
-.search-input{padding:7px 14px;border:0.5px solid var(--border-mid);border-radius:20px;font-family:'DM Sans',sans-serif;font-size:13px;background:var(--white);outline:none;width:200px;margin-left:auto}
-.search-input:focus{border-color:var(--amber)}
+.main{flex:1;overflow-y:auto;padding:28px 32px;background:var(--bg)}
 
-/* TABLE */
-.table-wrap{background:var(--white);border:0.5px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-sm)}
+/* ── STATS ── */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:28px}
+.stat-box{
+  background:var(--surface);border:0.5px solid var(--border);
+  border-radius:var(--radius-lg);padding:18px 20px;
+}
+.stat-num{font-family:'Syne',sans-serif;font-size:30px;font-weight:800;letter-spacing:-1px;line-height:1}
+.stat-lbl{font-size:11px;color:var(--text-dim);margin-top:6px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px}
+.stat-box.s-pending .stat-num{color:var(--amber)}
+.stat-box.s-approved .stat-num{color:var(--green)}
+.stat-box.s-rejected .stat-num{color:var(--red)}
+.stat-box.s-total .stat-num{color:var(--text)}
+
+/* ── PAGE HEADER ── */
+.page-hd{margin-bottom:22px}
+.page-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;letter-spacing:-0.5px;margin-bottom:3px}
+.page-sub{font-size:13px;color:var(--text-dim)}
+
+/* ── FILTERS ROW ── */
+.filters-bar{display:flex;align-items:center;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.pill{
+  padding:5px 13px;border-radius:20px;
+  background:var(--surface);border:0.5px solid var(--border-mid);
+  font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;
+  color:var(--text-mid);cursor:pointer;transition:all 0.12s;
+  display:flex;align-items:center;gap:5px;
+}
+.pill:hover{border-color:rgba(245,166,35,0.3);color:var(--text)}
+.pill.active{background:var(--amber-dim);border-color:rgba(245,166,35,0.35);color:var(--amber)}
+.search-field{
+  margin-left:auto;padding:6px 13px;
+  background:var(--surface);border:0.5px solid var(--border-mid);
+  border-radius:20px;font-family:'DM Sans',sans-serif;font-size:13px;
+  color:var(--text);outline:none;width:190px;
+  transition:border-color 0.15s;
+}
+.search-field::placeholder{color:var(--text-dim)}
+.search-field:focus{border-color:rgba(245,166,35,0.4)}
+
+/* ── TABLE ── */
+.tbl-wrap{
+  background:var(--surface);
+  border:0.5px solid var(--border);
+  border-radius:var(--radius-lg);
+  overflow:hidden;
+}
 table{width:100%;border-collapse:collapse}
-th{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-light);padding:10px 16px;text-align:left;background:var(--off-white);border-bottom:0.5px solid var(--border)}
-td{padding:12px 16px;border-bottom:0.5px solid var(--border);font-size:13.5px;vertical-align:middle}
+thead tr{background:var(--surface2)}
+th{
+  font-size:10px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;
+  color:var(--text-dim);padding:10px 16px;text-align:left;
+  border-bottom:0.5px solid var(--border);
+}
+td{
+  padding:12px 16px;
+  border-bottom:0.5px solid var(--border);
+  font-size:13px;vertical-align:middle;
+  transition:background 0.1s;
+}
 tr:last-child td{border-bottom:none}
-tr:hover td{background:var(--amber-pale)}
-.type-badge{font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px;display:inline-flex;align-items:center;gap:4px}
-.type-price{background:var(--blue-light);color:var(--blue)}
-.type-farm{background:var(--green-light);color:var(--green)}
-.type-deal{background:var(--amber-light);color:var(--amber-dark)}
-.type-farm_edit{background:#F3E8FF;color:#6B21A8}
-.type-delete_farm{background:var(--red-light);color:var(--red)}
-.type-delete_price{background:var(--red-light);color:var(--red)}
-.type-delete_deal{background:var(--red-light);color:var(--red)}
-.status-badge{font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px}
-.status-pending{background:#FEF3DC;color:var(--amber-dark)}
-.status-approved{background:var(--green-light);color:var(--green)}
-.status-rejected{background:var(--red-light);color:var(--red)}
-.action-btns{display:flex;gap:6px}
-.btn-approve{padding:5px 12px;background:var(--green-light);color:var(--green);border:0.5px solid rgba(59,109,17,0.2);border-radius:var(--radius-sm);font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:4px;transition:all 0.15s;white-space:nowrap}
-.btn-approve:hover{background:var(--green);color:white}
-.btn-reject{padding:5px 12px;background:var(--red-light);color:var(--red);border:0.5px solid rgba(185,28,28,0.2);border-radius:var(--radius-sm);font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:4px;transition:all 0.15s;white-space:nowrap}
-.btn-reject:hover{background:var(--red);color:white}
-.btn-view{padding:5px 10px;background:var(--off-white);color:var(--text-mid);border:0.5px solid var(--border-mid);border-radius:var(--radius-sm);font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.15s}
-.btn-view:hover{background:var(--white);color:var(--text-dark)}
-.empty-state{text-align:center;padding:60px 20px;color:var(--text-light)}
-.empty-state i{font-size:40px;display:block;margin-bottom:12px;color:var(--border-mid)}
-.loading-state{text-align:center;padding:40px;color:var(--text-light);display:flex;align-items:center;justify-content:center;gap:10px}
-.spinner{width:20px;height:20px;border:2px solid var(--amber-light);border-top-color:var(--amber);border-radius:50%;animation:spin 0.7s linear infinite}
+tbody tr:hover td{background:rgba(255,255,255,0.02)}
+
+/* badges */
+.badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px;display:inline-flex;align-items:center;gap:3px;letter-spacing:0.2px;white-space:nowrap}
+.b-price{background:var(--blue-dim);color:var(--blue)}
+.b-farm{background:var(--green-dim);color:var(--green)}
+.b-deal{background:var(--amber-dim);color:var(--amber)}
+.b-farm_edit,.b-deal_edit{background:rgba(191,90,242,0.15);color:var(--purple)}
+.b-delete_farm,.b-delete_price,.b-delete_deal{background:var(--red-dim);color:var(--red)}
+.s-pending{background:rgba(245,166,35,0.12);color:var(--amber)}
+.s-approved{background:var(--green-dim);color:var(--green)}
+.s-rejected{background:var(--red-dim);color:var(--red)}
+
+/* action buttons */
+.act-wrap{display:flex;gap:5px;align-items:center}
+.btn-eye{
+  width:28px;height:28px;border-radius:7px;
+  background:var(--surface2);border:0.5px solid var(--border-mid);
+  color:var(--text-mid);display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:14px;transition:all 0.12s;
+}
+.btn-eye:hover{background:var(--surface3);color:var(--text)}
+.btn-ok{
+  padding:4px 10px;border-radius:7px;
+  background:var(--green-dim);color:var(--green);
+  border:0.5px solid rgba(52,199,89,0.2);
+  font-size:11px;font-weight:700;cursor:pointer;
+  font-family:'DM Sans',sans-serif;
+  display:flex;align-items:center;gap:3px;
+  transition:all 0.12s;white-space:nowrap;
+}
+.btn-ok:hover{background:var(--green);color:#0D0D0F}
+.btn-no{
+  padding:4px 10px;border-radius:7px;
+  background:var(--red-dim);color:var(--red);
+  border:0.5px solid rgba(255,69,58,0.2);
+  font-size:11px;font-weight:700;cursor:pointer;
+  font-family:'DM Sans',sans-serif;
+  display:flex;align-items:center;gap:3px;
+  transition:all 0.12s;white-space:nowrap;
+}
+.btn-no:hover{background:var(--red);color:white}
+.mono{font-family:'DM Mono',monospace;font-size:11px;color:var(--text-dim)}
+.ellip{max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
+
+/* ── EMPTY / LOADING ── */
+.empty{text-align:center;padding:60px 20px;color:var(--text-dim)}
+.empty i{font-size:36px;display:block;margin-bottom:10px;opacity:0.4}
+.loading{display:flex;align-items:center;justify-content:center;gap:10px;padding:50px;color:var(--text-dim)}
+.spinner{width:18px;height:18px;border:2px solid var(--surface3);border-top-color:var(--amber);border-radius:50%;animation:spin 0.7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-/* DETAIL MODAL */
-.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity 0.2s}
-.modal-backdrop.open{opacity:1;pointer-events:all}
-.modal{background:var(--white);border-radius:var(--radius-lg);width:100%;max-width:580px;max-height:85vh;overflow-y:auto;transform:translateY(12px);transition:transform 0.2s;box-shadow:var(--shadow-md)}
-.modal-backdrop.open .modal{transform:translateY(0)}
-.modal-header{padding:20px 24px 16px;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--white);z-index:10}
-.modal-title{font-family:'Fraunces',serif;font-size:18px;font-weight:700}
-.modal-close{width:32px;height:32px;border-radius:50%;border:none;background:var(--off-white);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-mid);font-size:16px}
+/* ── MODAL ── */
+.modal-bg{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,0.7);
+  backdrop-filter:blur(4px);
+  z-index:300;display:flex;align-items:center;justify-content:center;
+  padding:20px;opacity:0;pointer-events:none;transition:opacity 0.2s;
+}
+.modal-bg.open{opacity:1;pointer-events:all}
+.modal{
+  background:var(--surface);
+  border:0.5px solid var(--border-mid);
+  border-radius:20px;
+  width:100%;max-width:600px;max-height:88vh;
+  overflow-y:auto;
+  box-shadow:var(--shadow-lg);
+  transform:translateY(16px) scale(0.98);
+  transition:transform 0.25s cubic-bezier(0.34,1.56,0.64,1);
+}
+.modal-bg.open .modal{transform:translateY(0) scale(1)}
+.modal-head{
+  padding:20px 24px 16px;
+  border-bottom:0.5px solid var(--border);
+  display:flex;align-items:flex-start;justify-content:space-between;
+  position:sticky;top:0;background:var(--surface);z-index:10;
+}
+.modal-title-text{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;letter-spacing:-0.3px}
+.modal-badges{display:flex;gap:6px;margin-top:5px;align-items:center}
+.close-btn{
+  width:30px;height:30px;border-radius:8px;
+  background:var(--surface2);border:none;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;color:var(--text-mid);font-size:15px;
+  transition:all 0.12s;flex-shrink:0;margin-top:2px;
+}
+.close-btn:hover{background:var(--surface3);color:var(--text)}
 .modal-body{padding:20px 24px}
-.detail-row{display:flex;gap:12px;margin-bottom:12px;font-size:14px}
-.detail-label{font-weight:600;color:var(--text-mid);width:130px;flex-shrink:0;font-size:13px}
-.detail-val{color:var(--text-dark);flex:1;word-break:break-word}
-.detail-section{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-light);margin:16px 0 8px;padding-bottom:6px;border-bottom:0.5px solid var(--border)}
-.modal-actions{padding:16px 24px;border-top:0.5px solid var(--border);display:flex;gap:8px;justify-content:flex-end;position:sticky;bottom:0;background:var(--white)}
-.btn-lg-approve{padding:10px 20px;background:var(--green);color:white;border:none;border-radius:var(--radius-md);font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:6px}
-.btn-lg-reject{padding:10px 20px;background:var(--red-light);color:var(--red);border:0.5px solid rgba(185,28,28,0.2);border-radius:var(--radius-md);font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:6px}
-.btn-lg-reject:hover{background:var(--red);color:white}
-.admin-note-input{width:100%;padding:8px 12px;border:0.5px solid var(--border-mid);border-radius:var(--radius-sm);font-family:'DM Sans',sans-serif;font-size:13px;margin-top:8px;resize:none;min-height:60px;outline:none}
-.admin-note-input:focus{border-color:var(--amber)}
+.detail-sec{
+  font-size:9.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+  color:var(--text-dim);margin:18px 0 10px;padding-bottom:7px;
+  border-bottom:0.5px solid var(--border);
+}
+.detail-sec:first-child{margin-top:0}
+.detail-row{display:flex;gap:12px;margin-bottom:9px;font-size:13px}
+.detail-lbl{font-weight:600;color:var(--text-dim);width:130px;flex-shrink:0;font-size:12px;padding-top:1px}
+.detail-val{color:var(--text);flex:1;word-break:break-word;line-height:1.5}
+.code-block{
+  background:var(--surface2);border-radius:8px;
+  padding:10px 12px;font-family:'DM Mono',monospace;font-size:12px;
+  color:var(--text-mid);white-space:pre-wrap;margin-top:2px;
+}
+.hh-chip{
+  background:var(--amber-dim);border-radius:8px;padding:8px 12px;margin-bottom:6px;
+  font-size:13px;border:0.5px solid rgba(245,166,35,0.15);
+}
+.ld-chip{
+  background:var(--blue-dim);border-radius:8px;padding:8px 12px;
+  font-size:13px;border:0.5px solid rgba(10,132,255,0.15);
+}
+.modal-foot{
+  padding:14px 24px;border-top:0.5px solid var(--border);
+  display:flex;gap:8px;justify-content:flex-end;
+  position:sticky;bottom:0;background:var(--surface);
+}
+.btn-lg-ok{
+  padding:10px 22px;background:var(--green);color:#0D0D0F;
+  border:none;border-radius:var(--radius);
+  font-family:'Syne',sans-serif;font-size:14px;font-weight:700;
+  cursor:pointer;display:flex;align-items:center;gap:6px;transition:all 0.15s;
+}
+.btn-lg-ok:hover{background:#28a745;box-shadow:0 0 20px rgba(52,199,89,0.3)}
+.btn-lg-no{
+  padding:10px 22px;background:var(--red-dim);color:var(--red);
+  border:0.5px solid rgba(255,69,58,0.25);border-radius:var(--radius);
+  font-family:'Syne',sans-serif;font-size:14px;font-weight:700;
+  cursor:pointer;display:flex;align-items:center;gap:6px;transition:all 0.15s;
+}
+.btn-lg-no:hover{background:var(--red);color:white}
 
-/* TOAST */
-.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--text-dark);color:white;padding:10px 20px;border-radius:var(--radius-lg);font-size:14px;font-weight:500;z-index:999;opacity:0;transition:all 0.3s;white-space:nowrap}
+/* ── TOAST ── */
+.toast{
+  position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:var(--surface3);color:var(--text);
+  border:0.5px solid var(--border-mid);
+  padding:10px 20px;border-radius:30px;
+  font-size:14px;font-weight:500;z-index:999;
+  opacity:0;transition:all 0.3s;white-space:nowrap;
+  box-shadow:var(--shadow);
+}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-.toast.success{background:#1A5C2A}
-.toast.error{background:var(--red)}
+.toast.ok{background:#0D2E17;color:var(--green);border-color:rgba(52,199,89,0.25)}
+.toast.err{background:var(--red-dim);color:var(--red);border-color:rgba(255,69,58,0.25)}
 
-/* USERS TABLE */
-.user-avatar{width:32px;height:32px;border-radius:50%;background:var(--amber-light);display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--amber-dark);flex-shrink:0}
+/* ── USERS ── */
+.uavatar{
+  width:30px;height:30px;border-radius:50%;
+  background:var(--amber-dim);display:inline-flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;color:var(--amber);flex-shrink:0;
+}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--surface3);border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:var(--border-mid)}
 </style>
 </head>
 <body>
 
-<!-- LOGIN -->
-<div id="loginWrap" class="login-wrap">
+<!-- ═══ LOGIN ═══ -->
+<div id="loginWrap">
   <div class="login-card">
-    <div class="login-logo">the <span>hive</span></div>
-    <div class="login-sub">Admin Panel — restricted access</div>
-    <div class="login-form">
-      <div class="login-error" id="loginError"></div>
-      <input type="email" class="form-input" id="loginEmail" placeholder="Admin email" autocomplete="email">
-      <input type="password" class="form-input" id="loginPassword" placeholder="Password" autocomplete="current-password">
-      <button class="login-btn" onclick="doLogin()">Sign in</button>
-      <div class="login-divider">or</div>
-      <button class="btn-google" onclick="doGoogleLogin()">
-        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
-        Continue with Google
-      </button>
+    <div class="login-wordmark">the <span>hive</span></div>
+    <div class="login-sub">Admin · Restricted Access</div>
+    <div class="login-err" id="loginErr"></div>
+    <div class="field-group">
+      <input type="email" class="field" id="loginEmail" placeholder="Email" autocomplete="email">
+      <input type="password" class="field" id="loginPw" placeholder="Password" autocomplete="current-password">
     </div>
+    <button class="btn-primary" onclick="doLogin()">Sign in</button>
+    <div class="divider">or</div>
+    <button class="btn-google" onclick="doGoogleLogin()">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+      </svg>
+      Continue with Google
+    </button>
   </div>
 </div>
 
-<!-- APP -->
-<div id="appWrap" style="display:none">
-  <div class="header">
-    <div class="logo">the <span>hive</span></div>
-    <div class="header-right">
-      <span class="admin-badge"><i class="ti ti-shield-check"></i> Admin</span>
+<!-- ═══ APP ═══ -->
+<div id="appWrap">
+
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="wordmark">the <span>hive</span></div>
+      <div class="admin-chip">⬡ Admin</div>
+    </div>
+    <div class="topbar-right">
+      <span class="user-label" id="userLabel"></span>
       <button class="logout-btn" onclick="doLogout()"><i class="ti ti-logout"></i> Sign out</button>
     </div>
   </div>
 
-  <div class="layout">
+  <div class="body-wrap">
+    <!-- SIDEBAR -->
     <div class="sidebar">
       <div class="sidebar-section">Moderation</div>
-      <button class="nav-link active" id="nav-pending" onclick="setPage('pending')">
-        <i class="ti ti-clock"></i> Pending
-        <span class="nav-badge" id="pendingBadge">0</span>
+      <button class="nav-btn active" id="nav-pending" onclick="setPage('pending')">
+        <i class="ti ti-clock-hour-4"></i> Pending
+        <span class="nav-count" id="pendingCount">0</span>
       </button>
-      <button class="nav-link" id="nav-all" onclick="setPage('all')">
-        <i class="ti ti-list"></i> All submissions
+      <button class="nav-btn" id="nav-all" onclick="setPage('all')">
+        <i class="ti ti-list-details"></i> All submissions
       </button>
       <div class="sidebar-section">Data</div>
-      <button class="nav-link" id="nav-users" onclick="setPage('users')">
+      <button class="nav-btn" id="nav-users" onclick="setPage('users')">
         <i class="ti ti-users"></i> Users
       </button>
-      <button class="nav-link" id="nav-farms" onclick="setPage('farms')">
+      <button class="nav-btn" id="nav-farms" onclick="setPage('farms')">
         <i class="ti ti-plant-2"></i> Farms
       </button>
-      <button class="nav-link" id="nav-deals" onclick="setPage('deals')">
+      <button class="nav-btn" id="nav-deals" onclick="setPage('deals')">
         <i class="ti ti-tag"></i> Deals
       </button>
-      <button class="nav-link" id="nav-prices" onclick="setPage('prices')">
+      <button class="nav-btn" id="nav-prices" onclick="setPage('prices')">
         <i class="ti ti-coin"></i> Local Prices
       </button>
     </div>
 
+    <!-- MAIN -->
     <div class="main" id="mainContent">
-      <div class="loading-state"><div class="spinner"></div> Loading…</div>
+      <div class="loading"><div class="spinner"></div> Loading…</div>
     </div>
   </div>
 </div>
 
-<!-- DETAIL MODAL -->
-<div class="modal-backdrop" id="modalBackdrop" onclick="closeModal(event)">
-  <div class="modal" id="modalContent"></div>
+<!-- MODAL -->
+<div class="modal-bg" id="modalBg" onclick="maybeCloseModal(event)">
+  <div class="modal" id="modalInner"></div>
 </div>
 
 <!-- TOAST -->
@@ -216,528 +475,468 @@ tr:hover td{background:var(--amber-pale)}
 const SUPA_URL = 'https://xcazqvhxwjkqemumxvbu.supabase.co';
 const SUPA_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjYXpxdmh4d2prcWVtdW14dmJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzOTUyNzQsImV4cCI6MjA5NTk3MTI3NH0.AaUIUoCGyyde8yPcEGDwtANamxLRPpeTaaI7zntkcYM';
 
-// Admin access is now enforced server-side via the is_admin() SECURITY DEFINER RPC.
-// The client-side email list has been removed — it was not a real security boundary.
-
 let currentUser = null;
 let currentPage = 'pending';
 let allSubmissions = [];
 
+// ── UTILS ──
+const _d = document.createElement('div');
+function esc(s){ _d.textContent = String(s||''); return _d.innerHTML; }
+
+function toast(msg, type=''){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (type ? ' '+type : '');
+  setTimeout(()=>t.className='toast', 3000);
+}
+
+function typeName(t){
+  return {price:'Price',farm:'Farm',deal:'Deal',farm_edit:'Farm Edit',deal_edit:'Deal Edit',
+    delete_farm:'Delete Farm',delete_price:'Delete Price',delete_deal:'Delete Deal'}[t] || t;
+}
+
 // ── AUTH ──
-async function doLogin() {
+async function doLogin(){
   const email = document.getElementById('loginEmail').value.trim();
-  const pw = document.getElementById('loginPassword').value;
-  const err = document.getElementById('loginError');
-  err.className = 'login-error';
+  const pw = document.getElementById('loginPw').value;
+  const errEl = document.getElementById('loginErr');
+  errEl.className = 'login-err';
 
   try {
-    const res = await fetch(`${SUPA_URL}/auth/v1/token?grant_type=password`, {
-      method: 'POST',
-      headers: {'apikey': SUPA_ANON, 'Content-Type': 'application/json'},
-      body: JSON.stringify({email, password: pw})
+    const res = await fetch(`${SUPA_URL}/auth/v1/token?grant_type=password`,{
+      method:'POST',
+      headers:{'apikey':SUPA_ANON,'Content-Type':'application/json'},
+      body:JSON.stringify({email,password:pw})
     });
     const data = await res.json();
-    if (data.error || !data.access_token) {
-      err.textContent = data.error_description || 'Invalid credentials';
-      err.className = 'login-error show';
-      return;
+    if(data.error || !data.access_token){
+      errEl.textContent = data.error_description || 'Invalid credentials';
+      errEl.className = 'login-err show'; return;
     }
-
-    // Server-side admin check via SECURITY DEFINER RPC — cannot be bypassed client-side
-    const checkRes = await fetch(`${SUPA_URL}/rest/v1/rpc/is_admin`, {
-      method: 'POST',
-      headers: {
-        'apikey': SUPA_ANON,
-        'Authorization': `Bearer ${data.access_token}`,
-        'Content-Type': 'application/json'
-      },
-      body: '{}'
-    });
-    const isAdmin = await checkRes.json();
-    if (!isAdmin) {
-      err.textContent = 'Access denied — not an admin account.';
-      err.className = 'login-error show';
-      return;
+    const isAdmin = await checkAdmin(data.access_token);
+    if(!isAdmin){
+      errEl.textContent = 'Access denied — not an admin account.';
+      errEl.className = 'login-err show'; return;
     }
-
-    currentUser = {email, token: data.access_token};
-    document.getElementById('loginWrap').style.display = 'none';
-    document.getElementById('appWrap').style.display = 'block';
-    loadPage('pending');
-  } catch(e) {
-    err.textContent = 'Connection error';
-    err.className = 'login-error show';
+    enterAdmin({email, token: data.access_token});
+  } catch(e){
+    errEl.textContent = 'Connection error';
+    errEl.className = 'login-err show';
   }
 }
 
-function doLogout() {
+async function checkAdmin(token){
+  const r = await fetch(`${SUPA_URL}/rest/v1/rpc/is_admin`,{
+    method:'POST',
+    headers:{'apikey':SUPA_ANON,'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},
+    body:'{}'
+  });
+  return r.json();
+}
+
+function doLogout(){
   currentUser = null;
-  document.getElementById('appWrap').style.display = 'none';
+  document.getElementById('appWrap').className = '';
   document.getElementById('loginWrap').style.display = 'flex';
-  document.getElementById('loginPassword').value = '';
+  document.getElementById('loginPw').value = '';
 }
 
-async function doGoogleLogin() {
-  const err = document.getElementById('loginError');
-  err.className = 'login-error';
-  try {
-    const res = await fetch(`${SUPA_URL}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(window.location.href)}`, {
-      method: 'GET',
-      headers: { 'apikey': SUPA_ANON },
-      redirect: 'manual'
-    });
-    // Supabase returns a redirect — follow it
-    const authUrl = `${SUPA_URL}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(window.location.href)}`;
-    window.location.href = authUrl;
-  } catch(e) {
-    err.textContent = 'Could not initiate Google login';
-    err.className = 'login-error show';
-  }
+async function doGoogleLogin(){
+  const authUrl = `${SUPA_URL}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(window.location.href)}`;
+  window.location.href = authUrl;
 }
 
-document.getElementById('loginPassword').addEventListener('keydown', e => {
-  if (e.key === 'Enter') doLogin();
-});
+document.getElementById('loginPw').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
 
-// ── OAUTH CALLBACK (Google redirect) ──
-(async function handleOAuthCallback() {
+// OAuth callback
+(async function handleOAuth(){
   const hash = window.location.hash;
-  if (!hash.includes('access_token')) return;
+  if(!hash.includes('access_token')) return;
   const params = new URLSearchParams(hash.slice(1));
   const token = params.get('access_token');
-  if (!token) return;
-
+  if(!token) return;
   try {
-    const res = await fetch(`${SUPA_URL}/auth/v1/user`, {
-      headers: { 'apikey': SUPA_ANON, 'Authorization': `Bearer ${token}` }
-    });
-    const user = await res.json();
-    if (!user || user.error) throw new Error('Invalid session');
-    const email = user.email || user.user_metadata?.email || '';
-
-    // Server-side admin check — same guard as email/password login
-    const checkRes = await fetch(`${SUPA_URL}/rest/v1/rpc/is_admin`, {
-      method: 'POST',
-      headers: { 'apikey': SUPA_ANON, 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: '{}'
-    });
-    const isAdmin = await checkRes.json();
-    if (!isAdmin) {
-      history.replaceState(null, '', window.location.pathname);
-      const err = document.getElementById('loginError');
-      err.textContent = 'Access denied — this Google account is not an admin.';
-      err.className = 'login-error show';
-      return;
+    const r = await fetch(`${SUPA_URL}/auth/v1/user`,{headers:{'apikey':SUPA_ANON,'Authorization':`Bearer ${token}`}});
+    const user = await r.json();
+    if(!user || user.error) throw new Error('bad session');
+    const isAdmin = await checkAdmin(token);
+    history.replaceState(null,'',window.location.pathname);
+    if(!isAdmin){
+      const e = document.getElementById('loginErr');
+      e.textContent = 'Access denied — this Google account is not an admin.';
+      e.className = 'login-err show'; return;
     }
-
-    currentUser = { email, token };
-    history.replaceState(null, '', window.location.pathname);
-    document.getElementById('loginWrap').style.display = 'none';
-    document.getElementById('appWrap').style.display = 'block';
-    loadPage('pending');
-  } catch(e) {
-    const err = document.getElementById('loginError');
-    err.textContent = 'Google login failed — please try again.';
-    err.className = 'login-error show';
+    enterAdmin({email: user.email || user.user_metadata?.email || '', token});
+  } catch(e){
+    const el = document.getElementById('loginErr');
+    el.textContent = 'Google login failed — try again.';
+    el.className = 'login-err show';
   }
 })();
 
+function enterAdmin(user){
+  currentUser = user;
+  document.getElementById('loginWrap').style.display = 'none';
+  document.getElementById('appWrap').className = 'visible';
+  document.getElementById('userLabel').textContent = user.email;
+  loadPage('pending');
+}
+
 // ── API ──
-async function supaFetch(table, params = '', method = 'GET', body = null) {
-  const url = `${SUPA_URL}/rest/v1/${table}${params ? '?' + params : ''}`;
+async function api(table, params='', method='GET', body=null){
+  const url = `${SUPA_URL}/rest/v1/${table}${params?'?'+params:''}`;
   const opts = {
     method,
-    headers: {
-      'apikey': SUPA_ANON,
-      'Authorization': `Bearer ${currentUser.token}`,
-      'Content-Type': 'application/json',
-      'Prefer': 'return=representation'
+    headers:{
+      'apikey':SUPA_ANON,
+      'Authorization':`Bearer ${currentUser.token}`,
+      'Content-Type':'application/json',
+      'Prefer':'return=representation'
     }
   };
-  if (body) opts.body = JSON.stringify(body);
-  const res = await fetch(url, opts);
-  if (!res.ok) throw new Error(await res.text());
-  const text = await res.text();
-  return text ? JSON.parse(text) : [];
+  if(body) opts.body = JSON.stringify(body);
+  const r = await fetch(url, opts);
+  if(!r.ok) throw new Error(await r.text());
+  const t = await r.text();
+  return t ? JSON.parse(t) : [];
+}
+
+async function rpc(name, body={}){
+  const r = await fetch(`${SUPA_URL}/rest/v1/rpc/${name}`,{
+    method:'POST',
+    headers:{'apikey':SUPA_ANON,'Authorization':`Bearer ${currentUser.token}`,'Content-Type':'application/json'},
+    body:JSON.stringify(body)
+  });
+  if(!r.ok) throw new Error(await r.text());
+  const t = await r.text();
+  return t ? JSON.parse(t) : null;
 }
 
 // ── NAVIGATION ──
-function setPage(page) {
+function setPage(page){
   currentPage = page;
-  document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-  document.getElementById('nav-' + page)?.classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('nav-'+page)?.classList.add('active');
   loadPage(page);
 }
 
-async function loadPage(page) {
+async function loadPage(page){
   const main = document.getElementById('mainContent');
-  main.innerHTML = '<div class="loading-state"><div class="spinner"></div> Loading…</div>';
-
+  main.innerHTML = '<div class="loading"><div class="spinner"></div> Loading…</div>';
   try {
-    if (page === 'pending') await renderSubmissions('pending');
-    else if (page === 'all') await renderSubmissions('all');
-    else if (page === 'users') await renderUsers();
-    else if (page === 'farms') await renderTable('businesses', 'Farms', ['id','business_name','city','country','status']);
-    else if (page === 'deals') await renderTable('deals', 'Deals', ['id','business_name','city','country','status']);
-    else if (page === 'prices') await renderTable('local_prices', 'Local Prices', ['id','business_name','item_name','price_normal','city','status']);
-  } catch(e) {
-    main.innerHTML = `<div class="empty-state"><i class="ti ti-alert-circle"></i>${e.message}</div>`;
+    if(page==='pending') await renderSubmissions('pending');
+    else if(page==='all') await renderSubmissions('all');
+    else if(page==='users') await renderUsers();
+    else if(page==='farms') await renderGenericTable('businesses','Farms',['id','business_name','city','country','status']);
+    else if(page==='deals') await renderGenericTable('deals','Deals',['id','business_name','city','country','status']);
+    else if(page==='prices') await renderGenericTable('local_prices','Local Prices',['id','business_name','item_name','price_normal','city','status']);
+  } catch(e){
+    main.innerHTML = `<div class="empty"><i class="ti ti-alert-triangle"></i>${esc(e.message)}</div>`;
   }
 }
 
-// ── SUBMISSIONS ──
-async function renderSubmissions(filter) {
-  // Use server-side RPC — enforces is_admin() check, bypasses RLS safely
-  const res = await fetch(`${SUPA_URL}/rest/v1/rpc/admin_get_submissions`, {
-    method: 'POST',
-    headers: {
-      'apikey': SUPA_ANON,
-      'Authorization': `Bearer ${currentUser.token}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ p_filter: filter === 'pending' ? 'pending' : 'all' })
-  });
-  allSubmissions = await res.json();
-  await updatePendingBadge();
-
-  const isPending = filter === 'pending';
-  const main = document.getElementById('mainContent');
-
-  let html = `
-    <div class="page-title">${isPending ? 'Pending Review' : 'All Submissions'}</div>
-    <div class="page-sub">${allSubmissions.length} submission${allSubmissions.length !== 1 ? 's' : ''}</div>
-    <div class="filters-row">
-      <button class="filter-pill active" onclick="filterType(this,'all')">All</button>
-      <button class="filter-pill" onclick="filterType(this,'price')"><i class="ti ti-coin"></i> Prices</button>
-      <button class="filter-pill" onclick="filterType(this,'farm')"><i class="ti ti-plant-2"></i> Farms</button>
-      <button class="filter-pill" onclick="filterType(this,'deal')"><i class="ti ti-tag"></i> Deals</button>
-      <button class="filter-pill" onclick="filterType(this,'farm_edit')"><i class="ti ti-edit"></i> Edits</button>
-      <input type="text" class="search-input" placeholder="Search…" oninput="filterSearch(this.value)" id="searchInput">
-    </div>
-    <div class="table-wrap">
-      <table id="subTable">
-        <thead><tr>
-          <th>ID</th><th>Type</th><th>Business</th><th>Location</th><th>Item / Details</th><th>Date</th><th>Status</th><th>Actions</th>
-        </tr></thead>
-        <tbody id="subBody">${renderSubRows(allSubmissions, isPending)}</tbody>
-      </table>
-    </div>`;
-
-  main.innerHTML = html;
+// ── PENDING BADGE ──
+async function refreshBadge(){
+  try {
+    const rows = await api('submissions','admin_decision=eq.pending&select=id');
+    const el = document.getElementById('pendingCount');
+    if(el) el.textContent = rows.length;
+  } catch(e){}
 }
 
-function renderSubRows(rows, showActions = true) {
-  if (!rows.length) return '<tr><td colspan="8"><div class="empty-state"><i class="ti ti-inbox"></i>Nothing here</div></td></tr>';
+// ── SUBMISSIONS ──
+let currentTypeFilter = 'all';
+let currentSearch = '';
 
-  return rows.map(s => {
-    const date = new Date(s.submission_date).toLocaleDateString('en', {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
-    const loc = [s.city, s.country].filter(Boolean).join(', ') || '—';
-    const detail = s.item_name ? `${s.item_name}${s.item_price ? ' — $'+s.item_price : ''}` : (s.details || '').substring(0,50) || '—';
+async function renderSubmissions(filter){
+  const isPending = filter === 'pending';
+  const res = await fetch(`${SUPA_URL}/rest/v1/rpc/admin_get_submissions`,{
+    method:'POST',
+    headers:{'apikey':SUPA_ANON,'Authorization':`Bearer ${currentUser.token}`,'Content-Type':'application/json'},
+    body:JSON.stringify({p_filter: isPending ? 'pending' : 'all'})
+  });
+  allSubmissions = await res.json();
+  await refreshBadge();
+  currentTypeFilter = 'all';
+  currentSearch = '';
 
+  // Stats
+  const pending = allSubmissions.filter(s=>s.admin_decision==='pending').length;
+  const approved = allSubmissions.filter(s=>s.admin_decision==='approved').length;
+  const rejected = allSubmissions.filter(s=>s.admin_decision==='rejected').length;
+
+  document.getElementById('mainContent').innerHTML = `
+    <div class="page-hd">
+      <div class="page-title">${isPending ? 'Pending Review' : 'All Submissions'}</div>
+      <div class="page-sub">${allSubmissions.length} submission${allSubmissions.length!==1?'s':''}</div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-box s-pending">
+        <div class="stat-num">${pending}</div>
+        <div class="stat-lbl">Pending</div>
+      </div>
+      <div class="stat-box s-approved">
+        <div class="stat-num">${approved}</div>
+        <div class="stat-lbl">Approved</div>
+      </div>
+      <div class="stat-box s-rejected">
+        <div class="stat-num">${rejected}</div>
+        <div class="stat-lbl">Rejected</div>
+      </div>
+      <div class="stat-box s-total">
+        <div class="stat-num">${allSubmissions.length}</div>
+        <div class="stat-lbl">Total</div>
+      </div>
+    </div>
+
+    <div class="filters-bar">
+      <button class="pill active" onclick="filterType(this,'all')">All</button>
+      <button class="pill" onclick="filterType(this,'price')"><i class="ti ti-coin"></i> Prices</button>
+      <button class="pill" onclick="filterType(this,'farm')"><i class="ti ti-plant-2"></i> Farms</button>
+      <button class="pill" onclick="filterType(this,'deal')"><i class="ti ti-tag"></i> Deals</button>
+      <button class="pill" onclick="filterType(this,'farm_edit')"><i class="ti ti-edit"></i> Edits</button>
+      <input class="search-field" placeholder="Search…" id="subSearch" oninput="filterSearch(this.value)">
+    </div>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr>
+          <th>ID</th><th>Type</th><th>Business</th><th>Location</th><th>Item / Details</th>
+          <th>Submitted</th><th>Status</th><th>Actions</th>
+        </tr></thead>
+        <tbody id="subBody">${renderSubRows(allSubmissions)}</tbody>
+      </table>
+    </div>`;
+}
+
+function renderSubRows(rows){
+  if(!rows.length) return `<tr><td colspan="8"><div class="empty"><i class="ti ti-inbox"></i>Nothing here</div></td></tr>`;
+  return rows.map(s=>{
+    const date = new Date(s.submission_date).toLocaleDateString('en',{day:'numeric',month:'short'});
+    const time = new Date(s.submission_date).toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'});
+    const loc = [s.city,s.country].filter(Boolean).join(', ') || '—';
+    const detail = s.item_name
+      ? `${s.item_name}${s.item_price?' — $'+s.item_price:''}`
+      : (s.details||'').substring(0,50) || '—';
     return `<tr>
-      <td style="font-size:12px;color:var(--text-light);font-family:monospace">#${s.id}</td>
-      <td><span class="type-badge type-${s.type}">${typeLabel(s.type)}</span></td>
-      <td style="font-weight:600;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHTML(s.business_name||'—')}</td>
-      <td style="color:var(--text-mid)">${escHTML(loc)}</td>
-      <td style="color:var(--text-mid);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px">${escHTML(detail)}</td>
-      <td style="color:var(--text-light);font-size:12px;white-space:nowrap">${date}</td>
-      <td><span class="status-badge status-${s.admin_decision}">${s.admin_decision}</span></td>
+      <td class="mono">#${s.id}</td>
+      <td><span class="badge b-${s.type}">${typeName(s.type)}</span></td>
+      <td style="font-weight:600"><span class="ellip">${esc(s.business_name||'—')}</span></td>
+      <td style="color:var(--text-mid)">${esc(loc)}</td>
+      <td style="color:var(--text-mid)"><span class="ellip">${esc(detail)}</span></td>
+      <td class="mono" title="${esc(date+' '+time)}">${esc(date)}</td>
+      <td><span class="badge s-${s.admin_decision}">${s.admin_decision}</span></td>
       <td>
-        <div class="action-btns">
-          <button class="btn-view" onclick="openDetail(${s.id})"><i class="ti ti-eye"></i></button>
-          ${s.admin_decision === 'pending' ? `
-          <button class="btn-approve" onclick="decide(${s.id},'approved')"><i class="ti ti-check"></i> Approve</button>
-          <button class="btn-reject" onclick="decide(${s.id},'rejected')"><i class="ti ti-x"></i></button>` : ''}
+        <div class="act-wrap">
+          <button class="btn-eye" onclick="openDetail(${s.id})" title="View details"><i class="ti ti-eye"></i></button>
+          ${s.admin_decision==='pending' ? `
+          <button class="btn-ok" onclick="decide(${s.id},'approved')"><i class="ti ti-check"></i> Approve</button>
+          <button class="btn-no" onclick="decide(${s.id},'rejected')"><i class="ti ti-x"></i></button>` : ''}
         </div>
       </td>
     </tr>`;
   }).join('');
 }
 
-let currentTypeFilter = 'all';
-let currentSearch = '';
-
-function filterType(btn, type) {
+function filterType(btn, type){
   currentTypeFilter = type;
-  document.querySelectorAll('.filters-row .filter-pill').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.filters-bar .pill').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   applyFilters();
 }
-
-function filterSearch(val) {
+function filterSearch(val){
   currentSearch = val.toLowerCase();
   applyFilters();
 }
-
-function applyFilters() {
-  let filtered = allSubmissions;
-  if (currentTypeFilter !== 'all') filtered = filtered.filter(s => s.type === currentTypeFilter);
-  if (currentSearch) filtered = filtered.filter(s =>
-    (s.business_name||'').toLowerCase().includes(currentSearch) ||
-    (s.city||'').toLowerCase().includes(currentSearch) ||
+function applyFilters(){
+  let f = allSubmissions;
+  if(currentTypeFilter!=='all') f = f.filter(s=>s.type===currentTypeFilter);
+  if(currentSearch) f = f.filter(s=>
+    (s.business_name||'').toLowerCase().includes(currentSearch)||
+    (s.city||'').toLowerCase().includes(currentSearch)||
     (s.item_name||'').toLowerCase().includes(currentSearch)
   );
-  document.getElementById('subBody').innerHTML = renderSubRows(filtered, currentPage === 'pending');
+  document.getElementById('subBody').innerHTML = renderSubRows(f);
 }
 
 // ── DECIDE ──
-async function decide(id, decision) {
+async function decide(id, decision){
   try {
-    const sub = allSubmissions.find(x => x.id === id);
+    const sub = allSubmissions.find(x=>x.id===id);
 
-    // If approving a deletion request, actually delete the target row first
-    if (decision === 'approved' && sub && (sub.type === 'delete_farm' || sub.type === 'delete_price' || sub.type === 'delete_deal')) {
+    if(decision==='approved' && sub && ['delete_farm','delete_price','delete_deal'].includes(sub.type)){
+      const nameMatch = (sub.business_name||'').match(/ID:\s*(.+)$/i);
+      const detailMatch = (sub.details||'').match(/\(ref:\s*(.+?)\)$/i);
+      const refId = sub.target_id ||(nameMatch&&nameMatch[1].trim())||(detailMatch&&detailMatch[1].trim());
 
-      // Prefer target_id (clean field added after migration).
-      // Fall back to parsing business_name / details for older submissions.
-      // For prices, refId = "BusinessName|lat|lng" (composite key)
-      // For farms,  refId = actual row id (e.g. "B012")
-      const nameMatch = (sub.business_name || '').match(/ID:\s*(.+)$/i);
-      const detailMatch = (sub.details || '').match(/\(ref:\s*(.+?)\)$/i);
-      const refId = sub.target_id ||
-                    (nameMatch && nameMatch[1].trim()) ||
-                    (detailMatch && detailMatch[1].trim());
+      if(!refId){ toast('Could not find target ID','err'); return; }
 
-      if (!refId) {
-        showToast('Could not find target ID to delete', 'error');
-        return;
-      }
-
-      if (sub.type === 'delete_price') {
+      if(sub.type==='delete_price'){
         const parts = refId.split('|');
         const looksLikeId = /^P\d+$/i.test(parts[0]) || /^[0-9a-f-]{36}$/.test(parts[0]);
-        if (looksLikeId) {
-          for (const priceId of parts.filter(Boolean)) {
-            await fetch(`${SUPA_URL}/rest/v1/rpc/admin_delete_local_price`, {
-              method: 'POST',
-              headers: { 'apikey': SUPA_ANON, 'Authorization': `Bearer ${currentUser.token}`, 'Content-Type': 'application/json' },
-              body: JSON.stringify({ p_id: priceId })
-            });
+        if(looksLikeId){
+          for(const priceId of parts.filter(Boolean)){
+            await rpc('admin_delete_local_price',{p_id:priceId});
           }
-        } else if (parts.length >= 3) {
-          // Legacy composite key — fall back to direct RPC with first price matching name+coords
-          // (find the id first, then delete via RPC)
-          const [bizName, lat, lng] = parts;
-          const rows = await supaFetch('local_prices',
-            `business_name=eq.${encodeURIComponent(bizName)}&latitude=eq.${encodeURIComponent(lat)}&longitude=eq.${encodeURIComponent(lng)}&select=id`
-          );
-          for (const row of rows) {
-            await fetch(`${SUPA_URL}/rest/v1/rpc/admin_delete_local_price`, {
-              method: 'POST',
-              headers: { 'apikey': SUPA_ANON, 'Authorization': `Bearer ${currentUser.token}`, 'Content-Type': 'application/json' },
-              body: JSON.stringify({ p_id: row.id })
-            });
-          }
-        } else {
-          showToast('Invalid price key format', 'error');
-          return;
-        }
+        } else if(parts.length>=3){
+          const [bizName,lat,lng] = parts;
+          const rows = await api('local_prices',`business_name=eq.${encodeURIComponent(bizName)}&latitude=eq.${encodeURIComponent(lat)}&longitude=eq.${encodeURIComponent(lng)}&select=id`);
+          for(const row of rows) await rpc('admin_delete_local_price',{p_id:row.id});
+        } else { toast('Invalid price key','err'); return; }
       } else {
-        const rpcName = sub.type === 'delete_deal' ? 'admin_delete_deal' : 'admin_delete_business';
-        await fetch(`${SUPA_URL}/rest/v1/rpc/${rpcName}`, {
-          method: 'POST',
-          headers: { 'apikey': SUPA_ANON, 'Authorization': `Bearer ${currentUser.token}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ p_id: refId })
-        });
+        const rpcName = sub.type==='delete_deal' ? 'admin_delete_deal' : 'admin_delete_business';
+        await rpc(rpcName, {p_id: refId});
       }
     }
 
-    // Use server-side RPC for all admin decisions — enforces is_admin() check in DB
-    await fetch(`${SUPA_URL}/rest/v1/rpc/admin_decide_submission`, {
-      method: 'POST',
-      headers: {
-        'apikey': SUPA_ANON,
-        'Authorization': `Bearer ${currentUser.token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ p_submission_id: id, p_decision: decision })
-    });
-    showToast(decision === 'approved' ? '✅ Approved!' : '❌ Rejected', decision === 'approved' ? 'success' : 'error');
+    await rpc('admin_decide_submission',{p_submission_id:id, p_decision:decision});
+    toast(decision==='approved' ? '✅ Approved!' : '❌ Rejected', decision==='approved'?'ok':'err');
     closeModal();
     await loadPage(currentPage);
-  } catch(e) {
-    showToast('Error: ' + e.message, 'error');
-  }
+  } catch(e){ toast('Error: '+e.message,'err'); }
 }
 
 // ── DETAIL MODAL ──
-function openDetail(id) {
-  const s = allSubmissions.find(x => x.id === id);
-  if (!s) return;
+function openDetail(id){
+  const s = allSubmissions.find(x=>x.id===id);
+  if(!s) return;
 
   const date = new Date(s.submission_date).toLocaleString('en');
-  const loc = [s.address, s.city, s.state_region, s.country].filter(Boolean).join(', ');
-  const coords = s.latitude && s.longitude ? `${s.latitude}, ${s.longitude}` : '—';
-  const mapsUrl = s.latitude && s.longitude
-    ? `https://maps.google.com/?q=${s.latitude},${s.longitude}` : null;
+  const loc = [s.address,s.city,s.state_region,s.country].filter(Boolean).join(', ');
+  const coords = s.latitude&&s.longitude ? `${s.latitude}, ${s.longitude}` : '—';
+  const mapsUrl = s.latitude&&s.longitude ? `https://maps.google.com/?q=${s.latitude},${s.longitude}` : null;
 
   let hhHtml = '';
-  if (s.happy_hour_prices?.length) {
-    hhHtml = s.happy_hour_prices.map(h =>
-      `<div style="font-size:13px;background:var(--amber-pale);border-radius:var(--radius-sm);padding:8px 10px;margin-bottom:6px;">
-        <strong>$${h.price}</strong> · ${h.from}–${h.to} · ${(h.days||[]).join(', ')}
-        ${h.item_scopes?.length ? ` · <em>${h.item_scopes.join(', ')}</em>` : ''}
-      </div>`
-    ).join('');
+  if(s.happy_hour_prices?.length){
+    hhHtml = `<div class="detail-sec">Happy Hour</div>` +
+      s.happy_hour_prices.map(h=>`
+        <div class="hh-chip">
+          <strong>$${h.price}</strong> · ${h.from}–${h.to} · ${(h.days||[]).join(', ')}
+          ${h.item_scopes?.length ? ` · <em>${h.item_scopes.join(', ')}</em>` : ''}
+        </div>`).join('');
   }
 
   let ldHtml = '';
-  if (s.local_discount) {
-    ldHtml = `<div style="font-size:13px;background:var(--blue-light);border-radius:var(--radius-sm);padding:8px 10px;">
-      ${s.local_discount.type === 'percent' ? s.local_discount.value + '%' : '$' + s.local_discount.value} off
-      ${s.local_discount.scope ? ` · ${s.local_discount.scope}` : ''}
-    </div>`;
+  if(s.local_discount){
+    ldHtml = `<div class="detail-sec">Local Discount</div>
+      <div class="ld-chip">
+        ${s.local_discount.type==='percent' ? s.local_discount.value+'%' : '$'+s.local_discount.value} off
+        ${s.local_discount.scope ? ` · ${s.local_discount.scope}` : ''}
+      </div>`;
   }
 
-  const html = `
-    <div class="modal-header">
+  document.getElementById('modalInner').innerHTML = `
+    <div class="modal-head">
       <div>
-        <div class="modal-title">${escHTML(s.business_name||'Submission #'+s.id)}</div>
-        <div style="margin-top:4px;display:flex;gap:8px;align-items:center">
-          <span class="type-badge type-${s.type}">${typeLabel(s.type)}</span>
-          <span class="status-badge status-${s.admin_decision}">${s.admin_decision}</span>
+        <div class="modal-title-text">${esc(s.business_name||'Submission #'+s.id)}</div>
+        <div class="modal-badges">
+          <span class="badge b-${s.type}">${typeName(s.type)}</span>
+          <span class="badge s-${s.admin_decision}">${s.admin_decision}</span>
         </div>
       </div>
-      <button class="modal-close" onclick="closeModal()"><i class="ti ti-x"></i></button>
+      <button class="close-btn" onclick="closeModal()"><i class="ti ti-x"></i></button>
     </div>
     <div class="modal-body">
-      <div class="detail-section">Submission info</div>
-      <div class="detail-row"><span class="detail-label">ID</span><span class="detail-val">#${s.id}</span></div>
-      <div class="detail-row"><span class="detail-label">Submitted</span><span class="detail-val">${date}</span></div>
-      <div class="detail-row"><span class="detail-label">Email</span><span class="detail-val">${escHTML(s.submitted_by_email||'Anonymous')}</span></div>
+      <div class="detail-sec">Submission</div>
+      <div class="detail-row"><span class="detail-lbl">ID</span><span class="detail-val mono">#${s.id}</span></div>
+      <div class="detail-row"><span class="detail-lbl">Submitted</span><span class="detail-val">${esc(date)}</span></div>
+      <div class="detail-row"><span class="detail-lbl">Email</span><span class="detail-val">${esc(s.submitted_by_email||'Anonymous')}</span></div>
 
-      <div class="detail-section">Location</div>
-      <div class="detail-row"><span class="detail-label">Address</span><span class="detail-val">${escHTML(loc||'—')}</span></div>
-      <div class="detail-row"><span class="detail-label">Coordinates</span><span class="detail-val">
-        ${coords}
-        ${mapsUrl ? `<a href="${mapsUrl}" target="_blank" style="margin-left:8px;color:var(--blue);font-size:12px;"><i class="ti ti-map-pin"></i> View on map</a>` : ''}
+      <div class="detail-sec">Location</div>
+      <div class="detail-row"><span class="detail-lbl">Address</span><span class="detail-val">${esc(loc||'—')}</span></div>
+      <div class="detail-row"><span class="detail-lbl">Coordinates</span><span class="detail-val">
+        ${esc(coords)}
+        ${mapsUrl ? `<a href="${mapsUrl}" target="_blank" style="margin-left:8px;color:var(--blue);font-size:12px;"><i class="ti ti-map-pin"></i> Map</a>` : ''}
       </span></div>
 
       ${s.item_name ? `
-      <div class="detail-section">Item</div>
-      <div class="detail-row"><span class="detail-label">Item name</span><span class="detail-val">${escHTML(s.item_name)}</span></div>
-      <div class="detail-row"><span class="detail-label">Price</span><span class="detail-val">${s.item_price ? '$'+s.item_price : '—'}</span></div>
-      <div class="detail-row"><span class="detail-label">Category</span><span class="detail-val">${escHTML(s.item_category||'—')}</span></div>
+        <div class="detail-sec">Item</div>
+        <div class="detail-row"><span class="detail-lbl">Name</span><span class="detail-val">${esc(s.item_name)}</span></div>
+        <div class="detail-row"><span class="detail-lbl">Price</span><span class="detail-val">${s.item_price?'$'+s.item_price:'—'}</span></div>
+        <div class="detail-row"><span class="detail-lbl">Category</span><span class="detail-val">${esc(s.item_category||'—')}</span></div>
       ` : ''}
 
-      ${hhHtml ? `<div class="detail-section">Happy Hour</div>${hhHtml}` : ''}
-      ${ldHtml ? `<div class="detail-section">Local Discount</div>${ldHtml}` : ''}
+      ${hhHtml}
+      ${ldHtml}
 
       ${s.details ? `
-      <div class="detail-section">Details / Notes</div>
-      <div style="font-size:13px;background:var(--off-white);border-radius:var(--radius-sm);padding:10px 12px;white-space:pre-wrap;color:var(--text-mid)">${escHTML(s.details)}</div>
+        <div class="detail-sec">Details / Notes</div>
+        <div class="code-block">${esc(s.details)}</div>
       ` : ''}
 
       ${s.admin_notes ? `
-      <div class="detail-section">Admin notes</div>
-      <div style="font-size:13px;color:var(--text-mid)">${escHTML(s.admin_notes)}</div>
+        <div class="detail-sec">Admin Notes</div>
+        <div class="code-block">${esc(s.admin_notes)}</div>
       ` : ''}
     </div>
-    ${s.admin_decision === 'pending' ? `
-    <div class="modal-actions">
-      <button class="btn-lg-reject" onclick="decide(${s.id},'rejected')"><i class="ti ti-x"></i> Reject</button>
-      <button class="btn-lg-approve" onclick="decide(${s.id},'approved')"><i class="ti ti-check"></i> Approve</button>
+    ${s.admin_decision==='pending' ? `
+    <div class="modal-foot">
+      <button class="btn-lg-no" onclick="decide(${s.id},'rejected')"><i class="ti ti-x"></i> Reject</button>
+      <button class="btn-lg-ok" onclick="decide(${s.id},'approved')"><i class="ti ti-check"></i> Approve</button>
     </div>` : ''}`;
 
-  document.getElementById('modalContent').innerHTML = html;
-  document.getElementById('modalBackdrop').classList.add('open');
+  document.getElementById('modalBg').classList.add('open');
 }
 
-function closeModal(e) {
-  if (e && e.target !== document.getElementById('modalBackdrop')) return;
-  document.getElementById('modalBackdrop').classList.remove('open');
-}
+function maybeCloseModal(e){ if(e.target===document.getElementById('modalBg')) closeModal(); }
+function closeModal(){ document.getElementById('modalBg').classList.remove('open'); }
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeModal(); });
 
 // ── USERS ──
-async function renderUsers() {
-  const main = document.getElementById('mainContent');
-  const users = await supaFetch('auth_users_view', '') .catch(() => null);
+async function renderUsers(){
+  const subs = await api('submissions','select=submitted_by_email&submitted_by_email=not.is.null');
+  const emails = [...new Set(subs.map(s=>s.submitted_by_email).filter(Boolean))];
 
-  // fallback: fetch via submissions emails
-  const subs = await supaFetch('submissions', 'select=submitted_by_email&submitted_by_email=not.is.null');
-  const emails = [...new Set(subs.map(s => s.submitted_by_email).filter(Boolean))];
-
-  main.innerHTML = `
-    <div class="page-title">Users</div>
-    <div class="page-sub">${emails.length} unique submitters</div>
-    <div class="table-wrap">
+  document.getElementById('mainContent').innerHTML = `
+    <div class="page-hd">
+      <div class="page-title">Users</div>
+      <div class="page-sub">${emails.length} unique submitters</div>
+    </div>
+    <div class="tbl-wrap">
       <table>
         <thead><tr><th>Email</th><th>Submissions</th></tr></thead>
         <tbody>
-          ${emails.length ? emails.map(email => {
-            const count = subs.filter(s => s.submitted_by_email === email).length;
+          ${emails.length ? emails.map(email=>{
+            const count = subs.filter(s=>s.submitted_by_email===email).length;
             const initials = email.substring(0,2).toUpperCase();
             return `<tr>
               <td style="display:flex;align-items:center;gap:10px">
-                <div class="user-avatar">${initials}</div>
-                ${escHTML(email)}
+                <div class="uavatar">${initials}</div>${esc(email)}
               </td>
-              <td>${count} submission${count !== 1 ? 's' : ''}</td>
+              <td class="mono">${count}</td>
             </tr>`;
-          }).join('') : '<tr><td colspan="2"><div class="empty-state"><i class="ti ti-users"></i>No users yet</div></td></tr>'}
+          }).join('') : '<tr><td colspan="2"><div class="empty"><i class="ti ti-users"></i>No users yet</div></td></tr>'}
         </tbody>
       </table>
     </div>`;
 }
 
 // ── GENERIC TABLE ──
-async function renderTable(table, title, cols) {
-  const main = document.getElementById('mainContent');
-  const rows = await supaFetch(table, 'order=id.asc&limit=200');
+async function renderGenericTable(table, title, cols){
+  const rows = await api(table,'order=id.asc&limit=200');
+  const colLabel = {id:'ID',business_name:'Name',city:'City',country:'Country',status:'Status',item_name:'Item',price_normal:'Price',item_category_first:'Category'};
 
-  const colLabels = {
-    id:'ID', business_name:'Name', city:'City', country:'Country', status:'Status',
-    item_name:'Item', price_normal:'Price', item_category_first:'Category'
-  };
-
-  main.innerHTML = `
-    <div class="page-title">${title}</div>
-    <div class="page-sub">${rows.length} records</div>
-    <div class="table-wrap">
+  document.getElementById('mainContent').innerHTML = `
+    <div class="page-hd">
+      <div class="page-title">${title}</div>
+      <div class="page-sub">${rows.length} records</div>
+    </div>
+    <div class="tbl-wrap">
       <table>
-        <thead><tr>${cols.map(c => `<th>${colLabels[c]||c}</th>`).join('')}</tr></thead>
+        <thead><tr>${cols.map(c=>`<th>${colLabel[c]||c}</th>`).join('')}</tr></thead>
         <tbody>
-          ${rows.length ? rows.map(r => `<tr>${cols.map(c => {
-            if (c === 'status') return `<td><span class="status-badge status-${r[c]}">${r[c]||'—'}</span></td>`;
-            if (c === 'price_normal') return `<td>$${r[c]||0}</td>`;
-            return `<td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHTML(String(r[c]||'—'))}</td>`;
+          ${rows.length ? rows.map(r=>`<tr>${cols.map(c=>{
+            if(c==='status') return `<td><span class="badge s-${r[c]}">${r[c]||'—'}</span></td>`;
+            if(c==='price_normal') return `<td class="mono">$${r[c]||0}</td>`;
+            if(c==='id') return `<td class="mono">${esc(r[c])}</td>`;
+            return `<td><span class="ellip">${esc(String(r[c]||'—'))}</span></td>`;
           }).join('')}</tr>`).join('') :
-          `<tr><td colspan="${cols.length}"><div class="empty-state"><i class="ti ti-database"></i>No records</div></td></tr>`}
+          `<tr><td colspan="${cols.length}"><div class="empty"><i class="ti ti-database"></i>No records</div></td></tr>`}
         </tbody>
       </table>
     </div>`;
 }
-
-// ── BADGE ──
-async function updatePendingBadge() {
-  try {
-    const rows = await supaFetch('submissions', 'admin_decision=eq.pending&select=id');
-    const badge = document.getElementById('pendingBadge');
-    if (badge) badge.textContent = rows.length;
-  } catch(e) {}
-}
-
-// ── UTILS ──
-function typeLabel(type) {
-  return {price:'Price',farm:'Farm',deal:'Deal',farm_edit:'Farm Edit',deal_edit:'Deal Edit',delete_farm:'Delete Farm',delete_price:'Delete Price',delete_deal:'Delete Deal'}[type] || type;
-}
-
-const _div = document.createElement('div');
-function escHTML(str) {
-  _div.textContent = String(str);
-  return _div.innerHTML;
-}
-
-function showToast(msg, type = '') {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.className = 'toast show' + (type ? ' ' + type : '');
-  setTimeout(() => t.className = 'toast', 2800);
-}
-
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') closeModal();
-});
 </script>
 </body>
 </html>
