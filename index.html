@@ -3773,7 +3773,8 @@ async function openPost(id) {
     const catLabels = Object.fromEntries(FORUM_CATEGORIES.map(c => [c.key, c.label]));
     const avatarColors = ['fa-amber','fa-green','fa-blue','fa-pink'];
     const initials  = getInitials(post.author_name);
-    const colorIdx  = (post.author_name||'A').charCodeAt(0) % avatarColors.length; = replies.length ? replies.map(r => {
+    const colorIdx  = (post.author_name||'A').charCodeAt(0) % avatarColors.length;
+    const repliesHTML = replies.length ? replies.map(r => {
       const safeRId = encodeURIComponent(r.id);
       return `<div class="reply-card">
         <div class="reply-author">${escHTML(r.author_name||'Anonymous')} <span class="reply-time">${formatTimeAgo(r.created_at)}</span></div>
