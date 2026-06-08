@@ -809,7 +809,6 @@ html.dark .profile-card{background:#1E1E1E}
   <header class="app-header">
     <div class="logo">the <span>hive</span></div>
     <div class="header-actions">
-      <button class="icon-btn" id="themeToggleBtn" onclick="toggleTheme()" aria-label="Toggle theme"><i class="ti ti-moon"></i></button>
       <button class="icon-btn" onclick="openSearch()"><i class="ti ti-search"></i></button>
       <button id="headerAuthBtn" class="header-login-btn" onclick="openAuthOrProfile()">Sign in</button>
     </div>
@@ -1983,6 +1982,11 @@ function applyTheme(dark) {
   document.documentElement.classList.toggle('dark', dark);
   const btn = document.getElementById('themeToggleBtn');
   if (btn) btn.innerHTML = dark ? '<i class="ti ti-sun"></i>' : '<i class="ti ti-moon"></i>';
+  // Update the profile row icon if visible
+  const profileThemeIcon = document.getElementById('profileThemeIcon');
+  if (profileThemeIcon) profileThemeIcon.className = dark ? 'ti ti-sun' : 'ti ti-moon';
+  const profileThemeLabel = document.getElementById('profileThemeLabel');
+  if (profileThemeLabel) profileThemeLabel.textContent = dark ? 'White mode' : 'Dark mode';
   document.querySelector('meta[name="theme-color"]').setAttribute('content', dark ? '#121212' : '#F5A623');
   // Swap tile layers on all active maps — reuse cached instances to avoid re-fetching tiles
   const lightUrl = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
@@ -4935,6 +4939,13 @@ function goToRaw(page) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('page-' + page).classList.add('active');
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  // Hide all floating buttons when on profile/auth overlay pages
+  ['mainFab','communityFab'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.style.display = 'none';
+  });
+  ['toggleFab','toggleFarmsFab','communityToggle'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.classList.remove('visible');
+  });
 }
 
 function switchAuthTab(tab) {
@@ -5132,11 +5143,30 @@ function renderProfilePage() {
         <div class="profile-row-body"><div class="profile-row-label">My reviews</div><div class="profile-row-sub">Farms you've rated</div></div>
         <span class="profile-coming-soon">Soon</span>
       </div>
-      <div class="profile-row" onclick="goTo('forum')">
+      <div class="profile-row" onclick="openMyActivity()">
         <div class="profile-row-icon blue"><i class="ti ti-messages"></i></div>
-        <div class="profile-row-body"><div class="profile-row-label">Community posts</div><div class="profile-row-sub">View the forum</div></div>
+        <div class="profile-row-body"><div class="profile-row-label">Community posts</div><div class="profile-row-sub">Your posts, likes & replies</div></div>
         <i class="ti ti-chevron-right profile-row-arrow"></i>
       </div>
+    </div>
+
+    <!-- MY ACTIVITY INLINE SECTION (hidden by default) -->
+    <div id="myActivitySection" style="display:none;">
+      <div style="background:var(--off-white);border-top:0.5px solid var(--border);border-bottom:0.5px solid var(--border);">
+        <div class="forum-tabs" id="myActivityTabs">
+          <button class="forum-tab active" data-act="posts"   onclick="switchMyActivityTab(this)">My posts</button>
+          <button class="forum-tab"        data-act="liked"   onclick="switchMyActivityTab(this)">Liked</button>
+          <button class="forum-tab"        data-act="replies" onclick="switchMyActivityTab(this)">Replies</button>
+        </div>
+        <div class="forum-tabs" id="myActivityCatTabs" style="padding-top:0;border-top:0.5px solid var(--border);">
+          <button class="forum-tab active" data-acat="all"     onclick="switchMyActivityCat(this)">All</button>
+          <button class="forum-tab"        data-acat="farms"   onclick="switchMyActivityCat(this)">Farms</button>
+          <button class="forum-tab"        data-acat="deals"   onclick="switchMyActivityCat(this)">Deals</button>
+          <button class="forum-tab"        data-acat="visa"    onclick="switchMyActivityCat(this)">Visa</button>
+          <button class="forum-tab"        data-acat="general" onclick="switchMyActivityCat(this)">General</button>
+        </div>
+      </div>
+      <div id="myActivityList" style="min-height:60px;"></div>
     </div>
 
     <!-- ACCOUNT -->
@@ -5153,8 +5183,8 @@ function renderProfilePage() {
         <span class="profile-coming-soon">Soon</span>
       </div>
       <div class="profile-row" onclick="toggleTheme()">
-        <div class="profile-row-icon gray"><i class="ti ti-moon"></i></div>
-        <div class="profile-row-body"><div class="profile-row-label">Dark mode</div></div>
+        <div class="profile-row-icon gray"><i id="profileThemeIcon" class="ti ti-moon"></i></div>
+        <div class="profile-row-body"><div class="profile-row-label" id="profileThemeLabel">Dark mode</div></div>
         <i class="ti ti-chevron-right profile-row-arrow"></i>
       </div>
     </div>
@@ -5184,7 +5214,19 @@ function renderProfilePage() {
     <div style="height:40px;"></div>
   `;
 
+  // Reset my-activity state so it reloads fresh next open
+  _myActivityLoaded = false;
+  _myActivityTab = 'posts';
+  _myActivityCat = 'all';
+
   loadProfileStats();
+
+  // Sync theme icon/label to current state
+  const isDark = document.documentElement.classList.contains('dark');
+  const profileThemeIcon = document.getElementById('profileThemeIcon');
+  const profileThemeLabel = document.getElementById('profileThemeLabel');
+  if (profileThemeIcon) profileThemeIcon.className = isDark ? 'ti ti-sun' : 'ti ti-moon';
+  if (profileThemeLabel) profileThemeLabel.textContent = isDark ? 'White mode' : 'Dark mode';
 }
 
 async function loadProfileStats() {
@@ -5203,7 +5245,136 @@ async function loadProfileStats() {
   } catch(e) { const el = document.getElementById('ps-contribs'); if (el) el.textContent = '0'; }
 }
 
-// ── PROFILE EDIT ──
+// ── MY ACTIVITY (profile inline) ──
+let _myActivityTab = 'posts';   // posts | liked | replies
+let _myActivityCat = 'all';
+let _myActivityData = { posts: [], liked: [], replies: [] };
+let _myActivityLoaded = false;
+
+async function openMyActivity() {
+  const section = document.getElementById('myActivitySection');
+  const isOpen  = section.style.display !== 'none';
+  if (isOpen) { section.style.display = 'none'; return; }
+  section.style.display = 'block';
+  section.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  if (!_myActivityLoaded) await loadMyActivity();
+}
+
+async function loadMyActivity() {
+  renderMyActivityList('<div class="map-loading"><div class="spinner"></div>Loading…</div>');
+  try {
+    const [posts, replies] = await Promise.all([
+      currentUser
+        ? supaFetch('forum_posts',   `user_id=eq.${currentUser.id}&order=created_at.desc`)
+        : Promise.resolve([]),
+      currentUser
+        ? supaFetch('forum_replies', `user_id=eq.${currentUser.id}&order=created_at.desc`)
+        : Promise.resolve([]),
+    ]);
+
+    // Liked posts — pull from localStorage (client-side dedup store)
+    const likedIds   = [...getLikedSet('hive_liked_posts')];
+    let likedPosts   = [];
+    if (likedIds.length) {
+      try {
+        likedPosts = await supaFetch('forum_posts', `id=in.(${likedIds.join(',')})&order=created_at.desc`);
+      } catch(e) { likedPosts = []; }
+    }
+
+    _myActivityData = { posts, liked: likedPosts, replies };
+    _myActivityLoaded = true;
+  } catch(e) {
+    _myActivityData = { posts: [], liked: [], replies: [] };
+    logError('loadMyActivity', e);
+  }
+  renderMyActivityList();
+}
+
+function switchMyActivityTab(btn) {
+  document.querySelectorAll('#myActivityTabs .forum-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  _myActivityTab = btn.dataset.act;
+  renderMyActivityList();
+}
+
+function switchMyActivityCat(btn) {
+  document.querySelectorAll('#myActivityCatTabs .forum-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  _myActivityCat = btn.dataset.acat;
+  renderMyActivityList();
+}
+
+function renderMyActivityList(overrideHtml) {
+  const el = document.getElementById('myActivityList');
+  if (!el) return;
+  if (overrideHtml) { el.innerHTML = overrideHtml; return; }
+
+  const catColors = { farms:'fp-cat-farm', deals:'fp-cat-deal', visa:'fp-cat-visa', general:'fp-cat-general', tips:'fp-cat-tips' };
+  const catLabels = { farms:'Farm', deals:'Deal', visa:'Visa', general:'General', tips:'Tips' };
+  const avatarColors = ['fa-amber','fa-green','fa-blue','fa-pink'];
+
+  if (_myActivityTab === 'replies') {
+    // Replies view
+    const replies = _myActivityData.replies;
+    if (!replies.length) {
+      el.innerHTML = '<div class="no-posts" style="padding:28px 20px;text-align:center;color:var(--text-light);font-size:14px;">No replies yet.</div>';
+      return;
+    }
+    el.innerHTML = replies.map(r => `
+      <div class="forum-post" style="cursor:default;">
+        <div class="forum-post-header">
+          <div class="forum-avatar fa-amber" style="width:32px;height:32px;font-size:13px;">${escHTML(getInitials(currentUser?.name || 'Me'))}</div>
+          <div class="fp-meta">
+            <div class="fp-author">You replied</div>
+            <div class="fp-time">${formatTimeAgo(r.created_at)}</div>
+          </div>
+        </div>
+        <p class="fp-preview" style="-webkit-line-clamp:3;">${escHTML(r.content)}</p>
+        <div class="fp-footer">
+          <span class="fp-stat"><i class="ti ti-heart"></i> ${r.likes||0}</span>
+          <button class="post-action" style="margin-left:auto;font-size:12px;color:var(--amber-dark);font-weight:600;" onclick="openPost('${r.post_id}')">View post <i class="ti ti-arrow-right"></i></button>
+        </div>
+      </div>`).join('') + '<div style="height:20px;"></div>';
+    return;
+  }
+
+  // Posts or Liked
+  let items = _myActivityTab === 'liked' ? _myActivityData.liked : _myActivityData.posts;
+
+  // Category filter (only applies to posts/liked, not replies)
+  if (_myActivityCat !== 'all') {
+    items = items.filter(p => p.category === _myActivityCat);
+  }
+
+  if (!items.length) {
+    const msg = _myActivityTab === 'liked' ? 'No liked posts yet.' : 'You haven\'t posted yet.';
+    el.innerHTML = `<div class="no-posts" style="padding:28px 20px;text-align:center;color:var(--text-light);font-size:14px;">${msg}</div>`;
+    return;
+  }
+
+  el.innerHTML = items.map(p => {
+    const initials  = escHTML(getInitials(p.author_name));
+    const colorIdx  = (p.author_name||'A').charCodeAt(0) % avatarColors.length;
+    const catClass  = catColors[p.category] || 'fp-cat-general';
+    const catLabel  = catLabels[p.category] || 'Post';
+    const safeId    = encodeURIComponent(p.id);
+    return `<div class="forum-post" onclick="openPost(decodeURIComponent('${safeId}'))">
+      <div class="forum-post-header">
+        <div class="forum-avatar ${avatarColors[colorIdx]}" style="width:32px;height:32px;font-size:13px;">${initials}</div>
+        <div class="fp-meta">
+          <div class="fp-author">${escHTML(p.author_name||'Anonymous')}</div>
+          <div class="fp-time">${formatTimeAgo(p.created_at)}</div>
+        </div>
+        <span class="fp-category ${catClass}">${catLabel}</span>
+      </div>
+      <div class="fp-title">${escHTML(p.title)}</div>
+      <p class="fp-preview">${escHTML(p.content)}</p>
+      <div class="fp-footer">
+        <span class="fp-stat"><i class="ti ti-heart"></i> ${p.likes||0}</span>
+      </div>
+    </div>`;
+  }).join('') + '<div style="height:20px;"></div>';
+}
 let _editingWhv = null;
 
 function openProfileEdit() {
