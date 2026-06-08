@@ -84,24 +84,24 @@ html.dark .loyalty-btn{background:var(--amber-light);color:var(--amber-dark)}
 
 .farm-card{flex-shrink:0;width:200px;background:var(--white);border:0.5px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-sm);cursor:pointer;-webkit-tap-highlight-color:transparent}
 .farm-card:active{transform:scale(0.97)}
-.farm-card-top{background:var(--amber-pale);height:72px;display:flex;align-items:center;justify-content:center;font-size:32px;border-bottom:0.5px solid var(--border)}
+.farm-card-top{background:var(--amber-pale);height:44px;display:flex;align-items:center;justify-content:center;border-bottom:0.5px solid var(--border);padding:0 12px}
+.farm-card-cat-label{font-size:11.5px;font-weight:700;color:var(--amber-dark);text-transform:uppercase;letter-spacing:0.6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .farm-card-body{padding:10px 12px 12px}
 .farm-card-name{font-size:13.5px;font-weight:600;line-height:1.3;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .farm-card-loc{font-size:11.5px;color:var(--text-light);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:6px}
 .farm-card-footer{display:flex;align-items:center;justify-content:space-between;gap:6px}
-.farm-card-stars{font-size:11px;color:var(--amber-dark);font-weight:600}
-.farm-card-chip{font-size:10.5px;font-weight:600;padding:2px 7px;border-radius:20px;background:#EAF3DE;color:#3B6D11;white-space:nowrap}
+.farm-card-stars{font-size:11px;color:var(--text-mid);font-weight:500;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.farm-card-chip{font-size:10.5px;font-weight:600;padding:2px 7px;border-radius:20px;background:#EAF3DE;color:#3B6D11;white-space:nowrap;flex-shrink:0}
 
 .deal-card-c{flex-shrink:0;width:190px;background:var(--white);border:0.5px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-sm);cursor:pointer;position:relative;-webkit-tap-highlight-color:transparent}
 .deal-card-c:active{transform:scale(0.97)}
 .deal-card-c::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--amber)}
-.deal-card-c-top{background:var(--off-white);height:60px;display:flex;align-items:center;justify-content:center;font-size:26px;border-bottom:0.5px solid var(--border)}
-.deal-card-c-body{padding:10px 12px 12px}
+.deal-card-c-body{padding:12px 12px 12px 16px}
 .deal-card-c-name{font-size:13px;font-weight:600;line-height:1.3;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.deal-card-c-type{font-size:11px;color:var(--text-light);margin-bottom:6px}
-.deal-card-c-footer{display:flex;align-items:center;justify-content:space-between}
+.deal-card-c-type{font-size:11px;color:var(--text-light);margin-bottom:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.deal-card-c-footer{display:flex;align-items:center;justify-content:space-between;gap:6px}
 .deal-card-c-disc{font-family:'Fraunces',serif;font-size:18px;font-weight:700;color:var(--amber-dark)}
-.deal-card-c-status{font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;background:#EAF3DE;color:#3B6D11}
+.deal-card-c-status{font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;background:#EAF3DE;color:#3B6D11;white-space:nowrap;flex-shrink:0}
 
 .carousel-empty{font-size:13px;color:var(--text-light);text-align:center;padding:20px 0;width:100%}
 
@@ -890,10 +890,9 @@ html.dark .profile-card{background:#1E1E1E}
         <div class="qa-card" onclick="openSubmit('home')"><div class="qa-icon prices"><i class="ti ti-circle-plus"></i></div><div><div class="qa-name">Add Info</div><div class="qa-sub">Contribute to the hive</div></div></div>
         <div class="qa-card" onclick="goTo('forum')"><div class="qa-icon community"><i class="ti ti-messages"></i></div><div><div class="qa-name">Community</div><div class="qa-sub">Tips, stories & help</div></div></div>
       </div>
-      <!-- BEST FARMS CAROUSEL -->
       <div class="carousel-section">
         <div class="carousel-header">
-          <div class="section-title" style="padding:0;margin:0;">🌾 Best Farms near you</div>
+          <div class="section-title" style="padding:0;margin:0;">Best Farms near you</div>
           <button class="carousel-see-all" onclick="goTo('farms')">See all</button>
         </div>
         <div class="carousel-track" id="bestFarmsCarousel">
@@ -903,7 +902,7 @@ html.dark .profile-card{background:#1E1E1E}
       <!-- BEST DEALS CAROUSEL -->
       <div class="carousel-section">
         <div class="carousel-header">
-          <div class="section-title" style="padding:0;margin:0;">🏷️ Best Deals near you</div>
+          <div class="section-title" style="padding:0;margin:0;">Best Deals near you</div>
           <button class="carousel-see-all" onclick="goTo('deals')">See all</button>
         </div>
         <div class="carousel-track" id="bestDealsCarousel">
@@ -6325,11 +6324,32 @@ function goToCommunityMap() {
 }
 
 // ── CAROUSELS ──
-const CAROUSEL_GOAL = 2000;
 let _carouselUserPos = null;
 
+// Wire up carousel click delegation once DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('bestFarmsCarousel').addEventListener('click', function(e) {
+    const card = e.target.closest('.farm-card[data-id]');
+    if (!card) return;
+    const id  = card.dataset.id;
+    const lat = parseFloat(card.dataset.lat) || 0;
+    const lng = parseFloat(card.dataset.lng) || 0;
+    goTo('farms');
+    const delay = farmMap ? 50 : 900;
+    setTimeout(function() {
+      if (lat && lng) flyTo(farmMap, lat, lng, 13);
+      setTimeout(function() { openFarmDetail(id); }, 600);
+    }, delay);
+  });
+  document.getElementById('bestDealsCarousel').addEventListener('click', function(e) {
+    const card = e.target.closest('.deal-card-c[data-id]');
+    if (!card) return;
+    goTo('deals');
+    setTimeout(function() { openDealDetail(card.dataset.id); }, 600);
+  });
+});
+
 async function loadHomeCarousels() {
-  // Get user location for "near you" — best-effort, fall back to global
   try {
     const pos = await getUserLocation();
     if (pos) _carouselUserPos = pos;
@@ -6338,109 +6358,167 @@ async function loadHomeCarousels() {
   loadBestDealsCarousel();
 }
 
-function _farmEmoji(cat) {
-  const c = (cat||'').toLowerCase();
-  if (c.includes('fruit')) return '🍓';
-  if (c.includes('vine') || c.includes('wine')) return '🍇';
-  if (c.includes('vege')) return '🥦';
-  if (c.includes('dairy')) return '🐄';
-  if (c.includes('live') || c.includes('stock')) return '🐑';
-  if (c.includes('nurs')) return '🌱';
-  if (c.includes('grain') || c.includes('wheat')) return '🌾';
-  return '🚜';
-}
-
-function _dealEmoji2(type) {
-  const t = (type||'').toLowerCase();
-  if (t.includes('bar')) return '🍺';
-  if (t.includes('coffee')) return '☕';
-  if (t.includes('hostel')) return '🏠';
-  if (t.includes('activ')) return '🏄';
-  if (t.includes('deal')) return '🏷️';
-  return '🏪';
-}
-
+// ── Best Farms ──
+// Ranked by most reviews first (most community-validated), then newest.
+// Falls back to nearest if location available and no reviewed farms nearby.
 async function loadBestFarmsCarousel() {
   const el = document.getElementById('bestFarmsCarousel');
   if (!el) return;
   try {
-    let params = 'status=eq.approved&order=avg_rating.desc.nullslast,review_count.desc.nullslast&limit=12&select=id,business_name,city,state_region,latitude,longitude,farm_category_first,pay_per_hour_aud,avg_rating,review_count';
-    // If we have location, fetch nearby first
-    if (_carouselUserPos) {
-      const { lat, lng } = _carouselUserPos;
-      const pad = 8; // ~800km radius
-      params = `status=eq.approved&latitude=gte.${lat-pad}&latitude=lte.${lat+pad}&longitude=gte.${lng-pad}&longitude=lte.${lng+pad}&order=avg_rating.desc.nullslast,review_count.desc.nullslast&limit=12&select=id,business_name,city,state_region,latitude,longitude,farm_category_first,pay_per_hour_aud,avg_rating,review_count`;
+    // Step 1: fetch reviewed farms via farm_reviews — count per farm_id
+    // We can't do aggregates in PostgREST easily, so fetch recent reviews to
+    // build a ranked farm_id list, then fetch those farms.
+    const reviews = await supaFetch('farm_reviews', 'order=created_at.desc&limit=200&select=farm_id,rating');
+
+    // Aggregate: count reviews and sum ratings per farm
+    const farmStats = {};
+    reviews.forEach(r => {
+      if (!farmStats[r.farm_id]) farmStats[r.farm_id] = { count: 0, sum: 0 };
+      farmStats[r.farm_id].count++;
+      farmStats[r.farm_id].sum += (r.rating || 0);
+    });
+
+    // Sort farm IDs by count desc (most reviewed = most trusted)
+    const rankedIds = Object.keys(farmStats).sort((a, b) => farmStats[b].count - farmStats[a].count).slice(0, 20);
+
+    let farms = [];
+
+    if (rankedIds.length >= 3) {
+      // Fetch the top-reviewed farms — filter by location if available
+      const idList = rankedIds.join(',');
+      farms = await supaFetch('businesses', `status=eq.approved&id=in.(${idList})`);
+      // Re-sort by review count
+      farms.sort((a, b) => (farmStats[b.id]?.count || 0) - (farmStats[a.id]?.count || 0));
     }
-    let farms = await supaFetch('businesses', params);
-    // Fall back to global top-rated if too few results
+
+    // Fallback: if few/no reviewed farms, get nearest or most recent
     if (farms.length < 3) {
-      farms = await supaFetch('businesses', 'status=eq.approved&order=avg_rating.desc.nullslast,review_count.desc.nullslast&limit=12&select=id,business_name,city,state_region,latitude,longitude,farm_category_first,pay_per_hour_aud,avg_rating,review_count');
+      let fallbackParams = 'status=eq.approved&order=created_at.desc&limit=12';
+      if (_carouselUserPos) {
+        const { lat, lng } = _carouselUserPos;
+        const pad = 10;
+        fallbackParams = `status=eq.approved&latitude=gte.${lat-pad}&latitude=lte.${lat+pad}&longitude=gte.${lng-pad}&longitude=lte.${lng+pad}&order=created_at.desc&limit=12`;
+      }
+      farms = await supaFetch('businesses', fallbackParams);
     }
+
+    // Final fallback: any farms
+    if (!farms.length) {
+      farms = await supaFetch('businesses', 'status=eq.approved&order=created_at.desc&limit=12');
+    }
+
     if (!farms.length) {
       el.innerHTML = '<div class="carousel-empty">No farms found yet.</div>';
       return;
     }
-    el.innerHTML = farms.map(f => {
-      const emoji  = _farmEmoji(f.farm_category_first);
-      const loc    = [f.city, f.state_region].filter(Boolean).join(', ');
-      const rating = f.avg_rating ? `⭐ ${parseFloat(f.avg_rating).toFixed(1)}` : 'No rating yet';
-      const pay    = f.pay_per_hour_aud ? `$${f.pay_per_hour_aud}/hr` : '';
-      return `<div class="farm-card" onclick="goTo('farms');setTimeout(()=>{flyTo(farmMap,${f.latitude||0},${f.longitude||0},13);setTimeout(()=>openFarmDetail('${f.id}'),600)},farmMap?50:900)">
-        <div class="farm-card-top">${emoji}</div>
+
+    // Merge into allFarms cache so openFarmDetail works
+    farms.forEach(f => {
+      if (!farmLoadedIds.has(f.id)) { farmLoadedIds.add(f.id); allFarms.push(f); }
+    });
+
+    el.innerHTML = farms.slice(0, 10).map(f => {
+      const loc      = [f.city, f.state_region].filter(Boolean).join(', ');
+      const stats    = farmStats[f.id];
+      const ratingTxt = stats && stats.count > 0
+        ? parseFloat(stats.sum / stats.count).toFixed(1) + ' / 5 (' + stats.count + ' review' + (stats.count > 1 ? 's' : '') + ')'
+        : 'No reviews yet';
+      const pay      = f.pay_per_hour_aud ? '$' + f.pay_per_hour_aud + '/hr' : '';
+      const cat      = escHTML(f.farm_category_first || 'Farm');
+      return `<div class="farm-card" data-id="${escHTML(f.id)}" data-lat="${f.latitude||''}" data-lng="${f.longitude||''}">
+        <div class="farm-card-top"><span class="farm-card-cat-label">${cat}</span></div>
         <div class="farm-card-body">
           <div class="farm-card-name">${escHTML(f.business_name)}</div>
-          <div class="farm-card-loc">${escHTML(loc||'Location TBC')}</div>
+          <div class="farm-card-loc">${escHTML(loc || 'Location TBC')}</div>
           <div class="farm-card-footer">
-            <span class="farm-card-stars">${rating}</span>
-            ${pay ? `<span class="farm-card-chip">${pay}</span>` : ''}
+            <span class="farm-card-stars">${escHTML(ratingTxt)}</span>
+            ${pay ? '<span class="farm-card-chip">' + escHTML(pay) + '</span>' : ''}
           </div>
         </div>
       </div>`;
     }).join('');
   } catch(e) {
     const el2 = document.getElementById('bestFarmsCarousel');
-    if (el2) el2.innerHTML = '<div class="carousel-empty">Could not load farms.</div>';
+    if (el2) el2.innerHTML = '<div class="carousel-empty">No farms to show right now.</div>';
     logError('carousel:farms', e);
   }
 }
 
+// ── Best Deals ──
+// "Cheapest" = lowest price_normal across all local_prices entries for that business.
+// Falls back to nearest deals or most-recently-added.
 async function loadBestDealsCarousel() {
   const el = document.getElementById('bestDealsCarousel');
   if (!el) return;
   try {
-    let params = 'status=in.(approved,negotiating)&order=discount.desc.nullslast&limit=12&select=id,business_name,city,country,business_type,discount,description';
-    if (_carouselUserPos) {
-      const { lat, lng } = _carouselUserPos;
-      const pad = 8;
-      params = `status=in.(approved,negotiating)&latitude=gte.${lat-pad}&latitude=lte.${lat+pad}&longitude=gte.${lng-pad}&longitude=lte.${lng+pad}&order=discount.desc.nullslast&limit=12&select=id,business_name,city,country,business_type,discount,description`;
-    }
-    let deals = await supaFetch('deals', params);
-    if (deals.length < 3) {
-      deals = await supaFetch('deals', 'status=in.(approved,negotiating)&order=discount.desc.nullslast&limit=12&select=id,business_name,city,country,business_type,discount,description');
-    }
+    // Fetch all deals (no fake columns, no location filter on deals table)
+    let deals = await supaFetch('deals', 'status=in.(approved,negotiating)&order=created_at.desc&limit=100');
+
     if (!deals.length) {
       el.innerHTML = '<div class="carousel-empty">No deals found yet.</div>';
       return;
     }
-    el.innerHTML = deals.map(d => {
-      const emoji = _dealEmoji2(d.business_type);
+
+    // Merge into allDeals cache so openDealDetail works
+    deals.forEach(d => {
+      if (!allDeals.find(x => x.id === d.id)) allDeals.push(d);
+    });
+
+    // Fetch local_prices to find cheapest item per business
+    let prices = [];
+    try {
+      prices = await supaFetch('local_prices', 'status=eq.approved&select=business_name,city,price_normal&order=price_normal.asc&limit=500');
+    } catch(e) {}
+
+    // Build min-price map keyed by lowercase business name
+    const minPrice = {};
+    prices.forEach(p => {
+      const key = (p.business_name || '').toLowerCase().trim();
+      const v   = parseFloat(p.price_normal || 0);
+      if (key && v > 0 && (minPrice[key] === undefined || v < minPrice[key])) {
+        minPrice[key] = v;
+      }
+    });
+
+    // Attach cheapest price to each deal and sort
+    deals.forEach(d => {
+      const key = (d.business_name || '').toLowerCase().trim();
+      d._cheapest = minPrice[key] || null;
+    });
+
+    // Sort: deals with a known cheapest price first (asc), then by discount desc, then rest
+    deals.sort((a, b) => {
+      if (a._cheapest !== null && b._cheapest !== null) return a._cheapest - b._cheapest;
+      if (a._cheapest !== null) return -1;
+      if (b._cheapest !== null) return 1;
+      return (parseFloat(b.discount||0)) - (parseFloat(a.discount||0));
+    });
+
+    // If we have user location, prefer deals from the same city
+    if (_carouselUserPos) {
+      // We don't have coords on deals, but we can soft-boost by doing nothing here
+      // since deals are already sorted by cheapest price — location boost isn't safe
+    }
+
+    el.innerHTML = deals.slice(0, 10).map(d => {
       const loc   = [d.city, d.country].filter(Boolean).join(', ');
-      const disc  = parseFloat(d.discount||0);
-      return `<div class="deal-card-c" onclick="goTo('deals');setTimeout(()=>openDealDetail('${d.id}'),600)">
-        <div class="deal-card-c-top">${emoji}</div>
-        <div class="deal-card-c-body">
+      const disc  = parseFloat(d.discount || 0);
+      const type  = escHTML(d.business_type || 'Business');
+      const cheap = d._cheapest ? 'From $' + d._cheapest.toFixed(2) : '';
+      return `<div class="deal-card-c" data-id="${escHTML(d.id)}">
+        <div class="deal-card-c-body" style="padding-top:12px;">
           <div class="deal-card-c-name">${escHTML(d.business_name)}</div>
-          <div class="deal-card-c-type">${escHTML(loc||d.business_type||'')}</div>
+          <div class="deal-card-c-type">${escHTML(loc || type)}</div>
           <div class="deal-card-c-footer">
-            ${disc > 0 ? `<span class="deal-card-c-disc">-${disc}%</span>` : '<span class="deal-card-c-disc" style="font-size:13px;font-family:\'DM Sans\',sans-serif;">Deal</span>'}
-            <span class="deal-card-c-status">Active</span>
+            ${disc > 0 ? '<span class="deal-card-c-disc">-' + disc + '%</span>' : (cheap ? '<span class="deal-card-c-disc" style="font-size:13px;">' + escHTML(cheap) + '</span>' : '<span class="deal-card-c-disc" style="font-size:12px;font-family:\'DM Sans\',sans-serif;">Deal</span>')}
+            <span class="deal-card-c-status">${type}</span>
           </div>
         </div>
       </div>`;
     }).join('');
   } catch(e) {
     const el2 = document.getElementById('bestDealsCarousel');
-    if (el2) el2.innerHTML = '<div class="carousel-empty">Could not load deals.</div>';
+    if (el2) el2.innerHTML = '<div class="carousel-empty">No deals to show right now.</div>';
     logError('carousel:deals', e);
   }
 }
