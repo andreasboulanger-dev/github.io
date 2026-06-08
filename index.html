@@ -55,16 +55,57 @@ html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;backgroun
 .nav-dot{width:4px;height:4px;border-radius:50%;background:var(--amber);opacity:0;margin-top:-2px}
 .nav-item.active .nav-dot{opacity:1}
 
-/* FAB — remonté pour éviter le slider (calc(var(--nav-h) + 50px)) */
-.fab{position:absolute;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom, 0px) + 50px);right:20px;width:52px;height:52px;border-radius:50%;background:var(--amber);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-fab);z-index:30;color:white;font-size:24px;-webkit-tap-highlight-color:transparent}
+/* FAB */
+.fab{position:absolute;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom, 0px) + 16px);right:20px;width:52px;height:52px;border-radius:50%;background:var(--amber);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-fab);z-index:30;color:white;font-size:24px;-webkit-tap-highlight-color:transparent;transition:bottom 0.2s}
 .fab:active{transform:scale(0.93);background:var(--amber-dark)}
+.fab.raised{bottom:calc(var(--nav-h) + env(safe-area-inset-bottom, 0px) + 62px)}
 
-/* Toggle FAB centré — même position que le FAB */
-.toggle-fab{position:absolute;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom, 0px) + 50px);left:50%;transform:translateX(-50%);height:40px;padding:0 20px;border-radius:20px;background:rgba(255,255,255,0.92);border:0.5px solid rgba(0,0,0,0.12);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);cursor:pointer;display:none;align-items:center;gap:8px;box-shadow:0 2px 12px rgba(0,0,0,0.14);z-index:30;color:var(--text-dark);font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif;white-space:nowrap;-webkit-tap-highlight-color:transparent}
+/* Toggle FAB centré */
+.toggle-fab{position:absolute;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom, 0px) + 16px);left:50%;transform:translateX(-50%);height:40px;padding:0 20px;border-radius:20px;background:rgba(255,255,255,0.92);border:0.5px solid rgba(0,0,0,0.12);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);cursor:pointer;display:none;align-items:center;gap:8px;box-shadow:0 2px 12px rgba(0,0,0,0.14);z-index:30;color:var(--text-dark);font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif;white-space:nowrap;-webkit-tap-highlight-color:transparent;transition:bottom 0.2s}
 .toggle-fab i{font-size:16px}
 .toggle-fab.visible{display:flex}
+.toggle-fab.raised{bottom:calc(var(--nav-h) + env(safe-area-inset-bottom, 0px) + 62px)}
 
-/* HOME */
+/* LOYALTY BTN */
+.loyalty-btn{color:var(--amber-dark);background:var(--amber-light)}
+html.dark .loyalty-btn{background:var(--amber-light);color:var(--amber-dark)}
+
+/* CLICKABLE STAT CARDS */
+.stat-card-link{cursor:pointer;transition:transform 0.15s,box-shadow 0.15s}
+.stat-card-link:active{transform:scale(0.95);box-shadow:var(--shadow-md)}
+
+/* CAROUSELS */
+.carousel-section{padding:0 0 4px}
+.carousel-header{display:flex;align-items:center;justify-content:space-between;padding:20px 18px 12px}
+.carousel-see-all{font-size:13px;font-weight:600;color:var(--amber-dark);background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;-webkit-tap-highlight-color:transparent}
+.carousel-track{display:flex;gap:12px;overflow-x:auto;padding:0 18px 14px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.carousel-track::-webkit-scrollbar{display:none}
+.carousel-loading{display:flex;align-items:center;justify-content:center;width:100%;padding:24px 0}
+
+.farm-card{flex-shrink:0;width:200px;background:var(--white);border:0.5px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-sm);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.farm-card:active{transform:scale(0.97)}
+.farm-card-top{background:var(--amber-pale);height:72px;display:flex;align-items:center;justify-content:center;font-size:32px;border-bottom:0.5px solid var(--border)}
+.farm-card-body{padding:10px 12px 12px}
+.farm-card-name{font-size:13.5px;font-weight:600;line-height:1.3;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.farm-card-loc{font-size:11.5px;color:var(--text-light);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:6px}
+.farm-card-footer{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.farm-card-stars{font-size:11px;color:var(--amber-dark);font-weight:600}
+.farm-card-chip{font-size:10.5px;font-weight:600;padding:2px 7px;border-radius:20px;background:#EAF3DE;color:#3B6D11;white-space:nowrap}
+
+.deal-card-c{flex-shrink:0;width:190px;background:var(--white);border:0.5px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-sm);cursor:pointer;position:relative;-webkit-tap-highlight-color:transparent}
+.deal-card-c:active{transform:scale(0.97)}
+.deal-card-c::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--amber)}
+.deal-card-c-top{background:var(--off-white);height:60px;display:flex;align-items:center;justify-content:center;font-size:26px;border-bottom:0.5px solid var(--border)}
+.deal-card-c-body{padding:10px 12px 12px}
+.deal-card-c-name{font-size:13px;font-weight:600;line-height:1.3;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.deal-card-c-type{font-size:11px;color:var(--text-light);margin-bottom:6px}
+.deal-card-c-footer{display:flex;align-items:center;justify-content:space-between}
+.deal-card-c-disc{font-family:'Fraunces',serif;font-size:18px;font-weight:700;color:var(--amber-dark)}
+.deal-card-c-status{font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;background:#EAF3DE;color:#3B6D11}
+
+.carousel-empty{font-size:13px;color:var(--text-light);text-align:center;padding:20px 0;width:100%}
+
+
 .home-hero{background:var(--amber-pale);padding:28px 20px 24px;border-bottom:0.5px solid var(--border)}
 .home-greeting{font-size:13px;color:var(--text-light);font-weight:500;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px}
 .home-title{font-family:'Fraunces',serif;font-size:26px;font-weight:700;line-height:1.25;margin-bottom:14px}
@@ -811,6 +852,7 @@ html.dark .profile-card{background:#1E1E1E}
     <div class="logo">the <span>hive</span></div>
     <div class="header-actions">
       <button class="icon-btn" onclick="openSearch()"><i class="ti ti-search"></i></button>
+      <button class="icon-btn loyalty-btn" onclick="showLoyaltyComingSoon()" title="Member? Loyalty Card"><i class="ti ti-id-badge-2"></i></button>
       <button id="headerAuthBtn" class="header-login-btn" onclick="openAuthOrProfile()">Sign in</button>
     </div>
   </header>
@@ -824,9 +866,9 @@ html.dark .profile-card{background:#1E1E1E}
         <div class="home-search" onclick="openSearch()"><i class="ti ti-search"></i><input type="text" placeholder="Search city, farm, deal…" readonly style="cursor:pointer;"></div>
       </div>
       <div class="home-stats">
-        <div class="stat-card"><div class="stat-num" id="stat-farms">–</div><div class="stat-label">Farms</div></div>
-        <div class="stat-card"><div class="stat-num" id="stat-deals">–</div><div class="stat-label">Deals</div></div>
-        <div class="stat-card"><div class="stat-num" id="stat-members">–</div><div class="stat-label">Members</div></div>
+        <div class="stat-card stat-card-link" onclick="goTo('farms')" title="View all farms"><div class="stat-num" id="stat-farms">–</div><div class="stat-label">Farms</div></div>
+        <div class="stat-card stat-card-link" onclick="goToDealsWithFilter('deal')" title="View deals"><div class="stat-num" id="stat-deals">–</div><div class="stat-label">Deals</div></div>
+        <div class="stat-card stat-card-link" onclick="goToCommunityMap()" title="View community"><div class="stat-num" id="stat-members">–</div><div class="stat-label">Members</div></div>
       </div>
       <div class="home-community-bar">
         <div style="width:100%">
@@ -836,8 +878,8 @@ html.dark .profile-card{background:#1E1E1E}
           </div>
           <div class="home-community-desc">More members = more negotiating power. Help us reach 2,000 travellers to unlock country-wide deals.</div>
           <div style="display:flex;align-items:center;gap:10px;margin-top:10px;">
-            <div class="home-community-progress-wrap" style="flex:1;width:auto;"><div class="home-community-progress-fill" style="width:60%"></div></div>
-            <div class="home-community-goal">60%</div>
+            <div class="home-community-progress-wrap" style="flex:1;width:auto;"><div class="home-community-progress-fill" id="communityProgressFill" style="width:0%"></div></div>
+            <div class="home-community-goal" id="communityProgressPct">0%</div>
           </div>
         </div>
       </div>
@@ -847,6 +889,26 @@ html.dark .profile-card{background:#1E1E1E}
         <div class="qa-card" onclick="goTo('deals')"><div class="qa-icon deals"><i class="ti ti-tag"></i></div><div><div class="qa-name">Local Prices</div><div class="qa-sub">Deals & local costs</div></div></div>
         <div class="qa-card" onclick="openSubmit('home')"><div class="qa-icon prices"><i class="ti ti-circle-plus"></i></div><div><div class="qa-name">Add Info</div><div class="qa-sub">Contribute to the hive</div></div></div>
         <div class="qa-card" onclick="goTo('forum')"><div class="qa-icon community"><i class="ti ti-messages"></i></div><div><div class="qa-name">Community</div><div class="qa-sub">Tips, stories & help</div></div></div>
+      </div>
+      <!-- BEST FARMS CAROUSEL -->
+      <div class="carousel-section">
+        <div class="carousel-header">
+          <div class="section-title" style="padding:0;margin:0;">🌾 Best Farms near you</div>
+          <button class="carousel-see-all" onclick="goTo('farms')">See all</button>
+        </div>
+        <div class="carousel-track" id="bestFarmsCarousel">
+          <div class="carousel-loading"><div class="spinner"></div></div>
+        </div>
+      </div>
+      <!-- BEST DEALS CAROUSEL -->
+      <div class="carousel-section">
+        <div class="carousel-header">
+          <div class="section-title" style="padding:0;margin:0;">🏷️ Best Deals near you</div>
+          <button class="carousel-see-all" onclick="goTo('deals')">See all</button>
+        </div>
+        <div class="carousel-track" id="bestDealsCarousel">
+          <div class="carousel-loading"><div class="spinner"></div></div>
+        </div>
       </div>
       <div class="section-title">Trending in the community</div>
       <div class="recent-posts">
@@ -2210,8 +2272,9 @@ function toggleDealsView() {
 // ── SLIDER ──
 function showSlider(visible) {
   document.getElementById('priceSliderBar').classList.toggle('visible', visible);
-  const bugFab = document.getElementById('bugFab');
-  if (bugFab) bugFab.classList.toggle('raised', visible);
+  ['bugFab', 'mainFab', 'toggleFab'].forEach(id => {
+    document.getElementById(id)?.classList.toggle('raised', visible);
+  });
 }
 
 function initSlider(prices) {
@@ -3660,8 +3723,8 @@ async function loadHomeStats() {
     document.getElementById('stat-members').textContent = total >= 1000 ? (total/1000).toFixed(1).replace('.0','')+'k' : total;
     const pct = Math.min(Math.round(total / 2000 * 100), 100);
     const communityCountEl = document.getElementById('homeCommunityCount');
-    const communityFillEl  = document.querySelector('.home-community-progress-fill');
-    const communityGoalEl  = document.querySelector('.community-goal');
+    const communityFillEl  = document.getElementById('communityProgressFill');
+    const communityGoalEl  = document.getElementById('communityProgressPct');
     if (communityCountEl) communityCountEl.textContent = total.toLocaleString() + ' members';
     if (communityFillEl)  communityFillEl.style.width  = pct + '%';
     if (communityGoalEl)  communityGoalEl.textContent  = pct + '%';
@@ -6237,10 +6300,156 @@ function searchGoDeal(id) {
   setTimeout(() => openDealDetail(id), 600);
 }
 
+// ── HOME HELPERS ──
+
+function showLoyaltyComingSoon() {
+  showToast('🪪 Member Loyalty Card — coming soon!');
+}
+
+function goToDealsWithFilter(type) {
+  goTo('deals');
+  // Ensure map view is active
+  if (dealsViewMode !== 'map') toggleDealsView();
+  // Apply the 'deal' filter pill — wait a tick for initDealMap if first visit
+  setTimeout(() => {
+    const pill = [...document.querySelectorAll('#page-deals .map-filters .filter-pill')]
+      .find(b => (b.getAttribute('onclick')||'').includes(`'${type}'`));
+    if (pill) filterDeals(pill, type);
+  }, 100);
+}
+
+function goToCommunityMap() {
+  goTo('forum');
+  // Ensure map view is shown
+  if (communityViewMode !== 'map') toggleCommunityView();
+}
+
+// ── CAROUSELS ──
+const CAROUSEL_GOAL = 2000;
+let _carouselUserPos = null;
+
+async function loadHomeCarousels() {
+  // Get user location for "near you" — best-effort, fall back to global
+  try {
+    const pos = await getUserLocation();
+    if (pos) _carouselUserPos = pos;
+  } catch(e) {}
+  loadBestFarmsCarousel();
+  loadBestDealsCarousel();
+}
+
+function _farmEmoji(cat) {
+  const c = (cat||'').toLowerCase();
+  if (c.includes('fruit')) return '🍓';
+  if (c.includes('vine') || c.includes('wine')) return '🍇';
+  if (c.includes('vege')) return '🥦';
+  if (c.includes('dairy')) return '🐄';
+  if (c.includes('live') || c.includes('stock')) return '🐑';
+  if (c.includes('nurs')) return '🌱';
+  if (c.includes('grain') || c.includes('wheat')) return '🌾';
+  return '🚜';
+}
+
+function _dealEmoji2(type) {
+  const t = (type||'').toLowerCase();
+  if (t.includes('bar')) return '🍺';
+  if (t.includes('coffee')) return '☕';
+  if (t.includes('hostel')) return '🏠';
+  if (t.includes('activ')) return '🏄';
+  if (t.includes('deal')) return '🏷️';
+  return '🏪';
+}
+
+async function loadBestFarmsCarousel() {
+  const el = document.getElementById('bestFarmsCarousel');
+  if (!el) return;
+  try {
+    let params = 'status=eq.approved&order=avg_rating.desc.nullslast,review_count.desc.nullslast&limit=12&select=id,business_name,city,state_region,latitude,longitude,farm_category_first,pay_per_hour_aud,avg_rating,review_count';
+    // If we have location, fetch nearby first
+    if (_carouselUserPos) {
+      const { lat, lng } = _carouselUserPos;
+      const pad = 8; // ~800km radius
+      params = `status=eq.approved&latitude=gte.${lat-pad}&latitude=lte.${lat+pad}&longitude=gte.${lng-pad}&longitude=lte.${lng+pad}&order=avg_rating.desc.nullslast,review_count.desc.nullslast&limit=12&select=id,business_name,city,state_region,latitude,longitude,farm_category_first,pay_per_hour_aud,avg_rating,review_count`;
+    }
+    let farms = await supaFetch('businesses', params);
+    // Fall back to global top-rated if too few results
+    if (farms.length < 3) {
+      farms = await supaFetch('businesses', 'status=eq.approved&order=avg_rating.desc.nullslast,review_count.desc.nullslast&limit=12&select=id,business_name,city,state_region,latitude,longitude,farm_category_first,pay_per_hour_aud,avg_rating,review_count');
+    }
+    if (!farms.length) {
+      el.innerHTML = '<div class="carousel-empty">No farms found yet.</div>';
+      return;
+    }
+    el.innerHTML = farms.map(f => {
+      const emoji  = _farmEmoji(f.farm_category_first);
+      const loc    = [f.city, f.state_region].filter(Boolean).join(', ');
+      const rating = f.avg_rating ? `⭐ ${parseFloat(f.avg_rating).toFixed(1)}` : 'No rating yet';
+      const pay    = f.pay_per_hour_aud ? `$${f.pay_per_hour_aud}/hr` : '';
+      return `<div class="farm-card" onclick="goTo('farms');setTimeout(()=>{flyTo(farmMap,${f.latitude||0},${f.longitude||0},13);setTimeout(()=>openFarmDetail('${f.id}'),600)},farmMap?50:900)">
+        <div class="farm-card-top">${emoji}</div>
+        <div class="farm-card-body">
+          <div class="farm-card-name">${escHTML(f.business_name)}</div>
+          <div class="farm-card-loc">${escHTML(loc||'Location TBC')}</div>
+          <div class="farm-card-footer">
+            <span class="farm-card-stars">${rating}</span>
+            ${pay ? `<span class="farm-card-chip">${pay}</span>` : ''}
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    const el2 = document.getElementById('bestFarmsCarousel');
+    if (el2) el2.innerHTML = '<div class="carousel-empty">Could not load farms.</div>';
+    logError('carousel:farms', e);
+  }
+}
+
+async function loadBestDealsCarousel() {
+  const el = document.getElementById('bestDealsCarousel');
+  if (!el) return;
+  try {
+    let params = 'status=in.(approved,negotiating)&order=discount.desc.nullslast&limit=12&select=id,business_name,city,country,business_type,discount,description';
+    if (_carouselUserPos) {
+      const { lat, lng } = _carouselUserPos;
+      const pad = 8;
+      params = `status=in.(approved,negotiating)&latitude=gte.${lat-pad}&latitude=lte.${lat+pad}&longitude=gte.${lng-pad}&longitude=lte.${lng+pad}&order=discount.desc.nullslast&limit=12&select=id,business_name,city,country,business_type,discount,description`;
+    }
+    let deals = await supaFetch('deals', params);
+    if (deals.length < 3) {
+      deals = await supaFetch('deals', 'status=in.(approved,negotiating)&order=discount.desc.nullslast&limit=12&select=id,business_name,city,country,business_type,discount,description');
+    }
+    if (!deals.length) {
+      el.innerHTML = '<div class="carousel-empty">No deals found yet.</div>';
+      return;
+    }
+    el.innerHTML = deals.map(d => {
+      const emoji = _dealEmoji2(d.business_type);
+      const loc   = [d.city, d.country].filter(Boolean).join(', ');
+      const disc  = parseFloat(d.discount||0);
+      return `<div class="deal-card-c" onclick="goTo('deals');setTimeout(()=>openDealDetail('${d.id}'),600)">
+        <div class="deal-card-c-top">${emoji}</div>
+        <div class="deal-card-c-body">
+          <div class="deal-card-c-name">${escHTML(d.business_name)}</div>
+          <div class="deal-card-c-type">${escHTML(loc||d.business_type||'')}</div>
+          <div class="deal-card-c-footer">
+            ${disc > 0 ? `<span class="deal-card-c-disc">-${disc}%</span>` : '<span class="deal-card-c-disc" style="font-size:13px;font-family:\'DM Sans\',sans-serif;">Deal</span>'}
+            <span class="deal-card-c-status">Active</span>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    const el2 = document.getElementById('bestDealsCarousel');
+    if (el2) el2.innerHTML = '<div class="carousel-empty">Could not load deals.</div>';
+    logError('carousel:deals', e);
+  }
+}
+
 // ── INIT ──
 handleOAuthRedirect();
 updateHeaderAuth();
 loadHomeStats();
+loadHomeCarousels();
 </script>
 <!-- DELETE CONFIRM OVERLAY -->
 <div class="delete-confirm-overlay" id="deleteConfirmOverlay">
