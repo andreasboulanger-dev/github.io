@@ -539,7 +539,8 @@ input#priceRangeInput::-moz-range-thumb{
 .toast-report-btn:active{background:rgba(255,255,255,0.28)}
 
 /* Bug report FAB */
-.bug-fab{position:absolute;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 6px);left:16px;width:34px;height:34px;border-radius:50%;background:var(--white);border:0.5px solid var(--border-mid);box-shadow:var(--shadow-sm);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:29;color:var(--text-light);font-size:16px;-webkit-tap-highlight-color:transparent;transition:color 0.15s}
+.bug-fab{position:absolute;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 6px);left:16px;width:34px;height:34px;border-radius:50%;background:var(--white);border:0.5px solid var(--border-mid);box-shadow:var(--shadow-sm);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:29;color:var(--text-light);font-size:16px;-webkit-tap-highlight-color:transparent;transition:color 0.15s,bottom 0.2s}
+.bug-fab.raised{bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 62px)}
 .bug-fab:active{background:var(--off-white)}
 .bug-fab.has-errors{color:#FF6B6B;border-color:rgba(255,107,107,0.3)}
 
@@ -1308,6 +1309,24 @@ html.dark .profile-card{background:#1E1E1E}
       </div>
     </div>
 
+    <!-- MY ACTIVITY PAGE -->
+    <div class="page" id="page-myactivity">
+      <div style="display:flex;flex-direction:column;height:100%;overflow:hidden;">
+        <div class="post-detail-header">
+          <button class="icon-btn" onclick="goToRaw('profile')"><i class="ti ti-arrow-left"></i></button>
+          <span class="post-detail-title">My Community</span>
+          <div style="width:36px;"></div>
+        </div>
+        <div class="forum-tabs" id="myActivityTabs" style="flex-shrink:0;">
+          <button class="forum-tab active" data-act="posts"   onclick="switchMyActivityTab(this)">My posts</button>
+          <button class="forum-tab"        data-act="liked"   onclick="switchMyActivityTab(this)">Liked</button>
+          <button class="forum-tab"        data-act="replies" onclick="switchMyActivityTab(this)">Replies</button>
+        </div>
+        <div class="forum-tabs" id="myActivityCatTabs" style="flex-shrink:0;border-top:0.5px solid var(--border);padding-top:0;"></div>
+        <div id="myActivityList" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;"></div>
+      </div>
+    </div>
+
   </div><!-- end .pages -->
 
   <!-- COMMUNITY ADD CHOICE MODAL -->
@@ -1661,6 +1680,17 @@ const SUPA_URL = 'https://xcazqvhxwjkqemumxvbu.supabase.co';
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjYXpxdmh4d2prcWVtdW14dmJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzOTUyNzQsImV4cCI6MjA5NTk3MTI3NH0.AaUIUoCGyyde8yPcEGDwtANamxLRPpeTaaI7zntkcYM';
 
 const PAGE_TYPE_MAP = { home: null, farms: 'farm', deals: 'price', forum: 'tip' };
+
+// ── FORUM CATEGORY DEFINITIONS — single source of truth ──
+// To add a category: add one entry here. The forum tabs, my-activity tabs,
+// and post-rendering all derive from this automatically.
+const FORUM_CATEGORIES = [
+  { key: 'farms',   label: 'Farms',    shortLabel: 'Farm',    cssClass: 'fp-cat-farm'    },
+  { key: 'deals',   label: 'Deals',    shortLabel: 'Deal',    cssClass: 'fp-cat-deal'    },
+  { key: 'visa',    label: 'Visa',     shortLabel: 'Visa',    cssClass: 'fp-cat-visa'    },
+  { key: 'tips',    label: 'Tips',     shortLabel: 'Tips',    cssClass: 'fp-cat-tips'    },
+  { key: 'general', label: 'General',  shortLabel: 'General', cssClass: 'fp-cat-general' },
+];
 
 async function supaFetch(table, params='') {
   // Auto-paginate to get ALL rows (Supabase default cap = 1000)
@@ -2180,6 +2210,8 @@ function toggleDealsView() {
 // ── SLIDER ──
 function showSlider(visible) {
   document.getElementById('priceSliderBar').classList.toggle('visible', visible);
+  const bugFab = document.getElementById('bugFab');
+  if (bugFab) bugFab.classList.toggle('raised', visible);
 }
 
 function initSlider(prices) {
@@ -3680,8 +3712,8 @@ function renderForumPosts() {
     el.innerHTML = '<div class="no-posts">No posts yet — be the first! 🐝</div>';
     return;
   }
-  const catColors = {farms:'fp-cat-farm', deals:'fp-cat-deal', visa:'fp-cat-visa', general:'fp-cat-general', tips:'fp-cat-tips'};
-  const catLabels = {farms:'Farm', deals:'Deal', visa:'Visa', general:'General', tips:'Tips'};
+  const catColors = Object.fromEntries(FORUM_CATEGORIES.map(c => [c.key, c.cssClass]));
+  const catLabels = Object.fromEntries(FORUM_CATEGORIES.map(c => [c.key, c.shortLabel]));
   const avatarColors = ['fa-amber','fa-green','fa-blue','fa-pink'];
   el.innerHTML = filtered.map(p => {
     const initials = escHTML(getInitials(p.author_name));
@@ -3737,13 +3769,11 @@ async function openPost(id) {
   try {
     const post = allPosts.find(p => p.id === id) || (await supaFetch('forum_posts', `id=eq.${id}`))[0];
     const replies = await supaFetch('forum_replies', `post_id=eq.${id}&order=created_at.asc`);
+    const catColors = Object.fromEntries(FORUM_CATEGORIES.map(c => [c.key, c.cssClass]));
+    const catLabels = Object.fromEntries(FORUM_CATEGORIES.map(c => [c.key, c.label]));
     const avatarColors = ['fa-amber','fa-green','fa-blue','fa-pink'];
-    const initials = getInitials(post.author_name);
-    const colorIdx = (post.author_name||'A').charCodeAt(0) % avatarColors.length;
-    const catColors = {farms:'fp-cat-farm',deals:'fp-cat-deal',visa:'fp-cat-visa',general:'fp-cat-general'};
-    const catLabels = {farms:'Farm',deals:'Deal',visa:'Visa tips',general:'General'};
-
-    const repliesHTML = replies.length ? replies.map(r => {
+    const initials  = getInitials(post.author_name);
+    const colorIdx  = (post.author_name||'A').charCodeAt(0) % avatarColors.length; = replies.length ? replies.map(r => {
       const safeRId = encodeURIComponent(r.id);
       return `<div class="reply-card">
         <div class="reply-author">${escHTML(r.author_name||'Anonymous')} <span class="reply-time">${formatTimeAgo(r.created_at)}</span></div>
@@ -5150,25 +5180,6 @@ function renderProfilePage() {
       </div>
     </div>
 
-    <!-- MY ACTIVITY INLINE SECTION (hidden by default) -->
-    <div id="myActivitySection" style="display:none;">
-      <div style="background:var(--off-white);border-top:0.5px solid var(--border);border-bottom:0.5px solid var(--border);">
-        <div class="forum-tabs" id="myActivityTabs">
-          <button class="forum-tab active" data-act="posts"   onclick="switchMyActivityTab(this)">My posts</button>
-          <button class="forum-tab"        data-act="liked"   onclick="switchMyActivityTab(this)">Liked</button>
-          <button class="forum-tab"        data-act="replies" onclick="switchMyActivityTab(this)">Replies</button>
-        </div>
-        <div class="forum-tabs" id="myActivityCatTabs" style="padding-top:0;border-top:0.5px solid var(--border);">
-          <button class="forum-tab active" data-acat="all"     onclick="switchMyActivityCat(this)">All</button>
-          <button class="forum-tab"        data-acat="farms"   onclick="switchMyActivityCat(this)">Farms</button>
-          <button class="forum-tab"        data-acat="deals"   onclick="switchMyActivityCat(this)">Deals</button>
-          <button class="forum-tab"        data-acat="visa"    onclick="switchMyActivityCat(this)">Visa</button>
-          <button class="forum-tab"        data-acat="general" onclick="switchMyActivityCat(this)">General</button>
-        </div>
-      </div>
-      <div id="myActivityList" style="min-height:60px;"></div>
-    </div>
-
     <!-- ACCOUNT -->
     <div class="profile-section">
       <div class="profile-section-title">Account</div>
@@ -5252,12 +5263,20 @@ let _myActivityData = { posts: [], liked: [], replies: [] };
 let _myActivityLoaded = false;
 
 async function openMyActivity() {
-  const section = document.getElementById('myActivitySection');
-  const isOpen  = section.style.display !== 'none';
-  if (isOpen) { section.style.display = 'none'; return; }
-  section.style.display = 'block';
-  section.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  goToRaw('myactivity');
+  buildMyActivityCatTabs();
   if (!_myActivityLoaded) await loadMyActivity();
+  else renderMyActivityList();
+}
+
+function buildMyActivityCatTabs() {
+  const container = document.getElementById('myActivityCatTabs');
+  if (!container) return;
+  container.innerHTML =
+    `<button class="forum-tab ${_myActivityCat === 'all' ? 'active' : ''}" data-acat="all" onclick="switchMyActivityCat(this)">All</button>` +
+    FORUM_CATEGORIES.map(c =>
+      `<button class="forum-tab ${_myActivityCat === c.key ? 'active' : ''}" data-acat="${c.key}" onclick="switchMyActivityCat(this)">${c.label}</button>`
+    ).join('');
 }
 
 async function loadMyActivity() {
@@ -5309,8 +5328,8 @@ function renderMyActivityList(overrideHtml) {
   if (!el) return;
   if (overrideHtml) { el.innerHTML = overrideHtml; return; }
 
-  const catColors = { farms:'fp-cat-farm', deals:'fp-cat-deal', visa:'fp-cat-visa', general:'fp-cat-general', tips:'fp-cat-tips' };
-  const catLabels = { farms:'Farm', deals:'Deal', visa:'Visa', general:'General', tips:'Tips' };
+  const catColors = Object.fromEntries(FORUM_CATEGORIES.map(c => [c.key, c.cssClass]));
+  const catLabels = Object.fromEntries(FORUM_CATEGORIES.map(c => [c.key, c.shortLabel]));
   const avatarColors = ['fa-amber','fa-green','fa-blue','fa-pink'];
 
   if (_myActivityTab === 'replies') {
