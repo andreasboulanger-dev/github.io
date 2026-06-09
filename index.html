@@ -247,7 +247,9 @@ html.dark .profile-logout-btn:active{background:#3A1A1A;}
 .map-filters::-webkit-scrollbar{display:none}
 .map-filters .filter-pill{box-shadow:var(--shadow-sm)}
 .filter-pill{display:flex;align-items:center;gap:5px;padding:6px 14px;border-radius:20px;background:var(--white);border:0.5px solid var(--border-mid);font-size:13px;font-weight:500;color:var(--text-mid);white-space:nowrap;cursor:pointer;transition:all 0.15s;font-family:'DM Sans',sans-serif}
-.filter-pill.active{background:var(--amber);border-color:var(--amber);color:white}
+.filter-pill.active{background:var(--amber);border-color:var(--amber);color:white;font-weight:600;}
+.filter-pill[data-ftype].active:not([data-ftype="all"])::before,
+.filter-pill[data-dtype].active:not([data-dtype="all"])::before{content:'✓';margin-right:2px;font-size:11px;}
 .filter-pill i{font-size:15px}
 .map-loading{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:40px;color:var(--text-light);font-size:14px}
 .spinner{width:28px;height:28px;border:3px solid var(--amber-light);border-top-color:var(--amber);border-radius:50%;animation:spin 0.7s linear infinite}
@@ -536,6 +538,15 @@ input#priceRangeInput::-moz-range-thumb{
 .detail-hero{background:var(--amber-pale);padding:24px 20px 20px;border-bottom:0.5px solid var(--border);}
 .detail-hero-emoji{font-size:40px;margin-bottom:10px;}
 .detail-hero-name{font-family:'Fraunces',serif;font-size:22px;font-weight:700;line-height:1.2;margin-bottom:4px;}
+.detail-verified-wrap{display:inline-flex;align-items:center;gap:6px;position:relative;}
+.detail-verified-badge{display:inline-flex;align-items:center;gap:3px;padding:2px 7px 2px 5px;border-radius:20px;background:#E6F1FB;color:#185FA5;font-size:11px;font-weight:700;cursor:pointer;border:none;font-family:'DM Sans',sans-serif;flex-shrink:0;vertical-align:middle;-webkit-tap-highlight-color:transparent;transition:background 0.12s;}
+.detail-verified-badge:active{background:#CCE3F8;}
+.detail-verified-badge i{font-size:13px;}
+.detail-verified-popup{position:absolute;top:calc(100% + 8px);left:50%;transform:translateX(-50%);background:var(--text-dark);color:white;font-size:12px;font-weight:500;line-height:1.4;padding:8px 12px;border-radius:10px;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,0.2);z-index:200;pointer-events:none;opacity:0;transition:opacity 0.15s;}
+.detail-verified-popup::before{content:'';position:absolute;bottom:100%;left:50%;transform:translateX(-50%);border:5px solid transparent;border-bottom-color:var(--text-dark);}
+.detail-verified-popup.show{opacity:1;}
+html.dark .detail-verified-badge{background:#0D1F35;color:#4DA3FF;}
+html.dark .detail-verified-badge:active{background:#112840;}
 .detail-hero-sub{font-size:13px;color:var(--text-light);display:flex;align-items:center;gap:5px;}
 .detail-hero-sub i{font-size:14px;color:var(--amber);}
 .detail-badges{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;}
@@ -933,18 +944,18 @@ html.dark .profile-card{background:#1E1E1E}
       <div class="map-page-wrap">
         <div class="map-filters">
           <button class="filter-pill filter-pill-adv" id="farmsAdvBtn" onclick="openAdvFilter('farms')"><i class="ti ti-adjustments-horizontal"></i></button>
-          <button class="filter-pill active" onclick="filterFarms(this,'all')"><i class="ti ti-map-2"></i> All</button>
-          <button class="filter-pill" onclick="filterFarms(this,'88days')"><i class="ti ti-calendar-stats"></i> 88 Days</button>
-          <button class="filter-pill" onclick="filterFarms(this,'fruits')"><i class="ti ti-apple"></i> Fruits & Orchards</button>
-          <button class="filter-pill" onclick="filterFarms(this,'livestock')"><i class="ti ti-paw"></i> Livestock</button>
-          <button class="filter-pill" onclick="filterFarms(this,'nursery')"><i class="ti ti-plant-2"></i> Plants & Nursery</button>
-          <button class="filter-pill" onclick="filterFarms(this,'vineyard')"><i class="ti ti-bottle"></i> Vineyard & Winery</button>
-          <button class="filter-pill" onclick="filterFarms(this,'vegetables')"><i class="ti ti-leaf"></i> Vegetables & Crops</button>
-          <button class="filter-pill" onclick="filterFarms(this,'honey')"><i class="ti ti-hexagon"></i> Honey</button>
-          <button class="filter-pill" onclick="filterFarms(this,'poultry')"><i class="ti ti-feather"></i> Poultry & Eggs</button>
-          <button class="filter-pill" onclick="filterFarms(this,'dairy')"><i class="ti ti-droplet"></i> Dairy</button>
-          <button class="filter-pill" onclick="filterFarms(this,'aquaculture')"><i class="ti ti-fish"></i> Aquaculture</button>
-          <button class="filter-pill" onclick="filterFarms(this,'mixed')"><i class="ti ti-stack-2"></i> Mixed & Specialty</button>
+          <button class="filter-pill active" data-ftype="all" onclick="toggleFarmPill(this)"><i class="ti ti-map-2"></i> All</button>
+          <button class="filter-pill" data-ftype="88days" onclick="toggleFarmPill(this)"><i class="ti ti-calendar-stats"></i> 88 Days</button>
+          <button class="filter-pill" data-ftype="fruits" onclick="toggleFarmPill(this)"><i class="ti ti-apple"></i> Fruits & Orchards</button>
+          <button class="filter-pill" data-ftype="livestock" onclick="toggleFarmPill(this)"><i class="ti ti-paw"></i> Livestock</button>
+          <button class="filter-pill" data-ftype="nursery" onclick="toggleFarmPill(this)"><i class="ti ti-plant-2"></i> Plants & Nursery</button>
+          <button class="filter-pill" data-ftype="vineyard" onclick="toggleFarmPill(this)"><i class="ti ti-bottle"></i> Vineyard & Winery</button>
+          <button class="filter-pill" data-ftype="vegetables" onclick="toggleFarmPill(this)"><i class="ti ti-leaf"></i> Vegetables & Crops</button>
+          <button class="filter-pill" data-ftype="honey" onclick="toggleFarmPill(this)"><i class="ti ti-hexagon"></i> Honey</button>
+          <button class="filter-pill" data-ftype="poultry" onclick="toggleFarmPill(this)"><i class="ti ti-feather"></i> Poultry & Eggs</button>
+          <button class="filter-pill" data-ftype="dairy" onclick="toggleFarmPill(this)"><i class="ti ti-droplet"></i> Dairy</button>
+          <button class="filter-pill" data-ftype="aquaculture" onclick="toggleFarmPill(this)"><i class="ti ti-fish"></i> Aquaculture</button>
+          <button class="filter-pill" data-ftype="mixed" onclick="toggleFarmPill(this)"><i class="ti ti-stack-2"></i> Mixed & Specialty</button>
         </div>
         <div class="farms-map-view active" id="farmsMapView" style="flex:1;min-height:0;position:relative;display:flex;flex-direction:column;">
           <div id="farmMap" style="flex:1;min-height:0;z-index:1;"></div>
@@ -961,12 +972,12 @@ html.dark .profile-card{background:#1E1E1E}
         <div class="deals-map-view active" id="dealsMapView" style="position:relative;">
           <div class="map-filters">
             <button class="filter-pill filter-pill-adv" id="dealsAdvBtn" onclick="openAdvFilter('deals')"><i class="ti ti-adjustments-horizontal"></i></button>
-            <button class="filter-pill active" onclick="filterDeals(this,'all')"><i class="ti ti-map-2"></i> All</button>
-            <button class="filter-pill" onclick="filterDeals(this,'bar')"><i class="ti ti-beer"></i> Bars</button>
-            <button class="filter-pill" onclick="filterDeals(this,'coffee shop')"><i class="ti ti-coffee"></i> Cafés</button>
-            <button class="filter-pill" onclick="filterDeals(this,'deal')"><i class="ti ti-tag"></i> Deals</button>
-            <button class="filter-pill" onclick="filterDeals(this,'activity')"><i class="ti ti-run"></i> Activities</button>
-            <button class="filter-pill" onclick="filterDeals(this,'hostel')"><i class="ti ti-bed"></i> Hostels</button>
+            <button class="filter-pill active" data-dtype="all" onclick="toggleDealPill(this)"><i class="ti ti-map-2"></i> All</button>
+            <button class="filter-pill" data-dtype="bar" onclick="toggleDealPill(this)"><i class="ti ti-beer"></i> Bars</button>
+            <button class="filter-pill" data-dtype="coffee shop" onclick="toggleDealPill(this)"><i class="ti ti-coffee"></i> Cafés</button>
+            <button class="filter-pill" data-dtype="deal" onclick="toggleDealPill(this)"><i class="ti ti-tag"></i> Deals</button>
+            <button class="filter-pill" data-dtype="activity" onclick="toggleDealPill(this)"><i class="ti ti-run"></i> Activities</button>
+            <button class="filter-pill" data-dtype="hostel" onclick="toggleDealPill(this)"><i class="ti ti-bed"></i> Hostels</button>
           </div>
           <div class="map-subfilters" id="dealsSubFilters" style="display:none;"></div>
           <div style="flex:1;min-height:0;position:relative;">
@@ -1065,7 +1076,7 @@ html.dark .profile-card{background:#1E1E1E}
         <div class="post-detail-header">
           <button class="icon-btn" onclick="goTo('deals')"><i class="ti ti-arrow-left"></i></button>
           <span class="post-detail-title">Deal details</span>
-          <div style="width:36px;"></div>
+          <button class="icon-btn" onclick="openEditDeal()" title="Suggest an edit"><i class="ti ti-pencil"></i></button>
         </div>
         <div class="post-detail-content" id="dealDetailContent" style="padding:0;">
           <div class="map-loading"><div class="spinner"></div>Loading…</div>
@@ -1267,6 +1278,51 @@ html.dark .profile-card{background:#1E1E1E}
         <p class="submit-note"><i class="ti ti-shield-check"></i> Only approved edits will update the listing</p>
       </div>
     </div>
+
+    <!-- EDIT DEAL MODAL -->
+    <div class="modal-backdrop" id="editDealModal" onclick="handleEditDealBackdrop(event)">
+      <div class="modal-sheet" style="max-height:96vh;overflow-y:auto;">
+        <div class="modal-handle"></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+          <div class="modal-title" style="margin-bottom:0;">Suggest an edit</div>
+          <button class="icon-btn" onclick="document.getElementById('editDealModal').classList.remove('open')"><i class="ti ti-x"></i></button>
+        </div>
+        <p class="modal-sub">Your changes will be reviewed before going live.</p>
+        <input type="hidden" id="editDealId">
+        <div class="form-group">
+          <label class="form-label">Business name</label>
+          <input type="text" class="form-input" id="editDealName" placeholder="e.g. The Backpacker Bar">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Business type</label>
+          <input type="text" class="form-input" id="editDealBusinessType" placeholder="e.g. Bar, Café, Hostel…">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Discount (%)</label>
+          <input type="number" class="form-input" id="editDealDiscount" placeholder="e.g. 15" step="1" min="0" max="100">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Discount description</label>
+          <textarea class="form-textarea" id="editDealDescription" placeholder="e.g. 15% off all drinks — show the app to redeem" style="min-height:80px;"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Phone</label>
+          <input type="tel" class="form-input" id="editDealPhone" placeholder="+61 …">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Website</label>
+          <input type="url" class="form-input" id="editDealWebsite" placeholder="https://…">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Notes</label>
+          <textarea class="form-textarea" id="editDealNotes" placeholder="Any other useful info…"></textarea>
+        </div>
+        <button class="submit-btn" onclick="submitDealEdit()">Submit for review</button>
+        <button class="btn-delete-item" onclick="openDeleteConfirm('deal')"><i class="ti ti-trash"></i> Delete this listing</button>
+        <p class="submit-note"><i class="ti ti-shield-check"></i> Only approved edits will update the listing</p>
+      </div>
+    </div>
+
     <div class="modal-backdrop" id="newPostModal" onclick="handleNewPostBackdrop(event)">
       <div class="modal-sheet">
         <div class="modal-handle"></div>
@@ -2256,6 +2312,8 @@ let dealsViewMode = 'map';
 let dealsLoaded   = false;
 let pickerLat     = null, pickerLng = null;
 let sliderMax     = 100;
+let currentDealsType = 'all';
+let currentSubFilter = null;
 
 // ── NAV ──
 function goTo(page) {
@@ -2392,19 +2450,23 @@ function hideBubble() {
 }
 
 function filterPrices(maxVal) {
-  const activeCat = currentDealsType;
+  const types = [..._activeDealTypes];
+  const isAll = _activeDealTypes.has('all');
+  const singleType = (!isAll && types.length === 1) ? types[0] : null;
   const filtered = (window._allPricesMaster || allPrices).filter(p => {
-    const matchCat = activeCat === 'all' || normalizePriceCat(p.item_category_first) === activeCat;
+    const pCat = normalizePriceCat(p.item_category_first);
+    const matchCat = isAll || types.some(t => pCat === t);
     const price = parseFloat(p.price_normal || 0) || 0;
     const matchItem = !currentSubFilter || (p.item_name||'').trim() === currentSubFilter;
-    // include if within price AND category AND item filter
     return price <= maxVal && matchCat && matchItem;
   });
   renderPricesFiltered(filtered, maxVal);
 
-  // Update map respecting active category + subfilter — no global mutation
-  const filteredDeals = currentDealsType === 'all' ? allDeals : allDeals.filter(d => (d.business_type||'').toLowerCase().includes(currentDealsType));
-  renderDealMarkers(filteredDeals, currentDealsType, filtered);
+  const filteredDeals = _activeDealTypes.has('all') ? allDeals : allDeals.filter(d => {
+    const bt = (d.business_type||'').toLowerCase();
+    return types.some(t => bt.includes(t));
+  });
+  renderDealMarkers(filteredDeals, singleType || 'all', filtered);
 }
 
 // ── PIN ICON ──
@@ -2493,23 +2555,19 @@ async function loadFarmsInViewport() {
 
     // Add only new farms to cache
     const newFarms = farms.filter(f => !farmLoadedIds.has(f.id));
-    if (!newFarms.length) return;
 
     newFarms.forEach(f => { farmLoadedIds.add(f.id); allFarms.push(f); });
 
-    // Detect active filter
-    const activeBtn = document.querySelector('#page-farms .filter-pill.active');
-    const match = activeBtn ? (activeBtn.getAttribute('onclick')||'').match(/filterFarms\(this,'([^']+)'\)/) : null;
-    const activeType = match ? match[1] : 'all';
-
-    if (activeType === 'all') {
-      addFarmMarkers(newFarms);
-      currentFilteredFarms = allFarms;
-      renderFarmsList(allFarms);
+    // Detect active filter from the multi-select state
+    if (_activeFarmTypes.has('all')) {
+      if (newFarms.length) {
+        addFarmMarkers(newFarms);
+        currentFilteredFarms = allFarms;
+        renderFarmsList(allFarms);
+      }
     } else {
-      const filtered = filterFarmsType(activeType);
-      renderFarmMarkers(filtered);
-      renderFarmsList(filtered);
+      // Always re-apply the multi-select filter so the map stays accurate
+      applyFarmPillFilter();
     }
   } catch(e) {
     console.error('loadFarmsInViewport error', e);
@@ -2591,6 +2649,7 @@ const farmEmoji = {
 };
 
 function renderFarmMarkers(farms) {
+  if (!farmMap) return;
   // Reset cluster and reload with filtered set
   if (farmCluster) { farmMap.removeLayer(farmCluster); farmCluster = null; }
   farmMarkers = [];
@@ -2600,7 +2659,8 @@ function renderFarmMarkers(farms) {
 function renderFarmsList(farms) {
   const el = document.getElementById('farmsListScroll');
   if (!farms.length) { el.innerHTML = '<div class="map-loading">No farms found.</div>'; return; }
-  el.innerHTML = farms.map(f => `<div class="farm-row" onclick="flyTo(farmMap,${f.latitude},${f.longitude},10);if(farmsViewMode==='list')toggleFarmsView();"><div class="farm-icon-wrap"><i class="ti ti-plant-2"></i></div><div class="farm-info"><div class="farm-name">${escHTML(f.business_name)}</div><div class="farm-meta">${escHTML(f.city||'')}${f.state_region?', '+escHTML(f.state_region):''} · ${escHTML(f.farm_category_first||'Farm')}</div></div>${f.pay_per_hour_aud?`<span class="farm-chip">$${f.pay_per_hour_aud}/hr</span>`:''}</div>`).join('') + '<div style="height:100px;"></div>';
+  const sorted = [...farms].sort((a, b) => (a.business_name||'').localeCompare(b.business_name||'', undefined, {numeric:true, sensitivity:'base'}));
+  el.innerHTML = sorted.map(f => `<div class="farm-row" onclick="flyTo(farmMap,${f.latitude},${f.longitude},10);if(farmsViewMode==='list')toggleFarmsView();"><div class="farm-icon-wrap"><i class="ti ti-plant-2"></i></div><div class="farm-info"><div class="farm-name">${escHTML(f.business_name)}</div><div class="farm-meta">${escHTML(f.city||'')}${f.state_region?', '+escHTML(f.state_region):''} · ${escHTML(f.farm_category_first||'Farm')}</div></div>${f.pay_per_hour_aud?`<span class="farm-chip">$${f.pay_per_hour_aud}/hr</span>`:''}</div>`).join('') + '<div style="height:100px;"></div>';
 }
 
 const farmFilterGroups = {
@@ -2652,30 +2712,102 @@ const PILL_TO_ADV_CAT = {
   'mixed':       'Mixed & Specialty',
 };
 
-function filterFarms(btn, type) {
-  document.querySelectorAll('#page-farms .filter-pill').forEach(p => p.classList.remove('active'));
-  btn.classList.add('active');
+// ── Multi-select pill state ──
+const _activeFarmTypes = new Set(['all']);
+const _activeDealTypes = new Set(['all']);
 
-  // Sync the pill selection into the advanced filter state so both stay in sync
-  const advCat = PILL_TO_ADV_CAT[type];
-  if (advCat === '__88days__') {
-    advState.farms.days88      = 'yes';
-    advState.farms.catGroup    = '';
-    advState.farms.subcats     = [];
-    advState.farms.subSubcats  = [];
-  } else if (type === 'all') {
-    advState.farms.days88      = 'any';
-    advState.farms.catGroup    = '';
-    advState.farms.subcats     = [];
-    advState.farms.subSubcats  = [];
+function toggleFarmPill(btn) {
+  const type = btn.dataset.ftype;
+  const allBtn = document.querySelector('#page-farms .filter-pill[data-ftype="all"]');
+
+  if (type === 'all') {
+    // "All" resets everything
+    _activeFarmTypes.clear();
+    _activeFarmTypes.add('all');
   } else {
-    advState.farms.days88      = 'any';
-    advState.farms.catGroup    = advCat !== undefined ? advCat : '';
-    advState.farms.subcats     = [];
-    advState.farms.subSubcats  = [];
+    // Toggle the clicked type
+    if (_activeFarmTypes.has(type)) {
+      _activeFarmTypes.delete(type);
+    } else {
+      _activeFarmTypes.add(type);
+    }
+    // Remove "all" if any specific type is selected
+    _activeFarmTypes.delete('all');
+    // If nothing selected, fall back to "all"
+    if (_activeFarmTypes.size === 0) _activeFarmTypes.add('all');
+  }
+
+  // Update pill visual state
+  document.querySelectorAll('#page-farms .filter-pill[data-ftype]').forEach(p => {
+    const t = p.dataset.ftype;
+    p.classList.toggle('active', _activeFarmTypes.has(t));
+  });
+
+  // Sync advState (populate catGroups from active pill selections)
+  if (_activeFarmTypes.has('all')) {
+    advState.farms.days88 = 'any'; advState.farms.catGroups = []; advState.farms.subcats = []; advState.farms.subSubcats = [];
+  } else {
+    const activePills = [..._activeFarmTypes];
+    const has88 = activePills.includes('88days');
+    advState.farms.days88 = has88 ? 'yes' : 'any';
+    // Map each non-attribute pill to its advCat group name
+    advState.farms.catGroups = activePills
+      .filter(t => t !== '88days')
+      .map(t => PILL_TO_ADV_CAT[t])
+      .filter(v => v !== undefined && v !== '' && v !== '__88days__');
+    // Remove duplicates (e.g. honey/poultry/mixed all map to Mixed & Specialty)
+    advState.farms.catGroups = [...new Set(advState.farms.catGroups)];
+    // Clear subcats when multiple categories are active
+    if (advState.farms.catGroups.length !== 1) {
+      advState.farms.subcats = [];
+      advState.farms.subSubcats = [];
+    }
   }
   updateAdvBadge('farms');
 
+  applyFarmPillFilter();
+}
+
+function applyFarmPillFilter() {
+  if (!farmMap) return;
+  let filtered;
+  if (_activeFarmTypes.has('all')) {
+    filtered = allFarms;
+  } else {
+    // Split active types into category pills and attribute pills
+    const attrTypes  = ['88days']; // pills that are attributes (AND)
+    const activeAttrs = [..._activeFarmTypes].filter(t => attrTypes.includes(t));
+    const activeCats  = [..._activeFarmTypes].filter(t => !attrTypes.includes(t));
+
+    filtered = allFarms.filter(f => {
+      // Category match: farm must match ANY of the selected categories (OR)
+      const catMatch = activeCats.length === 0 || activeCats.some(type => {
+        const group = farmFilterGroups[type];
+        if (group) return group.includes((f.farm_category_first||'').toLowerCase());
+        return (f.farm_category_first||'').toLowerCase().includes(type);
+      });
+
+      // Attribute match: farm must match ALL selected attributes (AND)
+      const attrMatch = activeAttrs.every(type => {
+        if (type === '88days') return (f.eighty_eight_days||'').toLowerCase() === 'yes';
+        return true;
+      });
+
+      return catMatch && attrMatch;
+    });
+  }
+  currentFilteredFarms = filtered;
+  renderFarmMarkers(filtered);
+  renderFarmsList(filtered);
+}
+
+function filterFarms(btn, type) {
+  // Legacy shim: called by advState sync; delegate to toggleFarmPill
+  _activeFarmTypes.clear();
+  _activeFarmTypes.add(type);
+  document.querySelectorAll('#page-farms .filter-pill[data-ftype]').forEach(p => {
+    p.classList.toggle('active', p.dataset.ftype === type);
+  });
   const f = filterFarmsType(type);
   renderFarmMarkers(f);
 }
@@ -2729,7 +2861,7 @@ function locateDealUser()      { _locateOnMap(dealMap,      null); }
 function locateCommunityUser() { _locateOnMap(communityMap, null); }
 
 // ── FARM DETAIL ──
-function openFarmDetail(id) {
+async function openFarmDetail(id) {
   const f = allFarms.find(x => x.id == id);
   if (!f) return;
 
@@ -2761,7 +2893,11 @@ function openFarmDetail(id) {
   el.innerHTML = `
     <div class="detail-hero">
       <div class="detail-hero-emoji">${emoji}</div>
-      <div class="detail-hero-name">${escHTML(f.business_name)}</div>
+      <div class="detail-hero-name">
+        <span class="detail-verified-wrap" id="detail-verified-wrap">
+          ${escHTML(f.business_name)}
+        </span>
+      </div>
       <div class="detail-hero-sub">
         <i class="ti ti-map-pin"></i>${escHTML(f.city||'')}${f.state_region?', '+escHTML(f.state_region):''} · ${escHTML(f.country||'')}
         <span id="detail-hero-stars" style="display:inline-flex;align-items:center;gap:3px;margin-left:6px;"></span>
@@ -2804,12 +2940,46 @@ function openFarmDetail(id) {
     const avg = reviews.reduce((s,r)=>s+(r.rating||0),0)/reviews.length;
     span.innerHTML = `<span style="font-size:12px;font-weight:700;color:var(--amber-dark);">${avg.toFixed(1)}</span>` + starsHTML(avg,'sm');
   });
+
+  // Inject verified badge directly from last_checked_by / last_checked_at columns
+  // (no extra network call needed — these come with the allFarms payload)
+  const wrap = document.getElementById('detail-verified-wrap');
+  if (wrap && f.last_checked_by) {
+    const safeName = escHTML(f.last_checked_by);
+    const safeDate = escHTML(f.last_checked_at || '');
+    wrap.insertAdjacentHTML('beforeend',
+      `<button class="detail-verified-badge" onclick="showVerifiedPopup(this,'${safeName}','${safeDate}')"><i class="ti ti-circle-check-filled"></i>Verified</button><div class="detail-verified-popup"></div>`
+    );
+  }
 }
 
-// ── EDIT FARM ──
-let currentFarmId = null;
+// ── VERIFIED BADGE POPUP ──
+let _verifiedPopupTimer = null;
+function showVerifiedPopup(btn, name, isoDate) {
+  const popup = btn.nextElementSibling;
+  if (!popup) return;
+
+  // Format the date nicely
+  const d = new Date(isoDate);
+  const dateStr = isNaN(d) ? isoDate : d.toLocaleDateString('en', { day: 'numeric', month: 'long', year: 'numeric' });
+
+  // If name is an email, show just the part before @
+  const displayName = name.includes('@') ? name.split('@')[0] : name;
+
+  popup.textContent = `Last checked by ${displayName} on ${dateStr}`;
+  popup.classList.add('show');
+
+  // Clear any existing timer
+  clearTimeout(_verifiedPopupTimer);
+  _verifiedPopupTimer = setTimeout(() => {
+    popup.classList.remove('show');
+  }, 5000);
+}
+
+
 
 function openEditFarm() {
+  if (!currentUser) { showToast('Sign in to suggest an edit'); goToRaw('auth'); return; }
   const f = allFarms.find(x => x.id == currentFarmId);
   if (!f) return;
 
@@ -2923,11 +3093,18 @@ async function submitFarmEdit() {
     state_region:        cachedFarm ? cachedFarm.state_region : null,
     city:                cachedFarm ? cachedFarm.city         : null,
     address:             cachedFarm ? cachedFarm.address      : null,
-    admin_decision:      'pending'
+    admin_decision:      'pending',
+    target_id:           farmId || null,
+    submitted_by_email:  currentUser?.email || null,
+    // submitted_by_email already captures the checker identity; submission_date is set by the DB
   };
 
   try {
     await supaInsert('submissions', payload);
+    // Optimistically update the in-memory farm so the badge reflects this submission immediately
+    if (cachedFarm) {
+      // Badge will refresh from submissions table on next openFarmDetail
+    }
     document.getElementById('editFarmModal').classList.remove('open');
     setTimeout(() => showToast('Edit submitted — thanks! 🐝'), 300);
   } catch(e) {
@@ -3158,6 +3335,7 @@ function closeEditLocalPrice() {
 }
 
 function openEditLocalPrice() {
+  if (!currentUser) { showToast('Sign in to suggest an edit'); goToRaw('auth'); return; }
   const group = priceGroupsCache[currentLocalPriceKey];
   if (!group) { console.warn('[Edit] group not found for key:', currentLocalPriceKey); return; }
   const { p, cat, items } = group;
@@ -3358,9 +3536,12 @@ async function submitLocalPriceEdit() {
   }
 }
 
+let currentDealId = null;
+
 function openDealDetail(id) {
   const d = allDeals.find(x => x.id == id);
   if (!d) return;
+  currentDealId = id;
 
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('page-deal-detail').classList.add('active');
@@ -3420,6 +3601,72 @@ function openDealDetail(id) {
     }, 100);
   }
 }
+
+// ── DEAL EDIT ──
+function openEditDeal() {
+  if (!currentUser) { showToast('Sign in to suggest an edit'); goToRaw('auth'); return; }
+  const d = allDeals.find(x => x.id == currentDealId);
+  if (!d) return;
+
+  document.getElementById('editDealId').value          = d.id;
+  document.getElementById('editDealName').value        = d.business_name      || '';
+  document.getElementById('editDealBusinessType').value= d.business_type      || '';
+  document.getElementById('editDealDiscount').value    = parseFloat(d.discount||0) || '';
+  document.getElementById('editDealDescription').value = d.discount_description|| '';
+  document.getElementById('editDealPhone').value       = d.contact_phone      || '';
+  document.getElementById('editDealWebsite').value     = d.website            || '';
+  document.getElementById('editDealNotes').value       = d.notes              || '';
+
+  document.getElementById('editDealModal').classList.add('open');
+}
+
+function handleEditDealBackdrop(e) {
+  if (e.target === document.getElementById('editDealModal'))
+    document.getElementById('editDealModal').classList.remove('open');
+}
+
+async function submitDealEdit() {
+  const name = document.getElementById('editDealName').value.trim();
+  if (!name) { showToast('Please enter a business name'); return; }
+
+  const dealId      = document.getElementById('editDealId').value;
+  const cachedDeal  = allDeals ? allDeals.find(d => d.id == dealId) : null;
+  const _bizType    = document.getElementById('editDealBusinessType').value.trim();
+  const _discount   = document.getElementById('editDealDiscount').value.trim();
+  const _desc       = document.getElementById('editDealDescription').value.trim();
+  const _phone      = document.getElementById('editDealPhone').value.trim();
+  const _website    = document.getElementById('editDealWebsite').value.trim();
+  const _notes      = document.getElementById('editDealNotes').value.trim();
+
+  const payload = {
+    type:                  'deal_edit',
+    business_name:         name,
+    details:               ['EDIT OF: ' + dealId, _notes ? 'NOTES: ' + _notes : ''].filter(Boolean).join('\n'),
+    business_type:         _bizType   || (cachedDeal ? cachedDeal.business_type : null),
+    discount:              parseFloat(_discount) || null,
+    discount_description:  _desc      || null,
+    contact_phone:         _phone     || null,
+    website:               _website   || null,
+    latitude:              cachedDeal ? cachedDeal.latitude     : null,
+    longitude:             cachedDeal ? cachedDeal.longitude    : null,
+    country:               cachedDeal ? cachedDeal.country      : null,
+    state_region:          cachedDeal ? cachedDeal.state_region : null,
+    city:                  cachedDeal ? cachedDeal.city         : null,
+    address:               cachedDeal ? cachedDeal.address      : null,
+    target_id:             dealId     || null,
+    submitted_by_email:    currentUser?.email || null,
+    admin_decision:        'pending',
+  };
+
+  try {
+    await supaInsert('submissions', payload);
+    document.getElementById('editDealModal').classList.remove('open');
+    setTimeout(() => showToast('Edit submitted — thanks! 🐝'), 300);
+  } catch(e) {
+    showToast('Error sending — please try again');
+  }
+}
+
 // ── LOCAL PRICE DETAIL ──
 let priceGroupsCache = {};
 
@@ -3655,40 +3902,88 @@ function renderDealMarkers(deals, priceFilter, overridePrices) {
   });
 }
 
-let currentDealsType = 'all';
-let currentSubFilter = null;
+function toggleDealPill(btn) {
+  const type = btn.dataset.dtype;
 
-function filterDeals(btn, type) {
-  document.querySelectorAll('#page-deals .map-filters .filter-pill').forEach(p => p.classList.remove('active'));
-  btn.classList.add('active');
-  currentDealsType = type;
-  currentSubFilter = null;
+  if (type === 'all') {
+    _activeDealTypes.clear();
+    _activeDealTypes.add('all');
+  } else {
+    if (_activeDealTypes.has(type)) {
+      _activeDealTypes.delete(type);
+    } else {
+      _activeDealTypes.add(type);
+    }
+    _activeDealTypes.delete('all');
+    if (_activeDealTypes.size === 0) _activeDealTypes.add('all');
+  }
 
-  // Build sub-filters for bar, coffee shop, and any other category with items
+  // Update visual state
+  document.querySelectorAll('#page-deals .filter-pill[data-dtype]').forEach(p => {
+    p.classList.toggle('active', _activeDealTypes.has(p.dataset.dtype));
+  });
+
+  applyDealPillFilter();
+}
+
+function applyDealPillFilter() {
+  // Determine the combined type key for sub-filters/slider label
+  const types = [..._activeDealTypes];
+  const isSingle = !_activeDealTypes.has('all') && types.length === 1;
+  const singleType = isSingle ? types[0] : null;
+
+  // Sub-filters: only shown when exactly one specific category is active
   const subBar = document.getElementById('dealsSubFilters');
-  if (type === 'bar' || type === 'coffee shop' || type === 'hostel' || type === 'activity' || type === 'deal') {
-    buildSubFilters(type);
-    // Only show if there are actual sub-items
+  const subFilterableTypes = new Set(['bar', 'coffee shop', 'hostel', 'activity', 'deal']);
+  if (singleType && subFilterableTypes.has(singleType)) {
+    buildSubFilters(singleType);
     if (subBar.innerHTML.trim()) subBar.style.display = 'flex';
     else subBar.style.display = 'none';
   } else {
     subBar.style.display = 'none';
     subBar.innerHTML = '';
+    currentSubFilter = null;
   }
 
-  const f = type === 'all' ? allDeals : allDeals.filter(d => (d.business_type||'').toLowerCase().includes(type));
+  // Filter deals
+  let f;
+  if (_activeDealTypes.has('all')) {
+    f = allDeals;
+  } else {
+    f = allDeals.filter(d => {
+      const bt = (d.business_type||'').toLowerCase();
+      return types.some(t => bt.includes(t));
+    });
+  }
   currentFilteredDeals = f;
-  renderDealMarkers(f, type);
-  renderDealsList(f);
+  currentDealsType = singleType || 'all';
 
-  // Re-initialise the slider range to match the selected category's prices
+  // Price category filter: union of all active types
   const srcPrices = window._allPricesMaster || allPrices;
-  const catPrices = type === 'all' ? srcPrices : srcPrices.filter(p => normalizePriceCat(p.item_category_first) === type);
+  let catPrices;
+  if (_activeDealTypes.has('all')) {
+    catPrices = srcPrices;
+  } else {
+    catPrices = srcPrices.filter(p => types.some(t => normalizePriceCat(p.item_category_first) === t));
+  }
   initSlider(catPrices.length ? catPrices : srcPrices);
 
-  // Update slider label to reflect the category context
+  // Slider label
   const catLabels = { bar:'Bar prices', 'coffee shop':'Café prices', hostel:'Hostel prices', activity:'Activity prices', deal:'Deal prices', all:'Price' };
-  document.querySelector('#priceSliderBar > span').textContent = catLabels[type] || 'Price';
+  document.querySelector('#priceSliderBar > span').textContent = singleType ? (catLabels[singleType] || 'Price') : 'Price';
+
+  renderDealMarkers(f, singleType || 'all');
+  renderDealsList(f);
+}
+
+function filterDeals(btn, type) {
+  // Legacy shim used by goToDealsWithFilter and applyAdvFilter
+  _activeDealTypes.clear();
+  _activeDealTypes.add(type);
+  document.querySelectorAll('#page-deals .filter-pill[data-dtype]').forEach(p => {
+    p.classList.toggle('active', p.dataset.dtype === type);
+  });
+  applyDealPillFilter();
 }
 
 function buildSubFilters(type) {
@@ -3749,7 +4044,9 @@ function renderDealsList(deals) {
   deals.forEach(d => { const k=`${d.city||''}, ${d.country||''}`; if(!byCity[k])byCity[k]=[]; byCity[k].push(d); });
   const icons = {'coffee shop':'☕','hostel':'🛏️','bar':'🍺','restaurant':'🍽️','activity':'🏄'};
   let html = '';
-  for (const [city, cd] of Object.entries(byCity)) {
+  const sortedCities = Object.keys(byCity).sort((a, b) => a.localeCompare(b, undefined, {numeric:true, sensitivity:'base'}));
+  for (const city of sortedCities) {
+    const cd = byCity[city].sort((a, b) => (a.business_name||'').localeCompare(b.business_name||'', undefined, {numeric:true, sensitivity:'base'}));
     html += `<div class="city-section"><div class="city-label"><i class="ti ti-map-pin"></i> ${city}</div>`;
     cd.forEach(d => {
       const icon = icons[(d.business_type||'').toLowerCase()]||'🏪';
@@ -3767,7 +4064,9 @@ function renderPricesFiltered(prices, maxVal) {
   const ci = {'coffee shop':'ti-coffee','cafe':'ti-coffee','hostel':'ti-bed','accommodation':'ti-bed','bar':'ti-beer','bars':'ti-beer','activity':'ti-activity','groceries':'ti-building-store','transport':'ti-bus','other':'ti-coin'};
   const cl = {'coffee shop':'Café','cafe':'Café','hostel':'Hostel','accommodation':'Hostel','bar':'Bar','bars':'Bar','activity':'Activities','groceries':'Supermarket','transport':'Transport','other':'Other'};
   let html = '';
-  for (const [cat, items] of Object.entries(bc)) {
+  const sortedCats = Object.keys(bc).sort((a, b) => a.localeCompare(b, undefined, {numeric:true, sensitivity:'base'}));
+  for (const cat of sortedCats) {
+    const items = bc[cat].sort((a, b) => (a.business_name||'').localeCompare(b.business_name||'', undefined, {numeric:true, sensitivity:'base'}));
     const city = items[0].city&&items[0].country ? `(${items[0].city}, ${items[0].country})` : '';
     html += `<div class="price-card"><div class="price-card-header"><i class="ti ${ci[cat]||'ti-coin'}"></i><div class="price-card-title">${cl[cat]||escHTML(cat)} ${escHTML(city)}</div></div><table class="price-table">${items.map(p=>`<tr><td>${escHTML(p.item_name)}</td><td>AUD ${parseFloat(p.price_normal||0).toFixed(2)}</td></tr>`).join('')}</table></div>`;
   }
@@ -5019,6 +5318,8 @@ function openDeleteConfirm(type) {
     sub.textContent = 'This will submit a deletion request for this local price listing. An admin will review it before it is removed.';
   } else if (type === 'farm') {
     sub.textContent = 'This will submit a deletion request for this farm. An admin will review it before it is removed.';
+  } else if (type === 'deal') {
+    sub.textContent = 'This will submit a deletion request for this deal. An admin will review it before it is removed.';
   }
   document.getElementById('deleteConfirmOverlay').classList.add('open');
 }
@@ -5052,11 +5353,19 @@ async function confirmDelete() {
     refId = window.currentFarmId || null;
     itemName = 'farm';
     document.getElementById('editFarmModal')?.classList.remove('open');
+  } else if (type === 'deal') {
+    refId = currentDealId || null;
+    itemName = 'deal';
+    document.getElementById('editDealModal')?.classList.remove('open');
   }
+
+  const submissionType = type === 'localprice' ? 'delete_price'
+                       : type === 'deal'        ? 'delete_deal'
+                       : 'delete_farm';
 
   try {
     await supaInsert('submissions', {
-      type: type === 'localprice' ? 'delete_price' : 'delete_farm',
+      type: submissionType,
       business_name: refId ? `DELETE REQUEST — ID: ${refId}` : `DELETE REQUEST`,
       details: `User requested deletion of ${itemName}${refId ? ' (ref: ' + refId + ')' : ''}`,
       target_id: refId || null,
@@ -6094,8 +6403,8 @@ const FARM_SUBSUBCAT_BY_SUBCAT = {
 };
 
 const advState = {
-  farms: { country:'', accom:'any', days88:'any', minPay:0, organic:'any', catGroup:'', subcats:[], subSubcats:[] },
-  deals: { country:'', minDiscount:0 },
+  farms: { countries:[], accom:'any', days88:'any', minPay:25, organic:'any', catGroups:[], subcats:[], subSubcats:[] },
+  deals: { countries:[], minDiscount:0 },
 };
 
 // ── DRAG-TO-DISMISS ──
@@ -6168,6 +6477,7 @@ document.addEventListener('DOMContentLoaded', () => {
     'submitModal':        () => closeSubmit(),
     'editLocalPriceModal':() => closeEditLocalPrice(),
     'editFarmModal':      () => document.getElementById('editFarmModal').classList.remove('open'),
+    'editDealModal':      () => document.getElementById('editDealModal').classList.remove('open'),
     'newPostModal':       () => document.getElementById('newPostModal').classList.remove('open'),
     'communityAddModal':  () => document.getElementById('communityAddModal').classList.remove('open'),
     'newActivityModal':   () => document.getElementById('newActivityModal').classList.remove('open'),
@@ -6214,9 +6524,9 @@ function closeAdvFilter() {
 
 function resetAdvFilter() {
   if (advContext === 'farms') {
-    advState.farms = { country:'', accom:'any', days88:'any', minPay:0, organic:'any', catGroup:'', subcats:[], subSubcats:[] };
+    advState.farms = { countries:[], accom:'any', days88:'any', minPay:25, organic:'any', catGroups:[], subcats:[], subSubcats:[] };
   } else {
-    advState.deals = { country:'', minDiscount:0 };
+    advState.deals = { countries:[], minDiscount:0 };
   }
   renderAdvPanel(advContext);
   updateAdvBadge(advContext);
@@ -6226,8 +6536,8 @@ function updateAdvBadge(ctx) {
   const f = advState.farms;
   const d = advState.deals;
   const hasFilters = ctx === 'farms'
-    ? !!(f.country || f.accom !== 'any' || f.days88 !== 'any' || f.minPay > 0 || f.organic !== 'any' || f.catGroup || f.subcats.length || f.subSubcats.length)
-    : !!(d.country || d.minDiscount > 0);
+    ? !!(f.countries.length || f.accom !== 'any' || f.days88 !== 'any' || f.minPay > 25 || f.organic !== 'any' || f.catGroups.length || f.subcats.length || f.subSubcats.length)
+    : !!(d.countries.length || d.minDiscount > 0);
 
   const btnId = ctx === 'farms' ? 'farmsAdvBtn' : 'dealsAdvBtn';
   const btn = document.getElementById(btnId);
@@ -6242,13 +6552,13 @@ function renderAdvPanel(ctx) {
 
   let html = '';
 
-  // ── Country ──
-  const countries = ['', 'Australia', 'New Zealand'];
-  const curCountry = advState[ctx]?.country || '';
+  // ── Country (multi-select) ──
+  const countries = ['Australia', 'New Zealand'];
+  const curCountries = advState[ctx]?.countries || [];
   html += `<div class="adv-section">
     <div class="adv-section-label">Country</div>
     <div class="adv-chips">
-      ${countries.map(c => `<button class="adv-chip${curCountry===c?' active':''}" onclick="advSetCountry('${c}')">${c||'Any'}</button>`).join('')}
+      ${countries.map(c => `<button class="adv-chip${curCountries.includes(c)?' active':''}" onclick="advToggleCountry('${c}')">${c}</button>`).join('')}
     </div>
   </div>`;
 
@@ -6276,8 +6586,8 @@ function renderAdvPanel(ctx) {
     html += `<div class="adv-section">
       <div class="adv-section-label">Min. pay rate</div>
       <div class="adv-range-row">
-        <input type="range" min="0" max="60" step="1" value="${s.minPay}" oninput="advPayRange(this)">
-        <span class="adv-range-val" id="advPayVal">${s.minPay>0?'$'+s.minPay+'/hr':'Any'}</span>
+        <input type="range" min="25" max="60" step="1" value="${s.minPay}" oninput="advPayRange(this)">
+        <span class="adv-range-val" id="advPayVal">${s.minPay>25?'$'+s.minPay+'/hr':'Any'}</span>
       </div>
     </div>`;
 
@@ -6286,16 +6596,16 @@ function renderAdvPanel(ctx) {
     html += `<div class="adv-section">
       <div class="adv-section-label">Category</div>
       <div class="adv-chips">
-        <button class="adv-chip${!s.catGroup?' active':''}" onclick="advSetFarmCat('')">All</button>
-        ${groups.map(g => `<button class="adv-chip${s.catGroup===g?' active':''}" onclick="advSetFarmCat('${g}')">${g}</button>`).join('')}
+        <button class="adv-chip${!s.catGroups.length?' active':''}" onclick="advSetFarmCat('')">All</button>
+        ${groups.map(g => `<button class="adv-chip${s.catGroups.includes(g)?' active':''}" onclick="advSetFarmCat('${g}')">${g}</button>`).join('')}
       </div>
     </div>`;
 
-    // ── Subcategories (shown only when a group is selected) ──
-    if (s.catGroup && FARM_SUBCAT_BY_GROUP[s.catGroup]) {
-      const subs = FARM_SUBCAT_BY_GROUP[s.catGroup];
+    // ── Subcategories (shown when exactly one group selected) ──
+    if (s.catGroups.length === 1 && FARM_SUBCAT_BY_GROUP[s.catGroups[0]]) {
+      const subs = FARM_SUBCAT_BY_GROUP[s.catGroups[0]];
       html += `<div class="adv-section">
-        <div class="adv-section-label" style="display:flex;align-items:center;gap:6px;">More specific <span style="font-size:10px;background:var(--amber-light);color:var(--amber-dark);padding:2px 7px;border-radius:10px;font-weight:600;">${s.catGroup}</span></div>
+        <div class="adv-section-label" style="display:flex;align-items:center;gap:6px;">More specific <span style="font-size:10px;background:var(--amber-light);color:var(--amber-dark);padding:2px 7px;border-radius:10px;font-weight:600;">${s.catGroups[0]}</span></div>
         <div class="adv-chips">
           ${subs.map(sub => `<button class="adv-chip${s.subcats.includes(sub)?' active':''}" onclick="advToggleSubcat('${sub}')">${sub}</button>`).join('')}
         </div>
@@ -6331,8 +6641,10 @@ function renderAdvPanel(ctx) {
   document.getElementById('advPanelBody').innerHTML = html;
 }
 
-function advSetCountry(c) {
-  advState[advContext].country = c;
+function advToggleCountry(c) {
+  const arr = advState[advContext].countries;
+  const idx = arr.indexOf(c);
+  if (idx === -1) arr.push(c); else arr.splice(idx, 1);
   renderAdvPanel(advContext);
 }
 
@@ -6342,9 +6654,25 @@ function advSetTristate(field, val) {
 }
 
 function advSetFarmCat(g) {
-  advState.farms.catGroup = g;
-  advState.farms.subcats = [];
-  advState.farms.subSubcats = [];
+  const arr = advState.farms.catGroups;
+  if (g === '') {
+    // "All" clears everything
+    advState.farms.catGroups = [];
+    advState.farms.subcats = [];
+    advState.farms.subSubcats = [];
+  } else {
+    const idx = arr.indexOf(g);
+    if (idx === -1) {
+      arr.push(g);
+    } else {
+      arr.splice(idx, 1);
+    }
+    // Clear subcats/subSubcats when switching away from a single group
+    if (advState.farms.catGroups.length !== 1) {
+      advState.farms.subcats = [];
+      advState.farms.subSubcats = [];
+    }
+  }
   renderAdvPanel('farms');
 }
 
@@ -6369,7 +6697,7 @@ function advToggleSubSubcat(ss) {
 function advPayRange(input) {
   advState.farms.minPay = parseInt(input.value);
   const el = document.getElementById('advPayVal');
-  if (el) el.textContent = advState.farms.minPay > 0 ? '$'+advState.farms.minPay+'/hr' : 'Any';
+  if (el) el.textContent = advState.farms.minPay > 25 ? '$'+advState.farms.minPay+'/hr' : 'Any';
 }
 
 function advDiscountRange(input) {
@@ -6385,30 +6713,29 @@ function applyAdvFilter() {
   if (advContext === 'farms') {
     const s = advState.farms;
 
-    // Sync back to the pill bar: find the pill that matches the adv filter state
+    // Sync back to the pill bar when adv filter applies category selections
     (function syncPillToAdv() {
-      const pills = document.querySelectorAll('#page-farms .map-filters .filter-pill:not(.filter-pill-adv)');
-      let matchType = 'all';
-
+      _activeFarmTypes.clear();
       if (s.days88 === 'yes') {
-        matchType = '88days';
-      } else if (s.catGroup) {
-        // Reverse-look from PILL_TO_ADV_CAT
-        const entry = typeof PILL_TO_ADV_CAT !== 'undefined'
-          ? Object.entries(PILL_TO_ADV_CAT).find(([k, v]) => v === s.catGroup && k !== 'all' && k !== '88days')
-          : null;
-        if (entry) matchType = entry[0];
+        _activeFarmTypes.add('88days');
       }
-
-      pills.forEach(p => {
-        const m = (p.getAttribute('onclick') || '').match(/filterFarms\(this,'([^']+)'\)/);
-        const t = m ? m[1] : null;
-        p.classList.toggle('active', t === matchType);
+      if (s.catGroups && s.catGroups.length) {
+        // For each selected catGroup, find all pills that map to it
+        s.catGroups.forEach(grp => {
+          const entries = typeof PILL_TO_ADV_CAT !== 'undefined'
+            ? Object.entries(PILL_TO_ADV_CAT).filter(([k, v]) => v === grp && k !== 'all' && k !== '88days')
+            : [];
+          entries.forEach(([k]) => _activeFarmTypes.add(k));
+        });
+      }
+      if (_activeFarmTypes.size === 0) _activeFarmTypes.add('all');
+      document.querySelectorAll('#page-farms .filter-pill[data-ftype]').forEach(p => {
+        p.classList.toggle('active', _activeFarmTypes.has(p.dataset.ftype));
       });
     })();
 
     let filtered = allFarms.filter(f => {
-      if (s.country && (f.country||'').toLowerCase() !== s.country.toLowerCase()) return false;
+      if (s.countries.length && !s.countries.some(c => (f.country||'').toLowerCase() === c.toLowerCase())) return false;
       if (s.accom !== 'any') {
         const accVal = (f.accommodation||'unknown').toLowerCase();
         const accYes = accVal === 'yes';
@@ -6420,16 +6747,19 @@ function applyAdvFilter() {
         if (s.days88 === 'yes' && d88 !== 'yes') return false;
         if (s.days88 === 'no'  && d88 !== 'no')  return false;
       }
-      if (s.minPay > 0 && (parseFloat(f.pay_per_hour_aud)||0) < s.minPay) return false;
+      if (s.minPay > 25 && (parseFloat(f.pay_per_hour_aud)||0) < s.minPay) return false;
       if (s.organic !== 'any') {
         const org = (f.organic||'unknown').toLowerCase();
         if (s.organic === 'yes' && org !== 'yes') return false;
         if (s.organic === 'no'  && org !== 'no')  return false;
       }
-      if (s.catGroup) {
+      if (s.catGroups && s.catGroups.length) {
         const cat1 = (f.farm_category_first||'').toLowerCase();
-        const groupVals = FARM_CAT_GROUPS[s.catGroup] || [];
-        if (!groupVals.some(g => cat1 === g)) return false;
+        const matched = s.catGroups.some(grp => {
+          const groupVals = FARM_CAT_GROUPS[grp] || [];
+          return groupVals.some(g => cat1 === g);
+        });
+        if (!matched) return false;
       }
       if (s.subcats.length) {
         const cat2 = (f.farm_category_second||'').toLowerCase();
@@ -6449,7 +6779,7 @@ function applyAdvFilter() {
   } else if (advContext === 'deals') {
     const s = advState.deals;
     let filtered = allDeals.filter(d => {
-      if (s.country && (d.country||'').toLowerCase() !== s.country.toLowerCase()) return false;
+      if (s.countries.length && !s.countries.some(c => (d.country||'').toLowerCase() === c.toLowerCase())) return false;
       if (s.minDiscount > 0 && (parseFloat(d.discount)||0) < s.minDiscount) return false;
       return true;
     });
