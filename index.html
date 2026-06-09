@@ -2941,16 +2941,22 @@ async function openFarmDetail(id) {
     span.innerHTML = `<span style="font-size:12px;font-weight:700;color:var(--amber-dark);">${avg.toFixed(1)}</span>` + starsHTML(avg,'sm');
   });
 
-  // Inject verified badge directly from last_checked_by / last_checked_at columns
-  // (no extra network call needed — these come with the allFarms payload)
-  const wrap = document.getElementById('detail-verified-wrap');
-  if (wrap && f.last_checked_by) {
-    const safeName = escHTML(f.last_checked_by);
-    const safeDate = escHTML(f.last_checked_at || '');
-    wrap.insertAdjacentHTML('beforeend',
-      `<button class="detail-verified-badge" onclick="showVerifiedPopup(this,'${safeName}','${safeDate}')"><i class="ti ti-circle-check-filled"></i>Verified</button><div class="detail-verified-popup"></div>`
-    );
-  }
+  // Fetch fresh last_checked data for this farm (cache may be stale from map load)
+  supaFetch('businesses', `id=eq.${encodeURIComponent(id)}&select=last_checked_by,last_checked_at&limit=1`)
+    .then(rows => {
+      if (!rows || !rows.length || !rows[0].last_checked_by) return;
+      const wrap = document.getElementById('detail-verified-wrap');
+      if (!wrap) return;
+      // Update the cache so repeat opens don't need to re-fetch
+      const cached = allFarms.find(x => x.id === id);
+      if (cached) { cached.last_checked_by = rows[0].last_checked_by; cached.last_checked_at = rows[0].last_checked_at; }
+      const safeName = escHTML(rows[0].last_checked_by);
+      const safeDate = escHTML(rows[0].last_checked_at || '');
+      wrap.insertAdjacentHTML('beforeend',
+        `<button class="detail-verified-badge" onclick="showVerifiedPopup(this,'${safeName}','${safeDate}')"><i class="ti ti-circle-check-filled"></i>Verified</button><div class="detail-verified-popup"></div>`
+      );
+    })
+    .catch(() => {}); // badge is non-critical
 }
 
 // ── VERIFIED BADGE POPUP ──
