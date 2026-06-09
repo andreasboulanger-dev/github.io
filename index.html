@@ -66,7 +66,17 @@ html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;backgroun
 .toggle-fab.visible{display:flex}
 .toggle-fab.raised{bottom:calc(var(--nav-h) + env(safe-area-inset-bottom, 0px) + 62px)}
 
-/* LOYALTY BTN */
+.month-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;margin-top:2px;}
+.month-btn{padding:7px 4px;border-radius:var(--radius-sm);border:1.5px solid var(--border-mid);background:var(--off-white);font-size:11.5px;font-weight:600;color:var(--text-light);cursor:pointer;text-align:center;font-family:'DM Sans',sans-serif;transition:all 0.12s;-webkit-tap-highlight-color:transparent;}
+.month-btn.on{border-color:var(--amber);background:var(--amber-pale);color:var(--amber-dark);}
+html.dark .month-btn{background:#1E1E1E;border-color:var(--border-mid);color:var(--text-light);}
+html.dark .month-btn.on{background:var(--amber-pale);border-color:var(--amber);color:var(--amber-dark);}
+
+.fb-quick-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:9px 8px;border-radius:var(--radius-md);border:1.5px solid #1877F2;background:transparent;color:#1877F2;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.15s;-webkit-tap-highlight-color:transparent;}
+.fb-quick-btn:active{background:#E7F0FD;}
+.fb-quick-btn i{font-size:15px;}
+
+/* LOYAL BTN */
 .loyalty-btn{color:var(--amber-dark);background:var(--amber-light)}
 html.dark .loyalty-btn{background:var(--amber-light);color:var(--amber-dark)}
 
@@ -82,13 +92,14 @@ html.dark .loyalty-btn{background:var(--amber-light);color:var(--amber-dark)}
 .carousel-track::-webkit-scrollbar{display:none}
 .carousel-loading{display:flex;align-items:center;justify-content:center;width:100%;padding:24px 0}
 
-.farm-card{flex-shrink:0;width:200px;background:var(--white);border:0.5px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-sm);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.farm-card{flex-shrink:0;width:190px;background:var(--white);border:0.5px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-sm);cursor:pointer;position:relative;-webkit-tap-highlight-color:transparent}
 .farm-card:active{transform:scale(0.97)}
-.farm-card-top{background:var(--amber-pale);height:44px;display:flex;align-items:center;justify-content:center;border-bottom:0.5px solid var(--border);padding:0 12px}
-.farm-card-cat-label{font-size:11.5px;font-weight:700;color:var(--amber-dark);text-transform:uppercase;letter-spacing:0.6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.farm-card-body{padding:10px 12px 12px}
-.farm-card-name{font-size:13.5px;font-weight:600;line-height:1.3;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.farm-card-loc{font-size:11.5px;color:var(--text-light);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:6px}
+.farm-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:#3B6D11}
+.farm-card-top{display:none}
+.farm-card-cat-label{font-size:10.5px;font-weight:700;color:#3B6D11;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.farm-card-body{padding:12px 12px 12px 16px}
+.farm-card-name{font-size:13px;font-weight:600;line-height:1.3;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.farm-card-loc{font-size:11px;color:var(--text-light);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:8px}
 .farm-card-footer{display:flex;align-items:center;justify-content:space-between;gap:6px}
 .farm-card-stars{font-size:11px;color:var(--text-mid);font-weight:500;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .farm-card-chip{font-size:10.5px;font-weight:600;padding:2px 7px;border-radius:20px;background:#EAF3DE;color:#3B6D11;white-space:nowrap;flex-shrink:0}
@@ -96,6 +107,7 @@ html.dark .loyalty-btn{background:var(--amber-light);color:var(--amber-dark)}
 .deal-card-c{flex-shrink:0;width:190px;background:var(--white);border:0.5px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-sm);cursor:pointer;position:relative;-webkit-tap-highlight-color:transparent}
 .deal-card-c:active{transform:scale(0.97)}
 .deal-card-c::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--amber)}
+.deal-card-c.deal-card-price::before{background:#185FA5}
 .deal-card-c-body{padding:12px 12px 12px 16px}
 .deal-card-c-name{font-size:13px;font-weight:600;line-height:1.3;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .deal-card-c-type{font-size:11px;color:var(--text-light);margin-bottom:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -774,16 +786,15 @@ mark.search-hl{background:var(--amber-light);color:var(--amber-dark);border-radi
 .adv-toggle.on{background:var(--amber);}
 .adv-toggle.on::after{transform:translateX(18px);}
 .adv-tristate{display:flex;border-radius:8px;overflow:hidden;border:0.5px solid var(--border-mid);flex-shrink:0;}
-.tri-group{display:flex;gap:0;border-radius:var(--radius-md);overflow:hidden;border:0.5px solid var(--border-mid);width:100%;}
-.tri-btn{flex:1;padding:10px 6px;border:none;background:var(--off-white);color:var(--text-light);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.15s;-webkit-tap-highlight-color:transparent;text-align:center;}
-.tri-btn+.tri-btn{border-left:0.5px solid var(--border-mid);}
-.tri-btn.on-yes{background:#EAF3DE;color:#3B6D11;border-color:#C5E1A5;}
-.tri-btn.on-any{background:var(--amber-light);color:var(--amber-dark);border-color:rgba(245,166,35,0.35);}
-.tri-btn.on-no{background:#FBEAF0;color:#993556;border-color:#F8BBD0;}
-html.dark .tri-btn{background:#1E1E1E;color:var(--text-mid);}
-html.dark .tri-btn.on-yes{background:#1A2E14;color:#7EC85A;border-color:#2A4A20;}
-html.dark .tri-btn.on-any{background:var(--amber-dim);color:var(--amber);border-color:rgba(245,166,35,0.25);}
-html.dark .tri-btn.on-no{background:#2E1020;color:#F472B6;border-color:#4A1830;}
+.tri-group{display:flex;gap:6px;width:100%;}
+.tri-btn{flex:1;padding:10px 6px;border-radius:var(--radius-sm);border:1.5px solid var(--border-mid);background:transparent;color:var(--text-mid);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:background 0.12s,color 0.12s,border-color 0.12s;-webkit-tap-highlight-color:transparent;text-align:center;}
+.tri-btn.selected-yes{background:#EAF3DE;color:#3B6D11;border-color:#3B6D11;}
+.tri-btn.selected-no{background:#FBEAF0;color:#993556;border-color:#993556;}
+.tri-btn.selected-unknown{background:var(--amber-light);color:var(--amber-dark);border-color:var(--amber);}
+html.dark .tri-btn{background:transparent;border-color:var(--border-mid);color:var(--text-mid);}
+html.dark .tri-btn.selected-yes{background:#1A2E14;color:#7EC85A;border-color:#3B6D11;}
+html.dark .tri-btn.selected-no{background:#2E1020;color:#F472B6;border-color:#993556;}
+html.dark .tri-btn.selected-unknown{background:var(--amber-pale);color:var(--amber-dark);border-color:var(--amber);}
 .adv-tri-btn{border:none;background:var(--off-white);color:var(--text-light);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:5px 10px;cursor:pointer;transition:all 0.15s;-webkit-tap-highlight-color:transparent;}
 .adv-tri-btn+.adv-tri-btn{border-left:0.5px solid var(--border-mid);}
 .adv-tri-btn.active-yes{background:#EAF3DE;color:#3B6D11;}
@@ -1187,34 +1198,48 @@ html.dark .profile-card{background:#1E1E1E}
         </div>
         <div class="form-group">
           <label class="form-label">Accommodation provided?</label>
-          <div class="tri-group">
-            <button type="button" class="tri-btn" data-tri="editFarmAccom" data-val="yes" onclick="setTri('editFarmAccom','yes')">Yes</button>
-            <button type="button" class="tri-btn on-any" data-tri="editFarmAccom" data-val="unknown" onclick="setTri('editFarmAccom','unknown')">Unknown</button>
-            <button type="button" class="tri-btn" data-tri="editFarmAccom" data-val="no" onclick="setTri('editFarmAccom','no')">No</button>
+          <div class="tri-group" id="trigroup-editFarmAccom">
+            <button type="button" class="tri-btn" onclick="pickTri('editFarmAccom','yes')">Yes</button>
+            <button type="button" class="tri-btn" selected-unknown onclick="pickTri('editFarmAccom','unknown')">Unknown</button>
+            <button type="button" class="tri-btn" onclick="pickTri('editFarmAccom','no')">No</button>
           </div>
           <input type="hidden" id="editFarmAccom" value="unknown">
         </div>
         <div class="form-group">
           <label class="form-label">88-day visa eligible?</label>
-          <div class="tri-group">
-            <button type="button" class="tri-btn" data-tri="editFarm88" data-val="yes" onclick="setTri('editFarm88','yes')">Yes</button>
-            <button type="button" class="tri-btn on-any" data-tri="editFarm88" data-val="unknown" onclick="setTri('editFarm88','unknown')">Unknown</button>
-            <button type="button" class="tri-btn" data-tri="editFarm88" data-val="no" onclick="setTri('editFarm88','no')">No</button>
+          <div class="tri-group" id="trigroup-editFarm88">
+            <button type="button" class="tri-btn" onclick="pickTri('editFarm88','yes')">Yes</button>
+            <button type="button" class="tri-btn" selected-unknown onclick="pickTri('editFarm88','unknown')">Unknown</button>
+            <button type="button" class="tri-btn" onclick="pickTri('editFarm88','no')">No</button>
           </div>
           <input type="hidden" id="editFarm88" value="unknown">
         </div>
         <div class="form-group">
           <label class="form-label">Organic?</label>
-          <div class="tri-group">
-            <button type="button" class="tri-btn" data-tri="editFarmOrganic" data-val="yes" onclick="setTri('editFarmOrganic','yes')">Yes</button>
-            <button type="button" class="tri-btn on-any" data-tri="editFarmOrganic" data-val="unknown" onclick="setTri('editFarmOrganic','unknown')">Unknown</button>
-            <button type="button" class="tri-btn" data-tri="editFarmOrganic" data-val="no" onclick="setTri('editFarmOrganic','no')">No</button>
+          <div class="tri-group" id="trigroup-editFarmOrganic">
+            <button type="button" class="tri-btn" onclick="pickTri('editFarmOrganic','yes')">Yes</button>
+            <button type="button" class="tri-btn" selected-unknown onclick="pickTri('editFarmOrganic','unknown')">Unknown</button>
+            <button type="button" class="tri-btn" onclick="pickTri('editFarmOrganic','no')">No</button>
           </div>
           <input type="hidden" id="editFarmOrganic" value="unknown">
         </div>
         <div class="form-group">
           <label class="form-label">Season</label>
-          <input type="text" class="form-input" id="editFarmSeason" placeholder="e.g. Oct – Feb">
+          <div class="month-grid" id="editFarmSeasonMonths">
+            <button type="button" class="month-btn" data-m="Jan" onclick="toggleMonth(this)">Jan</button>
+            <button type="button" class="month-btn" data-m="Feb" onclick="toggleMonth(this)">Feb</button>
+            <button type="button" class="month-btn" data-m="Mar" onclick="toggleMonth(this)">Mar</button>
+            <button type="button" class="month-btn" data-m="Apr" onclick="toggleMonth(this)">Apr</button>
+            <button type="button" class="month-btn" data-m="May" onclick="toggleMonth(this)">May</button>
+            <button type="button" class="month-btn" data-m="Jun" onclick="toggleMonth(this)">Jun</button>
+            <button type="button" class="month-btn" data-m="Jul" onclick="toggleMonth(this)">Jul</button>
+            <button type="button" class="month-btn" data-m="Aug" onclick="toggleMonth(this)">Aug</button>
+            <button type="button" class="month-btn" data-m="Sep" onclick="toggleMonth(this)">Sep</button>
+            <button type="button" class="month-btn" data-m="Oct" onclick="toggleMonth(this)">Oct</button>
+            <button type="button" class="month-btn" data-m="Nov" onclick="toggleMonth(this)">Nov</button>
+            <button type="button" class="month-btn" data-m="Dec" onclick="toggleMonth(this)">Dec</button>
+          </div>
+          <input type="hidden" id="editFarmSeason" value="">
         </div>
         <div class="form-group">
           <label class="form-label">Phone</label>
@@ -1589,34 +1614,48 @@ html.dark .profile-card{background:#1E1E1E}
         </div>
         <div class="form-group">
           <label class="form-label">Accommodation provided?</label>
-          <div class="tri-group">
-            <button type="button" class="tri-btn on-any" data-tri="farmFieldAccom" data-val="yes" onclick="setTri('farmFieldAccom','yes')">Yes</button>
-            <button type="button" class="tri-btn"        data-tri="farmFieldAccom" data-val="unknown" onclick="setTri('farmFieldAccom','unknown')">Unknown</button>
-            <button type="button" class="tri-btn"        data-tri="farmFieldAccom" data-val="no" onclick="setTri('farmFieldAccom','no')">No</button>
+          <div class="tri-group" id="trigroup-farmFieldAccom">
+            <button type="button" class="tri-btn" onclick="pickTri('farmFieldAccom','yes')">Yes</button>
+            <button type="button" class="tri-btn" selected-unknown onclick="pickTri('farmFieldAccom','unknown')">Unknown</button>
+            <button type="button" class="tri-btn" onclick="pickTri('farmFieldAccom','no')">No</button>
           </div>
           <input type="hidden" id="farmFieldAccom" value="unknown">
         </div>
         <div class="form-group">
           <label class="form-label">88-day visa eligible?</label>
-          <div class="tri-group">
-            <button type="button" class="tri-btn" data-tri="farmField88" data-val="yes" onclick="setTri('farmField88','yes')">Yes</button>
-            <button type="button" class="tri-btn on-any" data-tri="farmField88" data-val="unknown" onclick="setTri('farmField88','unknown')">Unknown</button>
-            <button type="button" class="tri-btn" data-tri="farmField88" data-val="no" onclick="setTri('farmField88','no')">No</button>
+          <div class="tri-group" id="trigroup-farmField88">
+            <button type="button" class="tri-btn" onclick="pickTri('farmField88','yes')">Yes</button>
+            <button type="button" class="tri-btn" selected-unknown onclick="pickTri('farmField88','unknown')">Unknown</button>
+            <button type="button" class="tri-btn" onclick="pickTri('farmField88','no')">No</button>
           </div>
           <input type="hidden" id="farmField88" value="unknown">
         </div>
         <div class="form-group">
           <label class="form-label">Organic?</label>
-          <div class="tri-group">
-            <button type="button" class="tri-btn" data-tri="farmFieldOrganic" data-val="yes" onclick="setTri('farmFieldOrganic','yes')">Yes</button>
-            <button type="button" class="tri-btn on-any" data-tri="farmFieldOrganic" data-val="unknown" onclick="setTri('farmFieldOrganic','unknown')">Unknown</button>
-            <button type="button" class="tri-btn" data-tri="farmFieldOrganic" data-val="no" onclick="setTri('farmFieldOrganic','no')">No</button>
+          <div class="tri-group" id="trigroup-farmFieldOrganic">
+            <button type="button" class="tri-btn" onclick="pickTri('farmFieldOrganic','yes')">Yes</button>
+            <button type="button" class="tri-btn" selected-unknown onclick="pickTri('farmFieldOrganic','unknown')">Unknown</button>
+            <button type="button" class="tri-btn" onclick="pickTri('farmFieldOrganic','no')">No</button>
           </div>
           <input type="hidden" id="farmFieldOrganic" value="unknown">
         </div>
         <div class="form-group">
           <label class="form-label">Season</label>
-          <input type="text" class="form-input" id="farmFieldSeason" placeholder="e.g. Oct – Feb">
+          <div class="month-grid" id="farmFieldSeasonMonths">
+            <button type="button" class="month-btn" data-m="Jan" onclick="toggleMonth(this)">Jan</button>
+            <button type="button" class="month-btn" data-m="Feb" onclick="toggleMonth(this)">Feb</button>
+            <button type="button" class="month-btn" data-m="Mar" onclick="toggleMonth(this)">Mar</button>
+            <button type="button" class="month-btn" data-m="Apr" onclick="toggleMonth(this)">Apr</button>
+            <button type="button" class="month-btn" data-m="May" onclick="toggleMonth(this)">May</button>
+            <button type="button" class="month-btn" data-m="Jun" onclick="toggleMonth(this)">Jun</button>
+            <button type="button" class="month-btn" data-m="Jul" onclick="toggleMonth(this)">Jul</button>
+            <button type="button" class="month-btn" data-m="Aug" onclick="toggleMonth(this)">Aug</button>
+            <button type="button" class="month-btn" data-m="Sep" onclick="toggleMonth(this)">Sep</button>
+            <button type="button" class="month-btn" data-m="Oct" onclick="toggleMonth(this)">Oct</button>
+            <button type="button" class="month-btn" data-m="Nov" onclick="toggleMonth(this)">Nov</button>
+            <button type="button" class="month-btn" data-m="Dec" onclick="toggleMonth(this)">Dec</button>
+          </div>
+          <input type="hidden" id="farmFieldSeason" value="">
         </div>
       </div>
 
@@ -1671,6 +1710,20 @@ html.dark .profile-card{background:#1E1E1E}
         </div>
       </div>
 
+
+      <!-- Facebook quick link -->
+      <div id="fbLinkGroup" style="display:none;">
+        <div style="height:1px;background:var(--border);margin:16px 0 14px;"></div>
+        <div class="form-group">
+          <label class="form-label"><i class="ti ti-brand-facebook" style="color:#1877F2;font-size:14px;"></i> Facebook group or page link <span style="font-size:11px;color:var(--text-light);font-weight:400;">(optional)</span></label>
+          <input type="url" class="form-input" id="fieldFbLink" placeholder="https://www.facebook.com/groups/…" autocomplete="off">
+          <p style="font-size:11.5px;color:var(--text-light);margin-top:5px;display:flex;align-items:center;gap:4px;"><i class="ti ti-info-circle"></i> Paste the URL of the Facebook group or page associated with this listing.</p>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:-4px;margin-bottom:8px;">
+          <button type="button" class="fb-quick-btn" onclick="openFbSearch('groups')"><i class="ti ti-users"></i> Find a group</button>
+          <button type="button" class="fb-quick-btn" onclick="openFbSearch('pages')"><i class="ti ti-building-store"></i> Find a page</button>
+        </div>
+      </div>
 
       <button class="submit-btn" id="submitFormBtn" onclick="submitForm()">Send for review</button>
       <p class="submit-note"><i class="ti ti-shield-check"></i> Only approved submissions appear on the app</p>
@@ -2759,6 +2812,7 @@ function openEditFarm() {
   setTri('editFarm88',      (f.eighty_eight_days||'unknown').toLowerCase());
   setTri('editFarmOrganic', (f.organic||'unknown').toLowerCase());
   document.getElementById('editFarmSeason').value  = f.season || '';
+  setSeasonMonths('editFarmSeasonMonths', f.season || '');
   document.getElementById('editFarmPhone').value   = f.phone || '';
   document.getElementById('editFarmEmail').value   = f.email || '';
   document.getElementById('editFarmWebsite').value = f.website || '';
@@ -2779,15 +2833,41 @@ function openEditFarm() {
 
 // ── Tristate form helper (Yes / Unknown / No) ──
 // Sets the hidden input value and highlights the active button.
-function setTri(fieldId, val) {
+function pickTri(fieldId, val) {
   document.getElementById(fieldId).value = val;
-  const classMap = { yes: 'on-yes', unknown: 'on-any', no: 'on-no' };
-  document.querySelectorAll(`[data-tri="${fieldId}"]`).forEach(btn => {
-    btn.className = btn.className
-      .replace(/on-yes|on-any|on-no/g, '').trim();
-    if (btn.dataset.val === val) btn.classList.add(classMap[val]);
+  var group = document.getElementById('trigroup-' + fieldId);
+  if (!group) return;
+  group.querySelectorAll('.tri-btn').forEach(function(btn) {
+    btn.classList.remove('selected-yes', 'selected-no', 'selected-unknown');
+  });
+  var idx = ['yes','unknown','no'].indexOf(val);
+  if (idx !== -1) group.querySelectorAll('.tri-btn')[idx].classList.add('selected-' + val);
+}
+function setTri(fieldId, val) { pickTri(fieldId, val); }
+
+function toggleMonth(btn) {
+  btn.classList.toggle('on');
+  var grid = btn.closest('.month-grid');
+  if (!grid) return;
+  var hiddenId = grid.id === 'farmFieldSeasonMonths' ? 'farmFieldSeason' : 'editFarmSeason';
+  var selected = Array.from(grid.querySelectorAll('.month-btn.on')).map(function(b){ return b.dataset.m; });
+  var hidden = document.getElementById(hiddenId);
+  if (hidden) hidden.value = selected.join(', ');
+}
+
+function setSeasonMonths(gridId, seasonStr) {
+  var grid = document.getElementById(gridId);
+  if (!grid) return;
+  grid.querySelectorAll('.month-btn').forEach(function(btn){ btn.classList.remove('on'); });
+  if (!seasonStr) return;
+  var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var parts = seasonStr.split(/[,\u2013\-\/ ]+/).map(function(s){ return s.trim(); }).filter(Boolean);
+  parts.forEach(function(p) {
+    var m = months.find(function(mo){ return mo.toLowerCase() === p.toLowerCase().slice(0,3); });
+    if (m) { var btn = grid.querySelector('[data-m="' + m + '"]'); if (btn) btn.classList.add('on'); }
   });
 }
+
 
 function handleEditFarmBackdrop(e) {
   if (e.target === document.getElementById('editFarmModal'))
@@ -4049,7 +4129,17 @@ function openSubmit(fromPage) {
 function closeSubmit() {
   document.getElementById('submitModal').classList.remove('open');
   // Reset tristate farm fields
-  ['farmFieldAccom','farmField88','farmFieldOrganic'].forEach(id => setTri(id, 'unknown'));
+  ['farmFieldAccom','farmField88','farmFieldOrganic'].forEach(function(id){ pickTri(id,'unknown'); });
+  // Reset season month buttons
+  const seasonGrid = document.getElementById('farmFieldSeasonMonths');
+  if (seasonGrid) seasonGrid.querySelectorAll('.month-btn').forEach(b => b.classList.remove('on'));
+  const seasonHidden = document.getElementById('farmFieldSeason');
+  if (seasonHidden) seasonHidden.value = '';
+  // Reset fb link field
+  const fbLinkInput = document.getElementById('fieldFbLink');
+  if (fbLinkInput) fbLinkInput.value = '';
+  const fbGroup = document.getElementById('fbLinkGroup');
+  if (fbGroup) fbGroup.style.display = 'none';
   // Reset HH slots
   const hhSlots = document.getElementById('hhSlots');
   if (hhSlots) hhSlots.innerHTML = '';
@@ -4082,11 +4172,14 @@ function updateFormForType(type) {
   const priceGroup = document.getElementById('priceItemsGroup');
   const priceCatGroup = document.getElementById('priceCategoryGroup');
   const farmFields = document.getElementById('farmFieldsGroup');
+  const fbGroup = document.getElementById('fbLinkGroup');
   const dl = document.getElementById('detailsLabel');
   const fd = document.getElementById('fieldDetails');
 
   if (ag) ag.style.display = 'none'; // availability section removed
   farmFields.style.display = (type === 'farm') ? '' : 'none';
+  // Show Facebook link for farm and deal types
+  if (fbGroup) fbGroup.style.display = (type === 'farm' || type === 'deal') ? '' : 'none';
 
   if (type === 'price') {
     stdGroup.style.display = 'none';
@@ -4101,6 +4194,20 @@ function updateFormForType(type) {
     if (type==='farm')  { dl.textContent='Additional Details'; fd.placeholder='Any other info: crops, conditions, season…'; }
     else if (type==='deal')  { dl.textContent='Discount details'; fd.placeholder='e.g. 15% off coffee, how to redeem…'; }
     else { dl.textContent='Your tip'; fd.placeholder='Share useful info with the community…'; }
+  }
+}
+
+function openFbSearch(type) {
+  // Opens Facebook search in a new tab
+  // Facebook deprecated /groups/search/ and /search/pages/ — use /search/top/ with a keyword hint
+  const nameVal = (document.getElementById('fieldName') || {}).value || '';
+  const base = nameVal.trim();
+  if (type === 'groups') {
+    const q = encodeURIComponent(base ? base + ' group' : 'backpackers farm group');
+    window.open('https://www.facebook.com/search/top/?q=' + q + '&filters=eyJncm91cHMiOiJ7XCJuYW1lXCI6XCJncm91cHNcIn0ifQ%3D%3D', '_blank', 'noopener');
+  } else {
+    const q = encodeURIComponent(base ? base + ' page' : 'backpackers farm page');
+    window.open('https://www.facebook.com/search/top/?q=' + q + '&filters=eyJwYWdlcyI6IntcIm5hbWVcIjpcInBhZ2VzXCJ9In0%3D', '_blank', 'noopener');
   }
 }
 
@@ -4874,6 +4981,9 @@ async function submitForm() {
         payload.farm_season        = season  || null;
         payload.farm_eighty_eight  = f88;
         payload.farm_organic       = organic;
+        // Facebook link (optional)
+        const fbLink = (document.getElementById('fieldFbLink')?.value || '').trim();
+        if (fbLink) payload.fb_link = fbLink;
       }
       await supaInsert('submissions', payload);
     }
@@ -6426,8 +6536,8 @@ async function loadBestFarmsCarousel() {
       const pay      = f.pay_per_hour_aud ? '$' + f.pay_per_hour_aud + '/hr' : '';
       const cat      = escHTML(f.farm_category_first || 'Farm');
       return `<div class="farm-card" data-id="${escHTML(f.id)}" data-lat="${f.latitude||''}" data-lng="${f.longitude||''}">
-        <div class="farm-card-top"><span class="farm-card-cat-label">${cat}</span></div>
         <div class="farm-card-body">
+          <div class="farm-card-cat-label">${cat}</div>
           <div class="farm-card-name">${escHTML(f.business_name)}</div>
           <div class="farm-card-loc">${escHTML(loc || 'Location TBC')}</div>
           <div class="farm-card-footer">
@@ -6445,76 +6555,86 @@ async function loadBestFarmsCarousel() {
 }
 
 // ── Best Deals ──
-// "Cheapest" = lowest price_normal across all local_prices entries for that business.
-// Falls back to nearest deals or most-recently-added.
+// Shows a 50/50 mix of deals and best local prices.
 async function loadBestDealsCarousel() {
   const el = document.getElementById('bestDealsCarousel');
   if (!el) return;
   try {
-    // Fetch all deals (no fake columns, no location filter on deals table)
-    let deals = await supaFetch('deals', 'status=in.(approved,negotiating)&order=created_at.desc&limit=100');
+    // Fetch deals
+    let deals = [];
+    try {
+      deals = await supaFetch('deals', 'status=in.(approved,negotiating)&order=created_at.desc&limit=60');
+      deals.forEach(d => { if (!allDeals.find(x => x.id === d.id)) allDeals.push(d); });
+    } catch(e) {}
 
-    if (!deals.length) {
-      el.innerHTML = '<div class="carousel-empty">No deals found yet.</div>';
+    // Fetch local prices
+    let prices = [];
+    try {
+      prices = await supaFetch('local_prices', 'status=eq.approved&select=business_name,city,country,business_type,price_normal,item_name&order=price_normal.asc&limit=60');
+    } catch(e) {}
+
+    // Sort deals by discount desc
+    deals.sort((a, b) => (parseFloat(b.discount||0)) - (parseFloat(a.discount||0)));
+
+    // Group prices by business, keep best (lowest) price per business
+    const priceMap = {};
+    prices.forEach(p => {
+      const key = (p.business_name || '').toLowerCase().trim() + '|' + (p.city||'');
+      if (!priceMap[key] || parseFloat(p.price_normal) < parseFloat(priceMap[key].price_normal)) {
+        priceMap[key] = p;
+      }
+    });
+    const uniquePrices = Object.values(priceMap);
+
+    // Take up to 5 from each side, interleave deal/price/deal/price...
+    const maxEach = 5;
+    const dealsSlice  = deals.slice(0, maxEach);
+    const pricesSlice = uniquePrices.slice(0, maxEach);
+    const mixed = [];
+    const maxLen = Math.max(dealsSlice.length, pricesSlice.length);
+    for (let i = 0; i < maxLen; i++) {
+      if (i < dealsSlice.length)  mixed.push({ _kind: 'deal',  ...dealsSlice[i] });
+      if (i < pricesSlice.length) mixed.push({ _kind: 'price', ...pricesSlice[i] });
+    }
+
+    if (!mixed.length) {
+      el.innerHTML = '<div class="carousel-empty">No deals or prices found yet.</div>';
       return;
     }
 
-    // Merge into allDeals cache so openDealDetail works
-    deals.forEach(d => {
-      if (!allDeals.find(x => x.id === d.id)) allDeals.push(d);
-    });
-
-    // Fetch local_prices to find cheapest item per business
-    let prices = [];
-    try {
-      prices = await supaFetch('local_prices', 'status=eq.approved&select=business_name,city,price_normal&order=price_normal.asc&limit=500');
-    } catch(e) {}
-
-    // Build min-price map keyed by lowercase business name
-    const minPrice = {};
-    prices.forEach(p => {
-      const key = (p.business_name || '').toLowerCase().trim();
-      const v   = parseFloat(p.price_normal || 0);
-      if (key && v > 0 && (minPrice[key] === undefined || v < minPrice[key])) {
-        minPrice[key] = v;
-      }
-    });
-
-    // Attach cheapest price to each deal and sort
-    deals.forEach(d => {
-      const key = (d.business_name || '').toLowerCase().trim();
-      d._cheapest = minPrice[key] || null;
-    });
-
-    // Sort: deals with a known cheapest price first (asc), then by discount desc, then rest
-    deals.sort((a, b) => {
-      if (a._cheapest !== null && b._cheapest !== null) return a._cheapest - b._cheapest;
-      if (a._cheapest !== null) return -1;
-      if (b._cheapest !== null) return 1;
-      return (parseFloat(b.discount||0)) - (parseFloat(a.discount||0));
-    });
-
-    // If we have user location, prefer deals from the same city
-    if (_carouselUserPos) {
-      // We don't have coords on deals, but we can soft-boost by doing nothing here
-      // since deals are already sorted by cheapest price — location boost isn't safe
-    }
-
-    el.innerHTML = deals.slice(0, 10).map(d => {
-      const loc   = [d.city, d.country].filter(Boolean).join(', ');
-      const disc  = parseFloat(d.discount || 0);
-      const type  = escHTML(d.business_type || 'Business');
-      const cheap = d._cheapest ? 'From $' + d._cheapest.toFixed(2) : '';
-      return `<div class="deal-card-c" data-id="${escHTML(d.id)}">
-        <div class="deal-card-c-body" style="padding-top:12px;">
-          <div class="deal-card-c-name">${escHTML(d.business_name)}</div>
-          <div class="deal-card-c-type">${escHTML(loc || type)}</div>
-          <div class="deal-card-c-footer">
-            ${disc > 0 ? '<span class="deal-card-c-disc">-' + disc + '%</span>' : (cheap ? '<span class="deal-card-c-disc" style="font-size:13px;">' + escHTML(cheap) + '</span>' : '<span class="deal-card-c-disc" style="font-size:12px;font-family:\'DM Sans\',sans-serif;">Deal</span>')}
-            <span class="deal-card-c-status">${type}</span>
+    el.innerHTML = mixed.map(item => {
+      if (item._kind === 'deal') {
+        const d = item;
+        const loc  = [d.city, d.country].filter(Boolean).join(', ');
+        const disc = parseFloat(d.discount || 0);
+        const type = escHTML(d.business_type || 'Business');
+        return `<div class="deal-card-c" data-id="${escHTML(d.id)}">
+          <div class="deal-card-c-body" style="padding-top:12px;">
+            <div class="deal-card-c-name">${escHTML(d.business_name)}</div>
+            <div class="deal-card-c-type">${escHTML(loc || type)}</div>
+            <div class="deal-card-c-footer">
+              ${disc > 0 ? '<span class="deal-card-c-disc">-' + disc + '%</span>' : '<span class="deal-card-c-disc" style="font-size:12px;font-family:\'DM Sans\',sans-serif;">Deal</span>'}
+              <span class="deal-card-c-status">${type}</span>
+            </div>
           </div>
-        </div>
-      </div>`;
+        </div>`;
+      } else {
+        // price card
+        const p = item;
+        const loc = [p.city, p.country].filter(Boolean).join(', ');
+        const priceStr = p.price_normal ? '$' + parseFloat(p.price_normal).toFixed(2) : '';
+        const typeLbl = escHTML(p.business_type || 'Local Price');
+        return `<div class="deal-card-c deal-card-price">
+          <div class="deal-card-c-body" style="padding-top:12px;">
+            <div class="deal-card-c-name">${escHTML(p.business_name)}</div>
+            <div class="deal-card-c-type">${escHTML(loc || typeLbl)}</div>
+            <div class="deal-card-c-footer">
+              ${priceStr ? '<span class="deal-card-c-disc" style="font-size:13px;color:#185FA5;">' + escHTML(priceStr) + '</span>' : '<span class="deal-card-c-disc" style="font-size:12px;font-family:\'DM Sans\',sans-serif;">Price</span>'}
+              <span class="deal-card-c-status" style="background:#E6F1FB;color:#185FA5;">${escHTML(p.item_name || typeLbl)}</span>
+            </div>
+          </div>
+        </div>`;
+      }
     }).join('');
   } catch(e) {
     const el2 = document.getElementById('bestDealsCarousel');
