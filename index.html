@@ -4159,6 +4159,54 @@ function closeSubmit() {
 }
 function handleBackdropClick(e) { if (e.target === document.getElementById('submitModal')) closeSubmit(); }
 
+// ── Swipe-down to close "Add to the hive" sheet ──
+(function() {
+  const THRESHOLD = 80; // px downward drag needed to dismiss
+  let startY = 0, currentY = 0, dragging = false;
+
+  function getSheet() { return document.querySelector('#submitModal .modal-sheet'); }
+  function isOpen()   { return document.getElementById('submitModal').classList.contains('open'); }
+
+  function onTouchStart(e) {
+    if (!isOpen()) return;
+    // Only start drag when touching the handle area (top ~56 px of sheet) or the handle itself
+    const sheet = getSheet();
+    const rect  = sheet.getBoundingClientRect();
+    const touchY = e.touches[0].clientY;
+    if (touchY - rect.top > 56) return; // outside handle zone — let content scroll normally
+    startY   = touchY;
+    currentY = touchY;
+    dragging = true;
+    sheet.style.transition = 'none';
+  }
+
+  function onTouchMove(e) {
+    if (!dragging) return;
+    currentY = e.touches[0].clientY;
+    const delta = Math.max(0, currentY - startY); // only downward
+    getSheet().style.transform = `translateY(${delta}px)`;
+  }
+
+  function onTouchEnd() {
+    if (!dragging) return;
+    dragging = false;
+    const sheet = getSheet();
+    const delta = Math.max(0, currentY - startY);
+    sheet.style.transition = ''; // restore CSS transition
+    if (delta >= THRESHOLD) {
+      closeSubmit();
+      // Reset translate after animation completes
+      setTimeout(() => { sheet.style.transform = ''; }, 320);
+    } else {
+      sheet.style.transform = ''; // snap back
+    }
+  }
+
+  document.addEventListener('touchstart', onTouchStart, { passive: true });
+  document.addEventListener('touchmove',  onTouchMove,  { passive: true });
+  document.addEventListener('touchend',   onTouchEnd);
+})();
+
 function selectType(el) {
   if (lockedType) return;
   document.querySelectorAll('.type-option').forEach(o => o.classList.remove('selected'));
