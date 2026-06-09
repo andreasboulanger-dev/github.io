@@ -1296,9 +1296,35 @@ function openDetail(id){
     <div class="modal-foot">
       <button class="btn-lg-no" onclick="decide(${s.id},'rejected')"><i class="ti ti-x"></i> Reject</button>
       <button class="btn-lg-ok" onclick="decide(${s.id},'approved')"><i class="ti ti-check"></i> Approve</button>
+    </div>` : ''}
+    ${(s.type === 'farm' || s.type === 'farm_edit') && s.target_id ? `
+    <div style="padding:12px 20px 16px;border-top:0.5px solid var(--border);">
+      <button class="btn-ok" id="modalVerifyBtn" style="width:100%;justify-content:center;padding:10px;" onclick="markFarmVerifiedFromModal('${esc(s.target_id)}')">
+        <i class="ti ti-shield-check"></i> Mark farm as verified
+      </button>
+      <div id="modalVerifyStatus" style="text-align:center;font-size:11px;color:var(--text-dim);margin-top:6px;"></div>
     </div>` : ''}`;
 
   document.getElementById('modalBg').classList.add('open');
+
+  // If this is a farm/farm_edit, fetch current verified status to show in modal
+  if ((s.type === 'farm' || s.type === 'farm_edit') && s.target_id) {
+    api('businesses', `id=eq.${encodeURIComponent(s.target_id)}&select=last_checked_by,last_checked_at&limit=1`)
+      .then(rows => {
+        const statusEl = document.getElementById('modalVerifyStatus');
+        if (!statusEl) return;
+        if (rows && rows.length && rows[0].last_checked_by) {
+          const name = rows[0].last_checked_by.includes('@') ? rows[0].last_checked_by.split('@')[0] : rows[0].last_checked_by;
+          const date = rows[0].last_checked_at ? new Date(rows[0].last_checked_at).toLocaleDateString('en', {day:'numeric',month:'short',year:'numeric'}) : '?';
+          statusEl.innerHTML = `<span style="color:var(--blue)"><i class="ti ti-circle-check-filled"></i> Currently verified</span> · Last checked by <strong>${esc(name)}</strong> on ${esc(date)}`;
+          const btn = document.getElementById('modalVerifyBtn');
+          if (btn) btn.innerHTML = '<i class="ti ti-shield-check"></i> Re-verify farm';
+        } else {
+          statusEl.textContent = 'Not yet verified';
+        }
+      })
+      .catch(() => {});
+  }
 }
 
 function maybeCloseModal(e){ if(e.target===document.getElementById('modalBg')) closeModal(); }
@@ -1359,7 +1385,7 @@ async function renderUsers(){
 async function renderGenericTable(table, title, cols){
   const isFarms = (table === 'businesses');
   const queryParams = isFarms
-    ? 'order=id.asc&limit=200&select=id,business_name,city,country,status,last_checked_by,last_checked_at'
+    ? 'order=business_name.asc&limit=200&select=id,business_name,city,country,status,last_checked_by,last_checked_at'
     : 'order=id.asc&limit=200';
   const rows = await api(table, queryParams);
   const colLabel = {id:'ID',business_name:'Name',city:'City',country:'Country',status:'Status',item_name:'Item',price_normal:'Price',item_category_first:'Category'};
@@ -1453,7 +1479,28 @@ async function markFarmVerified(farmId, btn){
     btn.innerHTML = orig;
   }
 }
-// ── DELETED RECORDS ──
+async function markFarmVerifiedFromModal(farmId){
+  if(!currentUser) { toast('Not logged in','err'); return; }
+  const btn = document.getElementById('modalVerifyBtn');
+  const statusEl = document.getElementById('modalVerifyStatus');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader-2"></i> Saving…'; }
+  try {
+    await rpc('admin_mark_farm_verified', {
+      p_farm_id: farmId,
+      p_checked_by: currentUser.email,
+      p_checked_at: new Date().toISOString()
+    });
+    toast('✅ Farm marked as verified!', 'ok');
+    if (btn) btn.innerHTML = '<i class="ti ti-shield-check"></i> Re-verify farm';
+    if (btn) btn.disabled = false;
+    const name = currentUser.email.includes('@') ? currentUser.email.split('@')[0] : currentUser.email;
+    const date = new Date().toLocaleDateString('en', {day:'numeric',month:'short',year:'numeric'});
+    if (statusEl) statusEl.innerHTML = `<span style="color:var(--blue)"><i class="ti ti-circle-check-filled"></i> Currently verified</span> · Last checked by <strong>${esc(name)}</strong> on ${esc(date)}`;
+  } catch(e){
+    toast('Error: ' + e.message, 'err');
+    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="ti ti-shield-check"></i> Mark farm as verified'; }
+  }
+}
 const TABLE_LABELS = { businesses: 'Farm', deals: 'Deal', local_prices: 'Price' };
 const TABLE_ICONS  = { businesses: 'ti-plant-2', deals: 'ti-tag', local_prices: 'ti-coin' };
 
