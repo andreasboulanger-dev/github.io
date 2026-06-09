@@ -1357,13 +1357,16 @@ async function renderUsers(){
 
 // ── GENERIC TABLE ──
 async function renderGenericTable(table, title, cols){
-  const rows = await api(table,'order=id.asc&limit=200');
+  const isFarms = (table === 'businesses');
+  const queryParams = isFarms
+    ? 'order=id.asc&limit=200&select=id,business_name,city,country,status,last_checked_by,last_checked_at'
+    : 'order=id.asc&limit=200';
+  const rows = await api(table, queryParams);
   const colLabel = {id:'ID',business_name:'Name',city:'City',country:'Country',status:'Status',item_name:'Item',price_normal:'Price',item_category_first:'Category'};
 
   const isMobile = window.innerWidth <= 768;
 
   if(isMobile){
-    // Render as stacked cards on mobile
     document.getElementById('mainContent').innerHTML = `
       <div class="page-hd">
         <div class="page-title">${title}</div>
@@ -1375,18 +1378,27 @@ async function renderGenericTable(table, title, cols){
           const sub = [r.city, r.country].filter(Boolean).join(', ') || (r.item_name && r.business_name ? esc(r.business_name) : '');
           const price = r.price_normal ? `<span class="mono" style="font-size:13px;color:var(--text);">$${r.price_normal}</span>` : '';
           const status = r.status ? `<span class="badge s-${r.status}">${r.status}</span>` : '';
+          const verifiedBadge = isFarms && r.last_checked_by
+            ? `<span style="display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;padding:2px 6px;border-radius:20px;background:var(--blue-dim);color:var(--blue);"><i class="ti ti-circle-check-filled" style="font-size:11px;"></i>Verified</span>`
+            : '';
+          const verifyBtn = isFarms
+            ? `<button class="btn-ok" style="padding:6px 10px;font-size:11px;" onclick="markFarmVerified('${esc(r.id)}',this)"><i class="ti ti-shield-check"></i> ${r.last_checked_by ? 'Re-verify' : 'Verify'}</button>`
+            : '';
           return `<div style="background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;">
             <div style="min-width:0;flex:1;">
-              <div style="font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${name}</div>
+              <div style="font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:6px;">${name}${verifiedBadge}</div>
               ${sub ? `<div style="font-size:12px;color:var(--text-mid);margin-top:2px;">${sub}</div>` : ''}
+              ${isFarms && r.last_checked_by ? `<div style="font-size:11px;color:var(--text-dim);margin-top:3px;">Checked by ${esc(r.last_checked_by.includes('@') ? r.last_checked_by.split('@')[0] : r.last_checked_by)}</div>` : ''}
             </div>
-            <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">${price}${status}</div>
+            <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">${price}${status}${verifyBtn}</div>
           </div>`;
         }).join('') : `<div class="empty"><i class="ti ti-database"></i>No records</div>`}
       </div>`;
     return;
   }
 
+  // Desktop: farms get an extra Verified column + action button
+  const farmExtraCols = isFarms ? ['<th>Verified</th>', '<th></th>'] : [];
   document.getElementById('mainContent').innerHTML = `
     <div class="page-hd">
       <div class="page-title">${title}</div>
@@ -1394,18 +1406,52 @@ async function renderGenericTable(table, title, cols){
     </div>
     <div class="tbl-wrap">
       <table>
-        <thead><tr>${cols.map(c=>`<th>${colLabel[c]||c}</th>`).join('')}</tr></thead>
+        <thead><tr>${cols.map(c=>`<th>${colLabel[c]||c}</th>`).join('')}${farmExtraCols.join('')}</tr></thead>
         <tbody>
-          ${rows.length ? rows.map(r=>`<tr>${cols.map(c=>{
-            if(c==='status') return `<td><span class="badge s-${r[c]}">${r[c]||'—'}</span></td>`;
-            if(c==='price_normal') return `<td class="mono">$${r[c]||0}</td>`;
-            if(c==='id') return `<td class="mono">${esc(r[c])}</td>`;
-            return `<td><span class="ellip">${esc(String(r[c]||'—'))}</span></td>`;
-          }).join('')}</tr>`).join('') :
-          `<tr><td colspan="${cols.length}"><div class="empty"><i class="ti ti-database"></i>No records</div></td></tr>`}
+          ${rows.length ? rows.map(r=>{
+            const baseCells = cols.map(c=>{
+              if(c==='status') return `<td><span class="badge s-${r[c]}">${r[c]||'—'}</span></td>`;
+              if(c==='price_normal') return `<td class="mono">$${r[c]||0}</td>`;
+              if(c==='id') return `<td class="mono">${esc(r[c])}</td>`;
+              return `<td><span class="ellip">${esc(String(r[c]||'—'))}</span></td>`;
+            }).join('');
+            if(!isFarms) return `<tr>${baseCells}</tr>`;
+            const verifiedCell = r.last_checked_by
+              ? `<td title="Checked by ${esc(r.last_checked_by)} on ${r.last_checked_at ? new Date(r.last_checked_at).toLocaleDateString('en',{day:'numeric',month:'short',year:'numeric'}) : '?'}">
+                  <span style="display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:700;padding:2px 7px;border-radius:20px;background:var(--blue-dim);color:var(--blue);">
+                    <i class="ti ti-circle-check-filled" style="font-size:12px;"></i>Verified
+                  </span>
+                 </td>`
+              : `<td style="color:var(--text-dim);font-size:12px;">—</td>`;
+            const actionCell = `<td><button class="btn-ok" style="padding:5px 10px;font-size:11px;" onclick="markFarmVerified('${esc(r.id)}',this)"><i class="ti ti-shield-check"></i> ${r.last_checked_by ? 'Re-verify' : 'Verify'}</button></td>`;
+            return `<tr>${baseCells}${verifiedCell}${actionCell}</tr>`;
+          }).join('') :
+          `<tr><td colspan="${cols.length + (isFarms ? 2 : 0)}"><div class="empty"><i class="ti ti-database"></i>No records</div></td></tr>`}
         </tbody>
       </table>
     </div>`;
+}
+
+// ── MARK FARM VERIFIED ──
+async function markFarmVerified(farmId, btn){
+  if(!currentUser) { toast('Not logged in','err'); return; }
+  const orig = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<i class="ti ti-loader-2"></i> …';
+  try {
+    await rpc('admin_mark_farm_verified', {
+      p_farm_id: farmId,
+      p_checked_by: currentUser.email,
+      p_checked_at: new Date().toISOString()
+    });
+    toast('✅ Farm marked as verified!', 'ok');
+    // Refresh the page so the badge shows the new state
+    await loadPage(currentPage);
+  } catch(e){
+    toast('Error: ' + e.message, 'err');
+    btn.disabled = false;
+    btn.innerHTML = orig;
+  }
 }
 // ── DELETED RECORDS ──
 const TABLE_LABELS = { businesses: 'Farm', deals: 'Deal', local_prices: 'Price' };
