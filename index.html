@@ -248,6 +248,8 @@ html.dark .profile-logout-btn:active{background:#3A1A1A;}
 .map-filters .filter-pill{box-shadow:var(--shadow-sm)}
 .filter-pill{display:flex;align-items:center;gap:5px;padding:6px 14px;border-radius:20px;background:var(--white);border:0.5px solid var(--border-mid);font-size:13px;font-weight:500;color:var(--text-mid);white-space:nowrap;cursor:pointer;transition:all 0.15s;font-family:'DM Sans',sans-serif}
 .filter-pill.active{background:var(--amber);border-color:var(--amber);color:white;font-weight:600;}
+.filter-pill[data-ftype="verified"]{color:#185FA5;border-color:rgba(24,95,165,0.3);}
+.filter-pill[data-ftype="verified"].active{background:#185FA5;border-color:#185FA5;color:white;}
 .filter-pill[data-ftype].active:not([data-ftype="all"])::before,
 .filter-pill[data-dtype].active:not([data-dtype="all"])::before{content:'✓';margin-right:2px;font-size:11px;}
 .filter-pill i{font-size:15px}
@@ -860,6 +862,11 @@ html.dark .deals-intro{background:var(--amber-pale)}
 html.dark .community-bar{background:#1E1E1E}
 html.dark .toggle-fab{background:rgba(30,30,30,0.92);border-color:rgba(255,255,255,0.1);color:var(--text-dark)}
 html.dark .adv-sheet{background:#1E1E1E}
+.adv-verified-btn{display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border-radius:20px;border:1.5px solid var(--border-mid);background:var(--off-white);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;color:var(--text-mid);cursor:pointer;transition:all 0.15s;-webkit-tap-highlight-color:transparent;}
+.adv-verified-btn:active{opacity:0.75;}
+.adv-verified-btn.active{background:#185FA5;border-color:#185FA5;color:white;}
+html.dark .adv-verified-btn{background:#1E1E1E;border-color:var(--border-mid);color:var(--text-mid);}
+html.dark .adv-verified-btn.active{background:#185FA5;border-color:#185FA5;color:white;}
 html.dark .price-slider-bar{background:var(--white);border-color:var(--border)}
 html.dark .leaflet-popup-content-wrapper{background:#1E1E1E;color:var(--text-dark)}
 html.dark .leaflet-popup-tip{background:#1E1E1E}
@@ -945,6 +952,7 @@ html.dark .profile-card{background:#1E1E1E}
         <div class="map-filters">
           <button class="filter-pill filter-pill-adv" id="farmsAdvBtn" onclick="openAdvFilter('farms')"><i class="ti ti-adjustments-horizontal"></i></button>
           <button class="filter-pill active" data-ftype="all" onclick="toggleFarmPill(this)"><i class="ti ti-map-2"></i> All</button>
+          <button class="filter-pill" data-ftype="verified" onclick="toggleFarmPill(this)"><i class="ti ti-rosette-discount-check"></i> Verified</button>
           <button class="filter-pill" data-ftype="88days" onclick="toggleFarmPill(this)"><i class="ti ti-calendar-stats"></i> 88 Days</button>
           <button class="filter-pill" data-ftype="fruits" onclick="toggleFarmPill(this)"><i class="ti ti-apple"></i> Fruits & Orchards</button>
           <button class="filter-pill" data-ftype="livestock" onclick="toggleFarmPill(this)"><i class="ti ti-paw"></i> Livestock</button>
@@ -1191,11 +1199,6 @@ html.dark .profile-card{background:#1E1E1E}
         <input type="hidden" id="editFarmLat">
         <input type="hidden" id="editFarmLng">
         <div class="form-group">
-          <label class="form-label">Farm name</label>
-          <input type="text" class="form-input" id="editFarmName" placeholder="Farm name">
-        </div>
-
-        <div class="form-group">
           <label class="form-label">Address <span style="font-size:11px;color:var(--text-light);font-weight:400;">(optional — move pin to update)</span></label>
           <div class="picker-search-wrap" style="margin-bottom:8px;">
             <i class="ti ti-search" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-light);font-size:16px;pointer-events:none;z-index:2;"></i>
@@ -1207,6 +1210,43 @@ html.dark .profile-card{background:#1E1E1E}
             <div class="picker-search-results" id="editFarmSearchResults"></div>
           </div>
           <div id="editFarmMap" style="height:160px;border-radius:var(--radius-md);overflow:hidden;z-index:1;"></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Farm name</label>
+          <input type="text" class="form-input" id="editFarmName" placeholder="Farm name">
+        </div>
+        <div class="form-group" id="editFarmCategoryGroup">
+          <label class="form-label">Main category</label>
+          <div id="editFarmCatGrid" style="display:flex;flex-wrap:wrap;gap:6px;">
+            <button type="button" class="hh-day-btn" data-efcat="Livestock"          onclick="selectEditFarmCat(this)">Livestock</button>
+            <button type="button" class="hh-day-btn" data-efcat="Plants &amp; Nursery"   onclick="selectEditFarmCat(this)">Plants &amp; Nursery</button>
+            <button type="button" class="hh-day-btn" data-efcat="Fruits &amp; Orchards"  onclick="selectEditFarmCat(this)">Fruits &amp; Orchards</button>
+            <button type="button" class="hh-day-btn" data-efcat="Vineyard &amp; Winery"  onclick="selectEditFarmCat(this)">Vineyard &amp; Winery</button>
+            <button type="button" class="hh-day-btn" data-efcat="Vegetables &amp; Crops" onclick="selectEditFarmCat(this)">Vegetables &amp; Crops</button>
+            <button type="button" class="hh-day-btn" data-efcat="Honey"              onclick="selectEditFarmCat(this)">Honey</button>
+            <button type="button" class="hh-day-btn" data-efcat="Poultry &amp; Eggs"     onclick="selectEditFarmCat(this)">Poultry &amp; Eggs</button>
+            <button type="button" class="hh-day-btn" data-efcat="Aquaculture"        onclick="selectEditFarmCat(this)">Aquaculture</button>
+            <button type="button" class="hh-day-btn" data-efcat="Dairy"              onclick="selectEditFarmCat(this)">Dairy</button>
+            <button type="button" class="hh-day-btn" data-efcat="Mixed &amp; Specialty"  onclick="selectEditFarmCat(this)">Mixed &amp; Specialty</button>
+            <button type="button" class="hh-day-btn" data-efcat="Others"             onclick="selectEditFarmCat(this)">Others</button>
+          </div>
+        </div>
+        <div class="form-group" id="editFarmCategorySecondGroup" style="display:none;">
+          <label class="form-label">Sub-type <span style="font-size:11px;color:var(--text-light);font-weight:400;">(optional)</span></label>
+          <div id="editFarmCatSecondPills" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+          <input type="text" class="form-input" id="editFarmCatSecondCustom" placeholder="Describe the farm type…" autocomplete="off" style="display:none;margin-top:8px;">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Phone</label>
+          <input type="tel" class="form-input" id="editFarmPhone" placeholder="+61 ...">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input type="email" class="form-input" id="editFarmEmail" placeholder="contact@farm.com">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Website</label>
+          <input type="url" class="form-input" id="editFarmWebsite" placeholder="https://...">
         </div>
         <div class="form-group">
           <label class="form-label">Pay rate (AUD/hr)</label>
@@ -1258,20 +1298,13 @@ html.dark .profile-card{background:#1E1E1E}
           <input type="hidden" id="editFarmSeason" value="">
         </div>
         <div class="form-group">
-          <label class="form-label">Phone</label>
-          <input type="tel" class="form-input" id="editFarmPhone" placeholder="+61 ...">
+          <label class="form-label">Details</label>
+          <textarea class="form-textarea" id="editFarmNotes" placeholder="Pay rate, conditions, any other useful info…"></textarea>
         </div>
-        <div class="form-group">
-          <label class="form-label">Email</label>
-          <input type="email" class="form-input" id="editFarmEmail" placeholder="contact@farm.com">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Website</label>
-          <input type="url" class="form-input" id="editFarmWebsite" placeholder="https://...">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Notes</label>
-          <textarea class="form-textarea" id="editFarmNotes" placeholder="Any other useful info…"></textarea>
+        <div class="form-group" id="editFbLinkGroup">
+          <label class="form-label"><i class="ti ti-brand-facebook" style="color:#1877F2;font-size:14px;"></i> Facebook group or page link <span style="font-size:11px;color:var(--text-light);font-weight:400;">(optional)</span></label>
+          <input type="url" class="form-input" id="editFarmFbLink" placeholder="https://www.facebook.com/groups/…" autocomplete="off">
+          <p style="font-size:11.5px;color:var(--text-light);margin-top:5px;display:flex;align-items:center;gap:4px;"><i class="ti ti-info-circle"></i> Paste the URL of the Facebook group or page associated with this farm.</p>
         </div>
         <button class="submit-btn" onclick="submitFarmEdit()">Submit for review</button>
         <button class="btn-delete-item" onclick="openDeleteConfirm('farm')"><i class="ti ti-trash"></i> Delete this listing</button>
@@ -1657,6 +1690,28 @@ html.dark .profile-card{background:#1E1E1E}
 
       <!-- Farm-specific fields (shown when type = farm) -->
       <div id="farmFieldsGroup" style="display:none;">
+        <div class="form-group" id="farmCategoryGroup">
+          <label class="form-label">Main category <span style="color:#E53935;">*</span></label>
+          <div id="farmCatGrid" style="display:flex;flex-wrap:wrap;gap:6px;">
+            <button type="button" class="hh-day-btn" data-fcat="Livestock"          onclick="selectFarmCat(this)">Livestock</button>
+            <button type="button" class="hh-day-btn" data-fcat="Plants & Nursery"   onclick="selectFarmCat(this)">Plants &amp; Nursery</button>
+            <button type="button" class="hh-day-btn" data-fcat="Fruits & Orchards"  onclick="selectFarmCat(this)">Fruits &amp; Orchards</button>
+            <button type="button" class="hh-day-btn" data-fcat="Vineyard & Winery"  onclick="selectFarmCat(this)">Vineyard &amp; Winery</button>
+            <button type="button" class="hh-day-btn" data-fcat="Vegetables & Crops" onclick="selectFarmCat(this)">Vegetables &amp; Crops</button>
+            <button type="button" class="hh-day-btn" data-fcat="Honey"              onclick="selectFarmCat(this)">Honey</button>
+            <button type="button" class="hh-day-btn" data-fcat="Poultry & Eggs"     onclick="selectFarmCat(this)">Poultry &amp; Eggs</button>
+            <button type="button" class="hh-day-btn" data-fcat="Aquaculture"        onclick="selectFarmCat(this)">Aquaculture</button>
+            <button type="button" class="hh-day-btn" data-fcat="Dairy"              onclick="selectFarmCat(this)">Dairy</button>
+            <button type="button" class="hh-day-btn" data-fcat="Mixed & Specialty"  onclick="selectFarmCat(this)">Mixed &amp; Specialty</button>
+            <button type="button" class="hh-day-btn" data-fcat="Others"             onclick="selectFarmCat(this)">Others</button>
+          </div>
+        </div>
+        <div class="form-group" id="farmCategorySecondGroup" style="display:none;">
+          <label class="form-label">Sub-type <span style="font-size:11px;color:var(--text-light);font-weight:400;">(optional)</span></label>
+          <div id="farmCatSecondPills" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+          <input type="text" class="form-input" id="farmCatSecondCustom" placeholder="Describe the farm type…" autocomplete="off"
+            style="display:none;margin-top:8px;">
+        </div>
         <div class="form-group">
           <label class="form-label">Contact Number</label>
           <input type="tel" class="form-input" id="farmFieldPhone" placeholder="+61 400 000 000">
@@ -2699,6 +2754,7 @@ function filterFarmsType(type) {
 // Map pill filter keys to advState catGroup names (or special flags)
 const PILL_TO_ADV_CAT = {
   'all':         '',
+  'verified':    '__verified__',
   '88days':      '__88days__',
   'fruits':      'Fruits & Orchards',
   'livestock':   'Livestock',
@@ -2745,16 +2801,18 @@ function toggleFarmPill(btn) {
 
   // Sync advState (populate catGroups from active pill selections)
   if (_activeFarmTypes.has('all')) {
-    advState.farms.days88 = 'any'; advState.farms.catGroups = []; advState.farms.subcats = []; advState.farms.subSubcats = [];
+    advState.farms.verified = false; advState.farms.days88 = 'any'; advState.farms.catGroups = []; advState.farms.subcats = []; advState.farms.subSubcats = [];
   } else {
     const activePills = [..._activeFarmTypes];
+    const hasVerified = activePills.includes('verified');
     const has88 = activePills.includes('88days');
+    advState.farms.verified = hasVerified;
     advState.farms.days88 = has88 ? 'yes' : 'any';
     // Map each non-attribute pill to its advCat group name
     advState.farms.catGroups = activePills
-      .filter(t => t !== '88days')
+      .filter(t => t !== '88days' && t !== 'verified')
       .map(t => PILL_TO_ADV_CAT[t])
-      .filter(v => v !== undefined && v !== '' && v !== '__88days__');
+      .filter(v => v !== undefined && v !== '' && v !== '__88days__' && v !== '__verified__');
     // Remove duplicates (e.g. honey/poultry/mixed all map to Mixed & Specialty)
     advState.farms.catGroups = [...new Set(advState.farms.catGroups)];
     // Clear subcats when multiple categories are active
@@ -2775,7 +2833,7 @@ function applyFarmPillFilter() {
     filtered = allFarms;
   } else {
     // Split active types into category pills and attribute pills
-    const attrTypes  = ['88days']; // pills that are attributes (AND)
+    const attrTypes  = ['88days', 'verified']; // pills that are attributes (AND)
     const activeAttrs = [..._activeFarmTypes].filter(t => attrTypes.includes(t));
     const activeCats  = [..._activeFarmTypes].filter(t => !attrTypes.includes(t));
 
@@ -2790,6 +2848,7 @@ function applyFarmPillFilter() {
       // Attribute match: farm must match ALL selected attributes (AND)
       const attrMatch = activeAttrs.every(type => {
         if (type === '88days') return (f.eighty_eight_days||'').toLowerCase() === 'yes';
+        if (type === 'verified') return !!(f.last_checked_by && f.last_checked_by.trim());
         return true;
       });
 
@@ -3005,6 +3064,24 @@ function openEditFarm() {
   document.getElementById('editFarmWebsite').value = f.website || '';
   document.getElementById('editFarmNotes').value   = f.notes || '';
 
+  // Pre-fill main category
+  document.querySelectorAll('[data-efcat]').forEach(b => b.classList.remove('on'));
+  const existingCat = f.farm_category_first || '';
+  if (existingCat) {
+    const catBtn = document.querySelector(`[data-efcat="${existingCat}"]`);
+    if (catBtn) {
+      catBtn.classList.add('on');
+      _renderEditFarmSubtypePills(existingCat, f.farm_category_second || '');
+    } else {
+      document.getElementById('editFarmCategorySecondGroup').style.display = 'none';
+    }
+  } else {
+    document.getElementById('editFarmCategorySecondGroup').style.display = 'none';
+  }
+
+  // Pre-fill Facebook link
+  document.getElementById('editFarmFbLink').value = f.fb_link || '';
+
   // Pre-select 88 days
   const is88 = (f.eighty_eight_days||'').toLowerCase() === 'yes';
 
@@ -3078,6 +3155,19 @@ async function submitFarmEdit() {
   const _website = document.getElementById('editFarmWebsite').value.trim();
   const _notes   = document.getElementById('editFarmNotes').value.trim();
 
+  // Category & sub-type
+  const _catEl     = document.querySelector('[data-efcat].on');
+  const _category  = _catEl ? _catEl.dataset.efcat : null;
+  const _cat2El    = document.querySelector('[data-efcat2].on');
+  let   _category2 = _cat2El ? _cat2El.dataset.efcat2 : null;
+  if (_category2 === 'Other Farm') {
+    const customVal = (document.getElementById('editFarmCatSecondCustom')?.value || '').trim();
+    if (customVal) _category2 = customVal;
+  }
+
+  // Facebook link
+  const _fbLink = (document.getElementById('editFarmFbLink')?.value || '').trim();
+
   const payload = {
     type:                'farm',
     business_name:       name,
@@ -3093,6 +3183,9 @@ async function submitFarmEdit() {
     farm_website:        _website || null,
     farm_eighty_eight:   _88days,
     farm_organic:        _organic,
+    farm_category:       _category || null,
+    farm_category_second: _category2 || null,
+    fb_link:             _fbLink   || null,
     latitude:            parseFloat(document.getElementById('editFarmLat').value) || (cachedFarm ? cachedFarm.latitude  : null),
     longitude:           parseFloat(document.getElementById('editFarmLng').value) || (cachedFarm ? cachedFarm.longitude : null),
     country:             cachedFarm ? cachedFarm.country      : null,
@@ -4451,6 +4544,12 @@ function closeSubmit() {
   if (seasonGrid) seasonGrid.querySelectorAll('.month-btn').forEach(b => b.classList.remove('on'));
   const seasonHidden = document.getElementById('farmFieldSeason');
   if (seasonHidden) seasonHidden.value = '';
+  // Reset farm category pickers
+  document.querySelectorAll('[data-fcat]').forEach(b => b.classList.remove('on'));
+  document.getElementById('farmCategorySecondGroup').style.display = 'none';
+  document.getElementById('farmCatSecondPills').innerHTML = '';
+  const farmCatCustom = document.getElementById('farmCatSecondCustom');
+  if (farmCatCustom) { farmCatCustom.style.display = 'none'; farmCatCustom.value = ''; }
   // Reset fb link field
   const fbLinkInput = document.getElementById('fieldFbLink');
   if (fbLinkInput) fbLinkInput.value = '';
@@ -4530,6 +4629,105 @@ function openFbSearch(type) {
 function selectPriceCat(el) {
   document.querySelectorAll('[data-pcat]').forEach(b => b.classList.remove('selected'));
   el.classList.add('selected');
+}
+
+// ── FARM CATEGORY SUB-TYPES ──
+// Derived from existing farm_category_second / farm_category_third values in the DB,
+// grouped by their farm_category_first parent.
+const FARM_SUBTYPES = {
+  'Livestock':          ['Livestock Breeder','Cattle Farm','Ranch','Station','Sheeps Farm','Alpacas Farm','Horse Stud','Pigs Farm','Goats Farm','Deer Farm','Emus/Ostriches Farm','Camel Farm','Donkey Farm'],
+  'Plants & Nursery':   ['Plants Nursery','Wholesale Plant','Christmas Tree','Tree Plantation'],
+  'Fruits & Orchards':  ['Orchard','Berries Farm','Apples Farm','Grapes Farm','Olive Farm','Citrus Farm','Mangoes Farm','Strawberry Farm','Cherries Farm','Banana Farm','Avocado Farm','Nuts Farm','Fruits Farm'],
+  'Vineyard & Winery':  ['Vineyard'],
+  'Vegetables & Crops': ['Vegetables Farm','Flowers Farm','Mushrooms Farm','Grains Farm','Nuts Farm','Seafood Farm','Cottons Farm'],
+  'Honey':              ['Honey Farm'],
+  'Poultry & Eggs':     ['Poultry Farm','Eggs Farm'],
+  'Aquaculture':        ['Oyster Supplier','Aquaculture Farm','Fish Farm','Pearls Farm'],
+  'Dairy':              ['Dairy Farm'],
+  'Mixed & Specialty':  ['Roadhouses','Medicinal Cannabis Farm','Mixed Farm'],
+  'Others':             ['Other Farm'],
+};
+
+function selectFarmCat(el) {
+  document.querySelectorAll('[data-fcat]').forEach(b => b.classList.remove('on'));
+  el.classList.add('on');
+  _renderFarmSubtypePills(el.dataset.fcat);
+}
+
+function _renderFarmSubtypePills(cat) {
+  const group = document.getElementById('farmCategorySecondGroup');
+  const container = document.getElementById('farmCatSecondPills');
+  const customInput = document.getElementById('farmCatSecondCustom');
+  // Always reset custom input when category changes
+  if (customInput) { customInput.style.display = 'none'; customInput.value = ''; }
+  const subtypes = FARM_SUBTYPES[cat] || [];
+  if (!subtypes.length) { group.style.display = 'none'; return; }
+  container.innerHTML = subtypes.map(s =>
+    `<button type="button" class="hh-day-btn" data-fcat2="${s}" onclick="selectFarmCatSecond(this)">${s}</button>`
+  ).join('');
+  group.style.display = '';
+}
+
+function selectFarmCatSecond(el) {
+  // Toggle: tap again to deselect
+  const wasOn = el.classList.contains('on');
+  document.querySelectorAll('[data-fcat2]').forEach(b => b.classList.remove('on'));
+  const customInput = document.getElementById('farmCatSecondCustom');
+  if (!wasOn) {
+    el.classList.add('on');
+    // Show free-text field only when "Other Farm" is selected
+    if (customInput) {
+      const isOther = el.dataset.fcat2 === 'Other Farm';
+      customInput.style.display = isOther ? '' : 'none';
+      if (isOther) setTimeout(() => customInput.focus(), 50);
+      else customInput.value = '';
+    }
+  } else {
+    // Deselected — hide custom input
+    if (customInput) { customInput.style.display = 'none'; customInput.value = ''; }
+  }
+}
+
+// ── Edit Farm: category helpers (scoped to [data-efcat] to avoid collisions) ──
+function selectEditFarmCat(el) {
+  document.querySelectorAll('[data-efcat]').forEach(b => b.classList.remove('on'));
+  el.classList.add('on');
+  _renderEditFarmSubtypePills(el.dataset.efcat, '');
+}
+
+function _renderEditFarmSubtypePills(cat, preselect) {
+  const group       = document.getElementById('editFarmCategorySecondGroup');
+  const container   = document.getElementById('editFarmCatSecondPills');
+  const customInput = document.getElementById('editFarmCatSecondCustom');
+  if (customInput) { customInput.style.display = 'none'; customInput.value = ''; }
+  const subtypes = FARM_SUBTYPES[cat] || [];
+  if (!subtypes.length) { group.style.display = 'none'; return; }
+  container.innerHTML = subtypes.map(s =>
+    `<button type="button" class="hh-day-btn${preselect === s ? ' on' : ''}" data-efcat2="${s}" onclick="selectEditFarmCatSecond(this)">${s}</button>`
+  ).join('');
+  // If preselected value wasn't in the list (e.g. custom text), show custom input
+  if (preselect && !subtypes.includes(preselect)) {
+    container.innerHTML += `<button type="button" class="hh-day-btn on" data-efcat2="Other Farm" onclick="selectEditFarmCatSecond(this)">Other Farm</button>`;
+    if (customInput) { customInput.style.display = ''; customInput.value = preselect; }
+  }
+  group.style.display = '';
+}
+
+function selectEditFarmCatSecond(el) {
+  const wasOn = el.classList.contains('on');
+  document.querySelectorAll('[data-efcat2]').forEach(b => b.classList.remove('on'));
+  const customInput = document.getElementById('editFarmCatSecondCustom');
+  if (!wasOn) {
+    el.classList.add('on');
+    if (customInput) {
+      const isOther = el.dataset.efcat2 === 'Other Farm';
+      customInput.style.display = isOther ? '' : 'none';
+      if (isOther) setTimeout(() => customInput.focus(), 50);
+      else customInput.value = '';
+    }
+  } else {
+    if (customInput) { customInput.style.display = 'none'; customInput.value = ''; }
+  }
 }
 
 function addPriceRow() {
@@ -5289,6 +5487,22 @@ async function submitForm() {
         const f88     = document.getElementById('farmField88').value || 'unknown';
         const organic = document.getElementById('farmFieldOrganic').value || 'unknown';
         const season  = document.getElementById('farmFieldSeason').value.trim();
+        // Main category — required
+        const catEl = document.querySelector('[data-fcat].on');
+        if (!catEl) {
+          showValidationError('Please select a main category for the farm.');
+          if (btn) { btn.disabled = false; btn.innerHTML = 'Send for review'; }
+          return;
+        }
+        // Optional sub-type — use custom text if "Other Farm" was picked
+        const catSecondEl = document.querySelector('[data-fcat2].on');
+        let catSecondValue = catSecondEl ? catSecondEl.dataset.fcat2 : null;
+        if (catSecondValue === 'Other Farm') {
+          const customVal = (document.getElementById('farmCatSecondCustom')?.value || '').trim();
+          if (customVal) catSecondValue = customVal;
+        }
+        payload.farm_category        = catEl.dataset.fcat;
+        payload.farm_category_second = catSecondValue || null;
         payload.farm_phone         = phone   || null;
         payload.farm_email         = email   || null;
         payload.farm_website       = website || null;
@@ -6409,7 +6623,7 @@ const FARM_SUBSUBCAT_BY_SUBCAT = {
 };
 
 const advState = {
-  farms: { countries:[], accom:'any', days88:'any', minPay:25, organic:'any', catGroups:[], subcats:[], subSubcats:[] },
+  farms: { countries:[], verified:false, accom:'any', days88:'any', minPay:25, organic:'any', catGroups:[], subcats:[], subSubcats:[] },
   deals: { countries:[], minDiscount:0 },
 };
 
@@ -6530,7 +6744,7 @@ function closeAdvFilter() {
 
 function resetAdvFilter() {
   if (advContext === 'farms') {
-    advState.farms = { countries:[], accom:'any', days88:'any', minPay:25, organic:'any', catGroups:[], subcats:[], subSubcats:[] };
+    advState.farms = { countries:[], verified:false, accom:'any', days88:'any', minPay:25, organic:'any', catGroups:[], subcats:[], subSubcats:[] };
   } else {
     advState.deals = { countries:[], minDiscount:0 };
   }
@@ -6542,7 +6756,7 @@ function updateAdvBadge(ctx) {
   const f = advState.farms;
   const d = advState.deals;
   const hasFilters = ctx === 'farms'
-    ? !!(f.countries.length || f.accom !== 'any' || f.days88 !== 'any' || f.minPay > 25 || f.organic !== 'any' || f.catGroups.length || f.subcats.length || f.subSubcats.length)
+    ? !!(f.countries.length || f.verified || f.accom !== 'any' || f.days88 !== 'any' || f.minPay > 25 || f.organic !== 'any' || f.catGroups.length || f.subcats.length || f.subSubcats.length)
     : !!(d.countries.length || d.minDiscount > 0);
 
   const btnId = ctx === 'farms' ? 'farmsAdvBtn' : 'dealsAdvBtn';
@@ -6583,6 +6797,12 @@ function renderAdvPanel(ctx) {
       </div>`;
     html += `<div class="adv-section">
       <div class="adv-section-label">Farm options</div>
+      <div class="adv-row">
+        <div><div class="adv-row-label"><i class="ti ti-rosette-discount-check" style="color:#185FA5;font-size:14px;vertical-align:-2px;margin-right:4px;"></i>Verified by admin</div><div class="adv-row-sub">Only show admin-checked farms</div></div>
+        <button class="adv-verified-btn${s.verified?' active':''}" onclick="advToggleVerified()" id="advVerifiedBtn">
+          ${s.verified ? '<i class="ti ti-rosette-discount-check"></i> On' : 'Off'}
+        </button>
+      </div>
       ${tristateRow('Accommodation included','Farm provides housing','accom',s.accom)}
       ${tristateRow('88-day visa eligible','Counts toward regional work','days88',s.days88)}
       ${tristateRow('Organic','Certified or described as organic','organic',s.organic)}
@@ -6659,6 +6879,25 @@ function advSetTristate(field, val) {
   renderAdvPanel(advContext);
 }
 
+function advToggleVerified() {
+  advState.farms.verified = !advState.farms.verified;
+  // Sync pill bar: toggle the verified pill active state
+  const verifiedPill = document.querySelector('#page-farms .filter-pill[data-ftype="verified"]');
+  if (verifiedPill) {
+    if (advState.farms.verified) {
+      _activeFarmTypes.add('verified');
+      _activeFarmTypes.delete('all');
+    } else {
+      _activeFarmTypes.delete('verified');
+      if (_activeFarmTypes.size === 0) _activeFarmTypes.add('all');
+    }
+    document.querySelectorAll('#page-farms .filter-pill[data-ftype]').forEach(p => {
+      p.classList.toggle('active', _activeFarmTypes.has(p.dataset.ftype));
+    });
+  }
+  renderAdvPanel(advContext);
+}
+
 function advSetFarmCat(g) {
   const arr = advState.farms.catGroups;
   if (g === '') {
@@ -6722,6 +6961,9 @@ function applyAdvFilter() {
     // Sync back to the pill bar when adv filter applies category selections
     (function syncPillToAdv() {
       _activeFarmTypes.clear();
+      if (s.verified) {
+        _activeFarmTypes.add('verified');
+      }
       if (s.days88 === 'yes') {
         _activeFarmTypes.add('88days');
       }
@@ -6729,7 +6971,7 @@ function applyAdvFilter() {
         // For each selected catGroup, find all pills that map to it
         s.catGroups.forEach(grp => {
           const entries = typeof PILL_TO_ADV_CAT !== 'undefined'
-            ? Object.entries(PILL_TO_ADV_CAT).filter(([k, v]) => v === grp && k !== 'all' && k !== '88days')
+            ? Object.entries(PILL_TO_ADV_CAT).filter(([k, v]) => v === grp && k !== 'all' && k !== '88days' && k !== 'verified')
             : [];
           entries.forEach(([k]) => _activeFarmTypes.add(k));
         });
@@ -6741,6 +6983,7 @@ function applyAdvFilter() {
     })();
 
     let filtered = allFarms.filter(f => {
+      if (s.verified && !(f.last_checked_by && f.last_checked_by.trim())) return false;
       if (s.countries.length && !s.countries.some(c => (f.country||'').toLowerCase() === c.toLowerCase())) return false;
       if (s.accom !== 'any') {
         const accVal = (f.accommodation||'unknown').toLowerCase();
