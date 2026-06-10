@@ -250,6 +250,10 @@ html.dark .profile-logout-btn:active{background:#3A1A1A;}
 .filter-pill.active{background:var(--amber);border-color:var(--amber);color:white;font-weight:600;}
 .filter-pill[data-ftype="verified"]{color:#185FA5;border-color:rgba(24,95,165,0.3);}
 .filter-pill[data-ftype="verified"].active{background:#185FA5;border-color:#185FA5;color:white;}
+.adv-verified-btn{display:inline-flex;align-items:center;gap:5px;padding:5px 14px;border-radius:20px;border:1.5px solid var(--border-mid);background:var(--off-white);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;color:var(--text-mid);cursor:pointer;transition:all 0.15s;-webkit-tap-highlight-color:transparent;}
+.adv-verified-btn.adv-verified-on{background:#185FA5;border-color:#185FA5;color:white;}
+html.dark .adv-verified-btn{background:#1E1E1E;border-color:var(--border-mid);color:var(--text-mid);}
+html.dark .adv-verified-btn.adv-verified-on{background:#185FA5;border-color:#185FA5;color:white;}
 .filter-pill[data-ftype].active:not([data-ftype="all"])::before,
 .filter-pill[data-dtype].active:not([data-dtype="all"])::before{content:'✓';margin-right:2px;font-size:11px;}
 .filter-pill i{font-size:15px}
@@ -544,8 +548,9 @@ input#priceRangeInput::-moz-range-thumb{
 .detail-verified-badge{display:inline-flex;align-items:center;gap:3px;padding:2px 7px 2px 5px;border-radius:20px;background:#E6F1FB;color:#185FA5;font-size:11px;font-weight:700;cursor:pointer;border:none;font-family:'DM Sans',sans-serif;flex-shrink:0;vertical-align:middle;-webkit-tap-highlight-color:transparent;transition:background 0.12s;}
 .detail-verified-badge:active{background:#CCE3F8;}
 .detail-verified-badge i{font-size:13px;}
-.detail-verified-popup{position:fixed;background:var(--text-dark);color:white;font-size:12px;font-weight:500;line-height:1.5;padding:8px 12px;border-radius:10px;white-space:normal;width:max-content;max-width:min(220px,calc(100vw - 32px));box-shadow:0 4px 16px rgba(0,0,0,0.2);z-index:9999;pointer-events:none;opacity:0;transition:opacity 0.18s;top:-9999px;left:-9999px;}
-.detail-verified-popup.show{opacity:1;}
+.detail-verified-popup{position:fixed;background:var(--text-dark);color:white;font-size:12px;font-weight:500;line-height:1.4;padding:7px 11px;border-radius:10px;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,0.2);z-index:9999;pointer-events:none;visibility:hidden;opacity:0;transition:opacity 0.18s;}
+.detail-verified-popup::before{content:'';position:absolute;bottom:100%;left:var(--arrow-left,50%);transform:translateX(-50%);border:5px solid transparent;border-bottom-color:var(--text-dark);}
+.detail-verified-popup.show{opacity:1;visibility:visible;}
 html.dark .detail-verified-badge{background:#0D1F35;color:#4DA3FF;}
 html.dark .detail-verified-badge:active{background:#112840;}
 .detail-hero-sub{font-size:13px;color:var(--text-light);display:flex;align-items:center;gap:5px;}
@@ -2651,7 +2656,8 @@ function addFarmMarkers(farms) {
     const pay  = f.pay_per_hour_aud ? `<span class="badge pay">$${f.pay_per_hour_aud}/hr</span>` : '';
     const acc  = f.accommodation && f.accommodation.toLowerCase() === 'yes' ? `<span class="badge deal">Housing</span>` : '';
     const is88popup = (f.eighty_eight_days||'').toLowerCase() === 'yes' ? `<span class="badge" style="background:#E6F1FB;color:#185FA5;">88 days</span>` : '';
-    const popup = L.popup({className:'hive-popup',closeButton:true}).setContent(`<div class="popup-inner"><div class="popup-name">${escHTML(f.business_name)}</div><div class="popup-detail" style="display:flex;align-items:center;gap:6px;">${escHTML(f.city||'')}${f.state_region?', '+escHTML(f.state_region):''} · ${escHTML(f.country||'')}<span id="popup-stars-${f.id}" style="display:inline-flex;align-items:center;gap:2px;margin-left:2px;"></span></div><div class="popup-badges"><span class="badge">${escHTML(f.farm_category_first||'Farm')}</span>${pay}${acc}${is88popup}</div>${f.notes?`<div style="font-size:12px;color:var(--text-light);margin-bottom:10px;">${escHTML(f.notes)}</div>`:''}<button class="popup-btn" onclick="openFarmDetail('${f.id}')">View details</button></div>`);
+    const verifiedIcon = (f.last_checked_by && f.last_checked_by.trim()) ? `<i class="ti ti-circle-check-filled" style="color:#185FA5;font-size:15px;vertical-align:-2px;margin-left:5px;"></i>` : '';
+    const popup = L.popup({className:'hive-popup',closeButton:true}).setContent(`<div class="popup-inner"><div class="popup-name">${escHTML(f.business_name)}${verifiedIcon}</div><div class="popup-detail" style="display:flex;align-items:center;gap:6px;">${escHTML(f.city||'')}${f.state_region?', '+escHTML(f.state_region):''} · ${escHTML(f.country||'')}<span id="popup-stars-${f.id}" style="display:inline-flex;align-items:center;gap:2px;margin-left:2px;"></span></div><div class="popup-badges"><span class="badge">${escHTML(f.farm_category_first||'Farm')}</span>${pay}${acc}${is88popup}</div>${f.notes?`<div style="font-size:12px;color:var(--text-light);margin-bottom:10px;">${escHTML(f.notes)}</div>`:''}<button class="popup-btn" onclick="openFarmDetail('${f.id}')">View details</button></div>`);
     const marker = L.marker([lat,lng],{icon}).bindPopup(popup);
     marker.on('popupopen', function() {
       const span = document.getElementById('popup-stars-' + f.id);
@@ -2795,16 +2801,17 @@ function toggleFarmPill(btn) {
 
   // Sync advState (populate catGroups from active pill selections)
   if (_activeFarmTypes.has('all')) {
-    advState.farms.days88 = 'any'; advState.farms.catGroups = []; advState.farms.subcats = []; advState.farms.subSubcats = [];
+    advState.farms.verified = false; advState.farms.days88 = 'any'; advState.farms.catGroups = []; advState.farms.subcats = []; advState.farms.subSubcats = [];
   } else {
     const activePills = [..._activeFarmTypes];
+    advState.farms.verified = activePills.includes('verified');
     const has88 = activePills.includes('88days');
     advState.farms.days88 = has88 ? 'yes' : 'any';
     // Map each non-attribute pill to its advCat group name
     advState.farms.catGroups = activePills
-      .filter(t => t !== '88days')
+      .filter(t => t !== '88days' && t !== 'verified')
       .map(t => PILL_TO_ADV_CAT[t])
-      .filter(v => v !== undefined && v !== '' && v !== '__88days__');
+      .filter(v => v !== undefined && v !== '' && v !== '__88days__' && v !== '__verified__');
     // Remove duplicates (e.g. honey/poultry/mixed all map to Mixed & Specialty)
     advState.farms.catGroups = [...new Set(advState.farms.catGroups)];
     // Clear subcats when multiple categories are active
@@ -2825,7 +2832,7 @@ function applyFarmPillFilter() {
     filtered = allFarms;
   } else {
     // Split active types into category pills and attribute pills
-    const attrTypes  = ['88days']; // pills that are attributes (AND)
+    const attrTypes  = ['88days', 'verified']; // pills that are attributes (AND)
     const activeAttrs = [..._activeFarmTypes].filter(t => attrTypes.includes(t));
     const activeCats  = [..._activeFarmTypes].filter(t => !attrTypes.includes(t));
 
@@ -2840,6 +2847,7 @@ function applyFarmPillFilter() {
       // Attribute match: farm must match ALL selected attributes (AND)
       const attrMatch = activeAttrs.every(type => {
         if (type === '88days') return (f.eighty_eight_days||'').toLowerCase() === 'yes';
+        if (type === 'verified') return !!(f.last_checked_by && f.last_checked_by.trim());
         return true;
       });
 
@@ -3003,7 +3011,7 @@ async function openFarmDetail(id) {
       const safeName = escHTML(rows[0].last_checked_by);
       const safeDate = escHTML(rows[0].last_checked_at || '');
       wrap.insertAdjacentHTML('beforeend',
-        `<button class="detail-verified-badge" onclick="showVerifiedPopup(this,'${safeName}','${safeDate}')"><i class="ti ti-circle-check-filled"></i>Verified</button><div class="detail-verified-popup"></div>`
+        `<button class="detail-verified-badge" onclick="showVerifiedPopup(this,'${safeDate}')"><i class="ti ti-circle-check-filled"></i>Verified</button><div class="detail-verified-popup"></div>`
       );
     })
     .catch(() => {}); // badge is non-critical
@@ -3011,50 +3019,43 @@ async function openFarmDetail(id) {
 
 // ── VERIFIED BADGE POPUP ──
 let _verifiedPopupTimer = null;
-function showVerifiedPopup(btn, name, isoDate) {
+function showVerifiedPopup(btn, isoDate) {
   const popup = btn.nextElementSibling;
   if (!popup) return;
 
-  // Format the date nicely
   const d = new Date(isoDate);
   const dateStr = isNaN(d) ? isoDate : d.toLocaleDateString('en', { day: 'numeric', month: 'long', year: 'numeric' });
+  popup.textContent = `Last checked the ${dateStr}`;
 
-  // If name is an email, show just the part before @
-  const displayName = name.includes('@') ? name.split('@')[0] : name;
+  // Make visible but hidden to measure real dimensions
+  popup.style.visibility = 'hidden';
+  popup.style.opacity    = '1';
+  popup.style.top        = '0';
+  popup.style.left       = '0';
 
-  popup.textContent = `Last checked by ${displayName} on ${dateStr}`;
+  const r      = btn.getBoundingClientRect();
+  const popW   = popup.offsetWidth  || 160;
+  const popH   = popup.offsetHeight || 32;
+  const margin = 8;
 
-  // Place off-screen, make visible for measurement, then position
-  popup.style.opacity = '0';
-  popup.style.top     = '-9999px';
-  popup.style.left    = '-9999px';
+  let left = r.left + r.width / 2 - popW / 2;
+  let top  = r.bottom + margin;
+
+  left = Math.max(margin, Math.min(left, window.innerWidth  - popW - margin));
+  if (top + popH > window.innerHeight - margin) top = r.top - popH - margin;
+
+  const arrowLeft = (r.left + r.width / 2) - left;
+  popup.style.setProperty('--arrow-left', arrowLeft + 'px');
+  popup.style.top  = top  + 'px';
+  popup.style.left = left + 'px';
+
+  // Now actually show it
+  popup.style.visibility = '';
+  popup.style.opacity    = '';
   popup.classList.add('show');
 
-  requestAnimationFrame(() => {
-    const btnRect = btn.getBoundingClientRect();
-    const popW    = popup.offsetWidth  || 200;
-    const popH    = popup.offsetHeight || 36;
-    const margin  = 12;
-    const vw      = window.innerWidth;
-    const vh      = window.innerHeight;
-
-    let top  = btnRect.bottom + 8;
-    let left = btnRect.left + btnRect.width / 2 - popW / 2;
-
-    // Clamp horizontally
-    left = Math.max(margin, Math.min(left, vw - popW - margin));
-    // Flip above if it clips the bottom
-    if (top + popH > vh - margin) top = btnRect.top - popH - 8;
-
-    popup.style.top  = top  + 'px';
-    popup.style.left = left + 'px';
-    popup.style.opacity = '';  // let CSS transition take over
-
-    clearTimeout(_verifiedPopupTimer);
-    _verifiedPopupTimer = setTimeout(() => {
-      popup.classList.remove('show');
-    }, 4000);
-  });
+  clearTimeout(_verifiedPopupTimer);
+  _verifiedPopupTimer = setTimeout(() => popup.classList.remove('show'), 2000);
 }
 
 
@@ -6639,7 +6640,7 @@ const FARM_SUBSUBCAT_BY_SUBCAT = {
 };
 
 const advState = {
-  farms: { countries:[], accom:'any', days88:'any', minPay:25, organic:'any', catGroups:[], subcats:[], subSubcats:[] },
+  farms: { countries:[], verified:false, accom:'any', days88:'any', minPay:25, organic:'any', catGroups:[], subcats:[], subSubcats:[] },
   deals: { countries:[], minDiscount:0 },
 };
 
@@ -6760,7 +6761,7 @@ function closeAdvFilter() {
 
 function resetAdvFilter() {
   if (advContext === 'farms') {
-    advState.farms = { countries:[], accom:'any', days88:'any', minPay:25, organic:'any', catGroups:[], subcats:[], subSubcats:[] };
+    advState.farms = { countries:[], verified:false, accom:'any', days88:'any', minPay:25, organic:'any', catGroups:[], subcats:[], subSubcats:[] };
   } else {
     advState.deals = { countries:[], minDiscount:0 };
   }
@@ -6772,7 +6773,7 @@ function updateAdvBadge(ctx) {
   const f = advState.farms;
   const d = advState.deals;
   const hasFilters = ctx === 'farms'
-    ? !!(f.countries.length || f.accom !== 'any' || f.days88 !== 'any' || f.minPay > 25 || f.organic !== 'any' || f.catGroups.length || f.subcats.length || f.subSubcats.length)
+    ? !!(f.countries.length || f.verified || f.accom !== 'any' || f.days88 !== 'any' || f.minPay > 25 || f.organic !== 'any' || f.catGroups.length || f.subcats.length || f.subSubcats.length)
     : !!(d.countries.length || d.minDiscount > 0);
 
   const btnId = ctx === 'farms' ? 'farmsAdvBtn' : 'dealsAdvBtn';
@@ -6813,6 +6814,13 @@ function renderAdvPanel(ctx) {
       </div>`;
     html += `<div class="adv-section">
       <div class="adv-section-label">Farm options</div>
+      <div class="adv-row">
+        <div>
+          <div class="adv-row-label"><i class="ti ti-rosette-discount-check" style="color:#185FA5;font-size:14px;vertical-align:-2px;margin-right:3px;"></i>Verified by admin</div>
+          <div class="adv-row-sub">Only show admin-checked farms</div>
+        </div>
+        <button class="adv-verified-btn${s.verified?' adv-verified-on':''}" onclick="advToggleVerified()">${s.verified?'<i class=\'ti ti-rosette-discount-check\'></i> On':'Off'}</button>
+      </div>
       ${tristateRow('Accommodation included','Farm provides housing','accom',s.accom)}
       ${tristateRow('88-day visa eligible','Counts toward regional work','days88',s.days88)}
       ${tristateRow('Organic','Certified or described as organic','organic',s.organic)}
@@ -6889,6 +6897,17 @@ function advSetTristate(field, val) {
   renderAdvPanel(advContext);
 }
 
+function advToggleVerified() {
+  advState.farms.verified = !advState.farms.verified;
+  const v = advState.farms.verified;
+  if (v) { _activeFarmTypes.add('verified'); _activeFarmTypes.delete('all'); }
+  else   { _activeFarmTypes.delete('verified'); if (_activeFarmTypes.size === 0) _activeFarmTypes.add('all'); }
+  document.querySelectorAll('#page-farms .filter-pill[data-ftype]').forEach(p => {
+    p.classList.toggle('active', _activeFarmTypes.has(p.dataset.ftype));
+  });
+  renderAdvPanel(advContext);
+}
+
 function advSetFarmCat(g) {
   const arr = advState.farms.catGroups;
   if (g === '') {
@@ -6952,14 +6971,13 @@ function applyAdvFilter() {
     // Sync back to the pill bar when adv filter applies category selections
     (function syncPillToAdv() {
       _activeFarmTypes.clear();
-      if (s.days88 === 'yes') {
-        _activeFarmTypes.add('88days');
-      }
+      if (s.verified) _activeFarmTypes.add('verified');
+      if (s.days88 === 'yes') _activeFarmTypes.add('88days');
       if (s.catGroups && s.catGroups.length) {
         // For each selected catGroup, find all pills that map to it
         s.catGroups.forEach(grp => {
           const entries = typeof PILL_TO_ADV_CAT !== 'undefined'
-            ? Object.entries(PILL_TO_ADV_CAT).filter(([k, v]) => v === grp && k !== 'all' && k !== '88days')
+            ? Object.entries(PILL_TO_ADV_CAT).filter(([k, v]) => v === grp && k !== 'all' && k !== '88days' && k !== 'verified')
             : [];
           entries.forEach(([k]) => _activeFarmTypes.add(k));
         });
@@ -6971,6 +6989,7 @@ function applyAdvFilter() {
     })();
 
     let filtered = allFarms.filter(f => {
+      if (s.verified && !(f.last_checked_by && f.last_checked_by.trim())) return false;
       if (s.countries.length && !s.countries.some(c => (f.country||'').toLowerCase() === c.toLowerCase())) return false;
       if (s.accom !== 'any') {
         const accVal = (f.accommodation||'unknown').toLowerCase();
